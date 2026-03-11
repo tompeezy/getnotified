@@ -1,21 +1,20 @@
 cd $HOME\getnotified
 
-$file = Join-Path $HOME "getnotified\components\Packages.tsx"
+$file = "$HOME\getnotified\components\Packages.tsx"
 
 $content = Get-Content $file -Raw
 
-$content = $content -replace "â€¢","-"
-$content = $content -replace "Â",""
-$content = $content -replace "â€“","-"
-$content = $content -replace "one-time  installed","one-time installed"
-$content = $content -replace "one-time fee - no subscription","one-time fee - no subscription"
+$content = [regex]::Replace($content, '[^\x00-\x7F]', '')
+$content = $content -replace 'one-time  installed','one-time installed'
+$content = $content -replace 'fee  no subscription','fee - no subscription'
+$content = $content -replace '  no cloud',' - no cloud'
+$content = $content -replace 'A installed','installed'
 
-$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-[System.IO.File]::WriteAllText($file, $content, $utf8NoBom)
+$utf8 = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText($file, $content, $utf8)
 
 git add .
-git commit -m "Fix package encoding characters"
+git commit -m 'Strip bad package characters'
 git push
 
-Start-Process "https://getnotifiedllc.com"
-Start-Process "https://vercel.com/tompeezys-projects"
+Start-Process 'https://getnotifiedllc.com'

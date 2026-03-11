@@ -1,3 +1,8 @@
+cd $HOME\getnotified
+
+$heroPath = "components\Hero.tsx"
+
+$hero = @'
 "use client"
 
 export default function Hero() {
@@ -124,3 +129,14 @@ export default function Hero() {
     </section>
   )
 }
+'@
+
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[System.IO.File]::WriteAllText((Join-Path (Get-Location) $heroPath), $hero, $utf8NoBom)
+
+git add .
+git commit -m "Fix hero encoding characters"
+git push
+
+Start-Process "https://getnotifiedllc.com"
+Start-Process "https://vercel.com/tompeezys-projects"

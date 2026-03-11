@@ -10,7 +10,7 @@ const elder = [
   {name:"Total Peace of Mind",price:"$3,999",badge:"Maximum Protection",desc:"Nothing gets missed",features:["Everything in Complete","2 fall/presence sensors","2 water leak sensors","2 temp/humidity sensors","1 smoke detector","Medication cabinet monitoring","Wellness activity tracking"]},
 ]
 const family = [
-  {name:"Family Starter",price:"$499",badge:"New Parents",desc:"Home safety for growing families",features:["Hub computer + setup","2 door/window sensors","1 motion sensor","1 water leak sensor","Phone alerts  whole family","Works with existing baby monitors"]},
+  {name:"Family Starter",price:"$499",badge:"New Parents",desc:"Home safety for growing families",features:["Hub computer + setup","2 door/window sensors","1 motion sensor","1 water leak sensor","Phone alerts  whole family","Aqara camera recommended for optimal monitoring"]},
   {name:"Family Shield",price:"$799",badge:"Full Coverage",desc:"Protection room by room",features:["Everything in Starter","4 door/window sensors","2 motion sensors","Smoke detector integration","Temp monitoring (nursery)","No cloud  100% private"]},
 ]
 function PkgCard({p}:{p:typeof landlord[0]}) {

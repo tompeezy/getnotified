@@ -1,4 +1,9 @@
-﻿"use client"
+cd $HOME\getnotified
+
+$heroPath = "components\Hero.tsx"
+
+$hero = @"
+"use client"
 
 export default function Hero() {
   return (
@@ -18,7 +23,7 @@ export default function Hero() {
         <div className="mt-8 grid md:grid-cols-3 gap-4 text-sm">
 
           <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-            <p className="font-semibold text-red-400">,000+</p>
+            <p className="font-semibold text-red-400">$11,000+</p>
             <p className="text-slate-400">Average water damage claim</p>
           </div>
 
@@ -41,13 +46,13 @@ export default function Hero() {
           </h2>
 
           <ul className="mt-4 space-y-2 text-slate-300">
-            <li>âœ“ Instant phone notifications</li>
-            <li>âœ“ Automatic water shutoff</li>
-            <li>âœ“ Door & window notifications</li>
-            <li>âœ“ Smoke notifications</li>
-            <li>âœ“ Temperature notifications</li>
-            <li>âœ“ No surveillance cameras</li>
-            <li>âœ“ No monthly monitoring fees</li>
+            <li>✓ Instant phone notifications</li>
+            <li>✓ Automatic water shutoff</li>
+            <li>✓ Door & window notifications</li>
+            <li>✓ Smoke notifications</li>
+            <li>✓ Temperature notifications</li>
+            <li>✓ No surveillance cameras</li>
+            <li>✓ No monthly monitoring fees</li>
           </ul>
 
         </div>
@@ -71,10 +76,21 @@ export default function Hero() {
         </div>
 
         <p className="mt-6 text-sm text-slate-500">
-          Safety without surveillance â€¢ Local install â€¢ Veteran discount available
+          Safety without surveillance • Local install • Veteran discount available
         </p>
 
       </div>
     </section>
   )
 }
+"@
+
+Set-Content -Path $heroPath -Value $hero -Encoding UTF8
+
+git add .
+git commit -m "Hero section upgrade"
+git push
+
+Start-Process "https://vercel.com/tompeezy/getnotified"
+
+Write-Host "Deployment pushed. Vercel building preview."

@@ -5,7 +5,7 @@ import Packages from "@/components/Packages"
 import Privacy from "@/components/Privacy"
 import Veteran from "@/components/Veteran"
 import HowItWorks from "@/components/HowItWorks"
-import WhoWeProtect from "@/components/WhoWeProtect"
+
 import Testimonials from "@/components/Testimonials"
 import DamageCalculator from "@/components/DamageCalculator"
 import LocalTrust from "@/components/LocalTrust"
@@ -20,7 +20,7 @@ export default function Home() {
       <DamageRisk/>
       <HowItWorks/>
       <Markets/>
-      <WhoWeProtect/>
+
       <Packages/>
       <DamageCalculator/>
       <Privacy/>

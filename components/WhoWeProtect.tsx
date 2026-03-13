@@ -6,6 +6,7 @@ export default function WhoWeProtect() {
     { icon: "🇺🇸", title: "Veterans", desc: "Smart home systems that support independence for veterans and those with TBI. Ask about our veteran discount." },
     { icon: "👶", title: "Young Families", desc: "Baby monitors, entry alerts, whole-home safety — all on one private, local system. No cloud. No subscription." },
     { icon: "🏢", title: "Facilities", desc: "Scalable monitoring for senior living, memory care, and multi-unit properties. Built for staff and family communication." },
+    { icon: "🚐", title: "RV & Camper Owners", desc: "Leak detection, CO alerts, door sensors, and temp monitoring — runs locally, no cell data needed. Know what's happening in your rig 24/7." },
   ]
   return (
     <section className="py-20 px-6 bg-[#f8fafc]">

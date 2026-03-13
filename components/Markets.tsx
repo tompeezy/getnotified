@@ -4,6 +4,7 @@ const markets = [
   {icon:"🇺🇸",title:"Veterans & TBI",desc:"Smart home systems that support independence for veterans and those with traumatic brain injury. Ask about our discount.",color:"red"},
   {icon:"👶",title:"Growing Families",desc:"Baby monitor integration, entry alerts, and whole-home safety — all on one private, local system.",color:"green"},
   {icon:"🏢",title:"Facilities & Care Homes",desc:"Scalable monitoring for senior living facilities, memory care units, and multi-unit properties. Built for staff and families.",color:"purple"},
+  {icon:"🚐",title:"RV & Camper Owners",desc:"Leak detection, temperature alerts, door sensors, and CO monitoring — all running locally with no cell data required. Know what's happening in your rig whether you're in it or not.",color:"orange"},
 ]
 export default function Markets() {
   return (

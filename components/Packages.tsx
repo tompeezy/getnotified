@@ -1,4 +1,39 @@
 "use client"
+
+function ShipCard({p}:{p:typeof network[0]}) {
+  return (
+    <div className="bg-white rounded-2xl border-2 border-slate-100 overflow-hidden hover:border-[#f59e0b] hover:shadow-xl transition flex flex-col">
+      <div className="bg-[#1a2744] p-6 text-white text-center">
+        <div className="inline-block bg-[#f59e0b] text-[#1a2744] text-xs font-extrabold px-3 py-1 rounded-full mb-3">{p.badge}</div>
+        <div className="font-extrabold text-xl mb-1">{p.name}</div>
+        <div className="text-slate-400 text-sm mb-3">{p.desc}</div>
+        <div className="text-4xl font-black text-[#f59e0b]">{p.price}</div>
+        <div className="text-slate-400 text-xs mt-1">shipped nationwide • free setup support</div>
+        {p.installedPrice && <div className="text-slate-300 text-xs mt-2 bg-white/10 rounded-lg py-1 px-3 inline-block">{p.installedPrice} installed locally (Salisbury NC)</div>}
+      </div>
+      <div className="p-6 flex-1">
+        <ul className="space-y-3">
+          {p.features.map(f=>(
+            <li key={f} className="flex items-start gap-2 text-sm text-slate-600">
+              <span className="text-green-500 font-bold mt-0.5">✓</span>{f}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="px-6 pb-6 flex flex-col gap-2">
+        <a href={`mailto:gettompoai@gmail.com?subject=Order: ${p.name}&body=Hi Thomas,%0A%0AI'd like to order the ${p.name} (${p.price} shipped).%0A%0AName:%0AShipping address:%0APhone:%0A`}
+          className="block w-full bg-[#f59e0b] text-[#1a2744] font-extrabold text-center py-3 rounded-xl hover:bg-yellow-400 transition">
+          Order Now — {p.price} Shipped →
+        </a>
+        <a href="#contact"
+          className="block w-full border-2 border-[#1a2744] text-[#1a2744] font-bold text-center py-2 rounded-xl hover:bg-slate-50 transition text-sm">
+          Request Local Install ({p.installedPrice})
+        </a>
+      </div>
+    </div>
+  )
+}
+
 const network = [
   {name:"Privacy Hub",price:"$179",installedPrice:"$249",badge:"Most Popular",desc:"Block ads on every screen",features:["Whole-home ad blocking (every device)","Private DNS — ISP can't track you","Malware & scam site blocking","Device monitoring dashboard","No subscription — ever","Ships pre-configured, plug & play"]},
   {name:"Family Hub",price:"$199",installedPrice:"$279",badge:"Best for Families",desc:"Ad blocking + parental controls",features:["Everything in Privacy Hub","Adult site blocking network-wide","Bedtime internet schedules","Per-device internet pause","Social media filtering","Works on Smart TVs & gaming consoles"]},
@@ -60,8 +95,8 @@ export default function Packages() {
               <p className="text-slate-500 text-sm">Block ads on every device. No subscriptions. Ships or installs locally.</p>
             </div>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            {network.map(p=><PkgCard key={p.name} p={p}/>)}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {network.map(p=><ShipCard key={p.name} p={p}/>)}
           </div>
           <div className="mt-6 bg-slate-800 border border-slate-600 rounded-xl p-4 text-sm text-slate-300 text-center font-semibold">
             🚫 Blocks Smart TV ads · 🕵️ Stops tracking · ⚡ Faster internet · 🏠 Your data stays home — <span className="text-[#f59e0b]">ships nationwide or install locally in Salisbury, NC</span>

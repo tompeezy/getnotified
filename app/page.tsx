@@ -30,7 +30,6 @@ export default function Home() {
       <ServiceAgreement/>
       <Contact/>
       <SiteFooter/>
-      <Footer/>
     </main>
   )
 }

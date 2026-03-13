@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Get Notified LLC — Command Center</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0f1e;color:#e0e0e0;min-height:100vh}
+:root{--navy:#1a2744;--gold:#f59e0b;--green:#10b981;--red:#ef4444;--blue:#3b82f6}
+header{background:linear-gradient(135deg,#1a2744,#0a0f1e);padding:20px 32px;border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+header h1{font-size:1.4rem;font-weight:800;color:#fff}
+header h1 span{color:var(--gold)}
+header p{font-size:.8rem;color:#64748b;margin-top:2px}
+.clock{color:var(--gold);font-size:.85rem;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;padding:24px 32px;max-width:1400px;margin:0 auto}
+.card{background:#111827;border:1px solid #1e293b;border-radius:14px;padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--gold)}
+.card h2{font-size:.95rem;font-weight:700;color:#fff;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.badge{font-size:.65rem;padding:2px 8px;border-radius:10px;font-weight:700}
+.badge.live{background:#052e16;color:#4ade80}
+.badge.warn{background:#431407;color:#fb923c}
+.badge.off{background:#1e1e1e;color:#64748b}
+.link-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#0a0f1e;border-radius:8px;border:1px solid #1e293b;margin-bottom:8px}
+.link-row .lbl{color:#64748b;font-size:.78rem}
+.link-row a{color:#38bdf8;text-decoration:none;font-size:.78rem;font-weight:600}
+.link-row a:hover{text-decoration:underline}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat{background:#0a0f1e;border:1px solid #1e293b;border-radius:10px;padding:14px;text-align:center}
+.stat .num{font-size:1.8rem;font-weight:800;color:var(--gold)}
+.stat .lbl{font-size:.7rem;color:#64748b;margin-top:3px}
+.btn{display:inline-block;padding:9px 18px;border-radius:8px;font-size:.8rem;font-weight:700;text-decoration:none;cursor:pointer;border:none;transition:.2s}
+.btn-gold{background:var(--gold);color:#1a2744}
+.btn-gold:hover{background:#e48e00}
+.btn-outline{background:transparent;border:1.5px solid #334155;color:#94a3b8}
+.btn-outline:hover{border-color:var(--gold);color:#fff}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.pkg-row{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#0a0f1e;border-radius:8px;border:1px solid #1e293b;margin-bottom:8px}
+.pkg-row .name{color:#fff;font-weight:600;font-size:.85rem}
+.pkg-row .detail{color:#64748b;font-size:.7rem;margin-top:2px}
+.price-tag{background:#052e16;color:#4ade80;padding:3px 10px;border-radius:6px;font-weight:800;font-size:.9rem}
+.price-tag.ship{background:#0c1a3a;color:#60a5fa}
+.full{grid-column:1/-1}
+.section-label{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--gold);font-weight:700;margin-bottom:10px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Get <span>Notified</span> LLC — Command Center</h1>
+    <p>Safety Without Surveillance · Salisbury, NC</p>
+  </div>
+  <div class="clock" id="clock"></div>
+</header>
+
+<div class="grid">
+
+  <!-- Site & Analytics -->
+  <div class="card">
+    <h2>🌐 Website <span class="badge live">LIVE</span></h2>
+    <div class="link-row"><span class="lbl">Main Site</span><a href="https://getnotifiedllc.com" target="_blank">getnotifiedllc.com →</a></div>
+    <div class="link-row"><span class="lbl">Vercel Analytics</span><a href="https://vercel.com/tompeezy/getnotified/analytics" target="_blank">View Traffic →</a></div>
+    <div class="link-row"><span class="lbl">GitHub Repo</span><a href="https://github.com/tompeezy/getnotified" target="_blank">tompeezy/getnotified →</a></div>
+    <div class="link-row"><span class="lbl">Vercel Dashboard</span><a href="https://vercel.com/dashboard" target="_blank">Deployments →</a></div>
+    <div class="actions">
+      <a href="https://getnotifiedllc.com" target="_blank" class="btn btn-gold">View Live Site</a>
+      <a href="https://vercel.com/tompeezy/getnotified/analytics" target="_blank" class="btn btn-outline">Analytics</a>
+    </div>
+  </div>
+
+  <!-- Quote Tools -->
+  <div class="card">
+    <h2>🧾 Quote & Sales Tools</h2>
+    <div class="link-row"><span class="lbl">Quote Estimator</span><a href="https://tompoai.shop/tools/estimator.html" target="_blank">Open Estimator →</a></div>
+    <div class="link-row"><span class="lbl">Service Agreement</span><a href="https://tompoai.shop/tools/service-agreement.html" target="_blank">Open Agreement →</a></div>
+    <div class="link-row"><span class="lbl">Invoice Generator</span><a href="https://tompoai.shop/tools/invoice.html" target="_blank">Open Invoice →</a></div>
+    <div class="link-row"><span class="lbl">Business Card</span><a href="https://tompoai.shop/tools/business-card.html" target="_blank">View Card →</a></div>
+    <div class="actions">
+      <a href="https://tompoai.shop/tools/estimator.html" target="_blank" class="btn btn-gold">Build a Quote</a>
+    </div>
+  </div>
+
+  <!-- Product Packages -->
+  <div class="card">
+    <h2>📦 Products — Install</h2>
+    <div class="section-label">Elder Safety</div>
+    <div class="pkg-row"><div><div class="name">Safe Nights Essentials</div><div class="detail">Hub + sensors + motion</div></div><span class="price-tag">$1,499</span></div>
+    <div class="pkg-row"><div><div class="name">Complete Home Safety</div><div class="detail">+ fall detection + water</div></div><span class="price-tag">$2,999</span></div>
+    <div class="pkg-row"><div><div class="name">Total Peace of Mind</div><div class="detail">Maximum coverage</div></div><span class="price-tag">$3,999</span></div>
+    <div class="section-label" style="margin-top:12px">Landlord / Property</div>
+    <div class="pkg-row"><div><div class="name">Property Guardian</div><div class="detail">Leak + valve + sensors</div></div><span class="price-tag">$599</span></div>
+    <div class="pkg-row"><div><div class="name">Landlord Shield</div><div class="detail">Full property coverage</div></div><span class="price-tag">$899</span></div>
+  </div>
+
+  <!-- Ship Products -->
+  <div class="card">
+    <h2>🚚 Products — Ships Nationwide</h2>
+    <div class="pkg-row"><div><div class="name">Privacy Hub</div><div class="detail">Ad blocker · whole home</div></div><span class="price-tag ship">$179</span></div>
+    <div class="pkg-row"><div><div class="name">Family Hub</div><div class="detail">+ parental controls</div></div><span class="price-tag ship">$199</span></div>
+    <div class="pkg-row"><div><div class="name">Secure Hub</div><div class="detail">+ VPN</div></div><span class="price-tag ship">$229</span></div>
+    <div class="pkg-row"><div><div class="name">Road Guardian</div><div class="detail">RV · campground WiFi</div></div><span class="price-tag ship">$249</span></div>
+    <div class="actions">
+      <a href="https://getnotifiedllc.com#packages" target="_blank" class="btn btn-outline">View on Site</a>
+      <a href="https://www.ebay.com/usr/" target="_blank" class="btn btn-outline">eBay Listings</a>
+    </div>
+  </div>
+
+  <!-- Home Assistant -->
+  <div class="card">
+    <h2>🏠 Home Assistant — Demo Unit</h2>
+    <div class="link-row"><span class="lbl">Local (parents' house)</span><a href="http://192.168.1.127:8123" target="_blank">192.168.1.127 →</a></div>
+    <div class="link-row"><span class="lbl">Tailscale Access</span><a href="http://100.76.224.6:8123" target="_blank">100.76.224.6 →</a></div>
+    <div class="link-row"><span class="lbl">Status</span><span style="color:#4ade80;font-size:.78rem;font-weight:600">● Running</span></div>
+    <div class="stat-grid" style="margin-top:12px">
+      <div class="stat"><div class="num">2</div><div class="lbl">Sensors Active</div></div>
+      <div class="stat"><div class="num">Pi 5</div><div class="lbl">Hardware</div></div>
+    </div>
+  </div>
+
+  <!-- Contact & Leads -->
+  <div class="card">
+    <h2>📥 Leads & Contact</h2>
+    <div class="link-row"><span class="lbl">Business Email</span><a href="https://mail.google.com" target="_blank">gettompoai@gmail.com →</a></div>
+    <div class="link-row"><span class="lbl">Facebook Page</span><a href="https://www.facebook.com/profile.php?id=61588322505254" target="_blank">Tompo Ai →</a></div>
+    <div class="link-row"><span class="lbl">Phone</span><span style="color:#94a3b8;font-size:.78rem">704-239-7532</span></div>
+    <div class="actions">
+      <a href="https://mail.google.com" target="_blank" class="btn btn-gold">Check Email</a>
+      <a href="https://www.facebook.com/profile.php?id=61588322505254" target="_blank" class="btn btn-outline">Facebook</a>
+    </div>
+  </div>
+
+  <!-- LLC Info -->
+  <div class="card">
+    <h2>🏢 Get Notified LLC</h2>
+    <div class="link-row"><span class="lbl">Entity ID</span><span style="color:#94a3b8;font-size:.78rem">24665196</span></div>
+    <div class="link-row"><span class="lbl">State</span><span style="color:#94a3b8;font-size:.78rem">North Carolina</span></div>
+    <div class="link-row"><span class="lbl">Formed</span><span style="color:#94a3b8;font-size:.78rem">March 6, 2026</span></div>
+    <div class="link-row"><span class="lbl">EIN</span><span style="color:#4ade80;font-size:.78rem;font-weight:700">✓ Approved</span></div>
+    <div class="link-row"><span class="lbl">NC Secretary of State</span><a href="https://www.sosnc.gov/online_services/search/by_name_results?term=get+notified" target="_blank">Verify →</a></div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="card full">
+    <h2>⚡ Quick Actions</h2>
+    <div class="actions">
+      <a href="https://tompoai.shop/tools/estimator.html" target="_blank" class="btn btn-gold">Build Quote</a>
+      <a href="https://getnotifiedllc.com" target="_blank" class="btn btn-outline">View Site</a>
+      <a href="https://vercel.com/tompeezy/getnotified/analytics" target="_blank" class="btn btn-outline">Site Analytics</a>
+      <a href="https://mail.google.com" target="_blank" class="btn btn-outline">Email</a>
+      <a href="https://github.com/tompeezy/getnotified" target="_blank" class="btn btn-outline">GitHub</a>
+      <a href="https://tailscale.com/admin/machines" target="_blank" class="btn btn-outline">Tailscale Machines</a>
+      <a href="http://100.76.224.6:8123" target="_blank" class="btn btn-outline">Home Assistant</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function updateClock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit',timeZone:'America/New_York'})+' EST';
+}
+updateClock();
+setInterval(updateClock,1000);
+</script>
+</body>
+</html>

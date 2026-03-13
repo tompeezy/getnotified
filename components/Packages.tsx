@@ -1,4 +1,9 @@
 "use client"
+const network = [
+  {name:"Privacy Hub",price:"$179",installedPrice:"$249",badge:"Most Popular",desc:"Block ads on every screen",features:["Whole-home ad blocking (every device)","Private DNS — ISP can't track you","Malware & scam site blocking","Device monitoring dashboard","No subscription — ever","Ships pre-configured, plug & play"]},
+  {name:"Family Hub",price:"$199",installedPrice:"$279",badge:"Best for Families",desc:"Ad blocking + parental controls",features:["Everything in Privacy Hub","Adult site blocking network-wide","Bedtime internet schedules","Per-device internet pause","Social media filtering","Works on Smart TVs & gaming consoles"]},
+  {name:"Secure Hub",price:"$229",installedPrice:"$299",badge:"Remote Workers",desc:"Ad blocking + encrypted home VPN",features:["Everything in Privacy Hub","Built-in WireGuard VPN","Encrypted access from anywhere","Works securely on public WiFi","No VPN subscription needed","Connect unlimited devices"]},
+]
 const landlord = [
   {name:"Property Guardian",price:"$599",badge:"Most Popular",desc:"Prevent the worst",features:["3 leak sensors","Automatic water shutoff valve","2 door sensors","1 temp sensor (crawlspace)","Instant alerts to your phone","One-time fee - no subscription"]},
   {name:"Landlord Shield",price:"$899",badge:"Best Value",desc:"Full property awareness",features:["Everything in Guardian","5 leak sensors (full coverage)","2 window sensors","1 motion sensor","2 humidity sensors","Smart plug (crawlspace heater)","Power loss detection"]},
@@ -45,6 +50,22 @@ export default function Packages() {
         <h2 className="text-3xl font-extrabold text-[#1a2744] text-center mb-4">Protection Packages</h2>
         <p className="text-center text-slate-500 mb-4">One-time installation. No monthly fees. Yours forever.</p>
         <p className="text-center text-[#f59e0b] font-bold mb-16"> 50% deposit secures your install date  Balance due at completion</p>
+
+        <div className="mb-16">
+          <div className="flex items-center gap-3 mb-8">
+            <span className="text-3xl">🔒</span>
+            <div>
+              <h3 className="text-2xl font-extrabold text-[#1a2744]">Privacy Hub — Network Protection</h3>
+              <p className="text-slate-500 text-sm">Block ads on every device. No subscriptions. Ships or installs locally.</p>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8">
+            {network.map(p=><PkgCard key={p.name} p={p}/>)}
+          </div>
+          <div className="mt-6 bg-slate-800 border border-slate-600 rounded-xl p-4 text-sm text-slate-300 text-center font-semibold">
+            🚫 Blocks Smart TV ads · 🕵️ Stops tracking · ⚡ Faster internet · 🏠 Your data stays home — <span className="text-[#f59e0b]">ships nationwide or install locally in Salisbury, NC</span>
+          </div>
+        </div>
 
         <div className="mb-16">
           <div className="flex items-center gap-3 mb-8">

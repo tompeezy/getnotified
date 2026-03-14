@@ -14,7 +14,7 @@ export default function PrivacyHub() {
         {/* Header */}
         <div className="text-center mb-14">
           <span className="inline-block bg-blue-600 text-white text-xs font-bold uppercase tracking-widest px-4 py-1 rounded-full mb-4">
-            Privacy Hub — Ships Nationwide
+            GuardianHub — Ships Nationwide
           </span>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 leading-tight">
             Stop Paying Monthly.<br className="hidden md:block" /> Pay Once. Done.
@@ -58,12 +58,12 @@ export default function PrivacyHub() {
             <div className="flex-1 h-px bg-gray-700" />
           </div>
 
-          {/* Privacy Hub Price */}
+          {/* GuardianHub Price */}
           <div className="flex items-center justify-between py-4 bg-blue-600/10 border border-blue-500/30 rounded-xl px-6">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🔒</span>
               <div>
-                <p className="text-white font-bold text-lg">Privacy Hub Elite</p>
+                <p className="text-white font-bold text-lg">GuardianHub Elite</p>
                 <p className="text-blue-400 text-sm">One-time. Covers every device. Forever.</p>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default function PrivacyHub() {
           </div>
 
           <p className="text-center text-gray-400 mt-6 text-sm">
-            At ${totalAnnual}/year in subscriptions, the Privacy Hub pays for itself in{" "}
+            At ${totalAnnual}/year in subscriptions, the GuardianHub pays for itself in{" "}
             <span className="text-green-400 font-bold">under 8 months</span>.
             {" "}Then it&apos;s pure savings — every year after.
           </p>

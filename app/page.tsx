@@ -3,6 +3,7 @@ import DamageRisk from "@/components/DamageRisk"
 import Markets from "@/components/Markets"
 import Packages from "@/components/Packages"
 import Privacy from "@/components/Privacy"
+import PrivacyHub from "@/components/PrivacyHub"
 import Veteran from "@/components/Veteran"
 import HowItWorks from "@/components/HowItWorks"
 
@@ -23,6 +24,7 @@ export default function Home() {
 
       <Packages/>
       <DamageCalculator/>
+      <PrivacyHub/>
       <Privacy/>
       <Veteran/>
       <Testimonials/>

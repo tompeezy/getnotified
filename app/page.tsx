@@ -1,3 +1,4 @@
+import NavBar from "@/components/NavBar"
 import Hero from "@/components/Hero"
 import DamageRisk from "@/components/DamageRisk"
 import Markets from "@/components/Markets"
@@ -17,7 +18,8 @@ import SiteFooter from "@/components/SiteFooter"
 
 export default function Home() {
   return (
-    <main>
+    <main className="pt-14">
+      <NavBar/>
       <Hero/>
       <DamageRisk/>
       <HowItWorks/>

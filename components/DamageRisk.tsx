@@ -1,6 +1,6 @@
 export default function DamageRisk() {
   return (
-    <section className="py-20 px-6 bg-slate-50">
+    <section id="water" className="py-20 px-6 bg-slate-50">
       <div className="max-w-4xl mx-auto">
         <h2 className="text-3xl font-extrabold text-[#1a2744] text-center mb-4">What One Leak Can Cost</h2>
         <p className="text-center text-slate-500 mb-12">Early detection makes the difference between a small problem and a major disaster.</p>

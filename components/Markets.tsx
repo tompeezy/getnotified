@@ -8,7 +8,7 @@ const markets = [
 ]
 export default function Markets() {
   return (
-    <section className="py-20 px-6 bg-white">
+    <section id="elder-safety" className="py-20 px-6 bg-white">
       <div className="max-w-5xl mx-auto">
         <h2 className="text-3xl font-extrabold text-[#1a2744] text-center mb-4">Who We Protect</h2>
         <p className="text-center text-slate-500 mb-12">One platform. Five markets. Built for the people who need it most.</p>

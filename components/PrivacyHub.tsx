@@ -4,7 +4,6 @@ export default function PrivacyHub() {
       name: "Privacy Hub",
       badge: "",
       price: "$179",
-      installed: "$249",
       color: "border-gray-700",
       badgeColor: "",
       features: [
@@ -19,7 +18,6 @@ export default function PrivacyHub() {
       name: "Family Hub",
       badge: "Most Popular",
       price: "$199",
-      installed: "$279",
       color: "border-blue-500/60",
       badgeColor: "bg-blue-600",
       features: [
@@ -34,7 +32,6 @@ export default function PrivacyHub() {
       name: "Secure Hub",
       badge: "",
       price: "$229",
-      installed: "$299",
       color: "border-gray-700",
       badgeColor: "",
       features: [
@@ -49,7 +46,6 @@ export default function PrivacyHub() {
       name: "Smart Home Hub",
       badge: "Best Value",
       price: "$299",
-      installed: "$399",
       color: "border-green-500/60",
       badgeColor: "bg-green-600",
       features: [
@@ -64,7 +60,6 @@ export default function PrivacyHub() {
       name: "Business Hub",
       badge: "",
       price: "$349",
-      installed: "$599",
       color: "border-gray-700",
       badgeColor: "",
       features: [
@@ -173,7 +168,6 @@ export default function PrivacyHub() {
               <h4 className="font-bold text-white text-lg mb-1">{tier.name}</h4>
               <div className="mb-4">
                 <p className="text-green-400 font-bold text-2xl">{tier.price}</p>
-                <p className="text-gray-500 text-xs">ships nationwide · plug &amp; play</p>
               </div>
               <ul className="space-y-2 flex-1">
                 {tier.features.map((f) => (

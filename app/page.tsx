@@ -12,6 +12,7 @@ import DamageCalculator from "@/components/DamageCalculator"
 import LocalTrust from "@/components/LocalTrust"
 import ServiceAgreement from "@/components/ServiceAgreement"
 import Contact from "@/components/Contact"
+import RemoteSupport from "@/components/RemoteSupport"
 import SiteFooter from "@/components/SiteFooter"
 
 export default function Home() {
@@ -30,6 +31,7 @@ export default function Home() {
       <Testimonials/>
       <LocalTrust/>
       <ServiceAgreement/>
+      <RemoteSupport/>
       <Contact/>
       <SiteFooter/>
     </main>

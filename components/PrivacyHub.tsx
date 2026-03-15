@@ -173,7 +173,7 @@ export default function PrivacyHub() {
               <h4 className="font-bold text-white text-lg mb-1">{tier.name}</h4>
               <div className="mb-4">
                 <p className="text-green-400 font-bold text-2xl">{tier.price}</p>
-                <p className="text-gray-500 text-xs">ship · {tier.installed} installed</p>
+                <p className="text-gray-500 text-xs">ships nationwide · plug &amp; play</p>
               </div>
               <ul className="space-y-2 flex-1">
                 {tier.features.map((f) => (
@@ -251,14 +251,14 @@ export default function PrivacyHub() {
           </div>
         </div>
 
-        {/* Ships or installs */}
-        <div className="grid md:grid-cols-2 gap-6 mb-10">
+        {/* Ships nationwide */}
+        <div className="max-w-md mx-auto mb-10">
           <div className="bg-gray-900 border border-gray-700 rounded-2xl p-7 text-center">
             <div className="text-4xl mb-3">📦</div>
             <h3 className="text-xl font-bold mb-2">Ships Nationwide</h3>
             <p className="text-gray-400 text-sm mb-4">
               Plug in, follow the one-page guide, done in under 10 minutes.
-              If you get stuck — we remote in and handle it for you.
+              If you get stuck — we remote in and fix it for you.
             </p>
             <p className="text-green-400 font-bold text-2xl mb-4">Starting at $179</p>
             <a
@@ -266,25 +266,6 @@ export default function PrivacyHub() {
               className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl transition-colors w-full"
             >
               Order Now →
-            </a>
-          </div>
-
-          <div className="bg-gray-900 border border-blue-500/40 rounded-2xl p-7 text-center relative">
-            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-4 py-1 rounded-full uppercase tracking-widest">
-              Rowan County
-            </span>
-            <div className="text-4xl mb-3">🔧</div>
-            <h3 className="text-xl font-bold mb-2">Installed by Us</h3>
-            <p className="text-gray-400 text-sm mb-4">
-              We come to you. Full setup, every device connected,
-              fully tested before we leave. You don&apos;t touch a thing.
-            </p>
-            <p className="text-green-400 font-bold text-2xl mb-4">Starting at $249</p>
-            <a
-              href="#contact"
-              className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-8 rounded-xl transition-colors w-full"
-            >
-              Request Install →
             </a>
           </div>
         </div>

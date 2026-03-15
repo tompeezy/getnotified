@@ -9,7 +9,7 @@ function ShipCard({p}:{p:typeof network[0]}) {
         <div className="text-slate-400 text-sm mb-3">{p.desc}</div>
         <div className="text-4xl font-black text-[#f59e0b]">{p.price}</div>
         <div className="text-slate-400 text-xs mt-1">shipped nationwide • free setup support</div>
-        {p.installedPrice && <div className="text-slate-300 text-xs mt-2 bg-white/10 rounded-lg py-1 px-3 inline-block">{p.installedPrice} installed locally (Salisbury NC)</div>}
+        
       </div>
       <div className="p-6 flex-1">
         <ul className="space-y-3">
@@ -27,15 +27,6 @@ function ShipCard({p}:{p:typeof network[0]}) {
         </a>
         <a href="#contact"
           className="block w-full border-2 border-[#1a2744] text-[#1a2744] font-bold text-center py-2 rounded-xl hover:bg-slate-50 transition text-sm">
-          Request Local Install ({p.installedPrice})
-        </a>
-      </div>
-    </div>
-  )
-}
-
-const network = [
-  {name:"Privacy Hub",price:"$179",installedPrice:"$249",badge:"Most Popular",desc:"Block ads on every screen",features:["Whole-home ad blocking (every device)","Private DNS — ISP can't track you","Malware & scam site blocking","Device monitoring dashboard","No subscription — ever","Ships pre-configured, plug & play"]},
   {name:"Family Hub",price:"$199",installedPrice:"$279",badge:"Best for Families",desc:"Ad blocking + parental controls",features:["Everything in Privacy Hub","Adult site blocking network-wide","Bedtime internet schedules","Per-device internet pause","Social media filtering","Works on Smart TVs & gaming consoles"]},
   {name:"Secure Hub",price:"$229",installedPrice:"$299",badge:"Remote Workers",desc:"Ad blocking + encrypted home VPN",features:["Everything in Privacy Hub","Built-in WireGuard VPN","Encrypted access from anywhere","Works securely on public WiFi","No VPN subscription needed","Connect unlimited devices"]},
   {name:"Road Guardian",price:"$249",installedPrice:"$299",badge:"🚐 RV & Campers",desc:"Secure private network on the road",features:["Protects ALL devices from campground WiFi","Ad blocking everywhere in the rig","Built-in VPN — fully encrypted tunnel","Runs off USB — draws less than a phone charger","Check your rig remotely from anywhere","No cell data needed — works on any hotspot","Ships pre-configured, just plug in"]},
@@ -62,7 +53,7 @@ function PkgCard({p}:{p:typeof landlord[0]}) {
         <div className="font-extrabold text-xl mb-1">{p.name}</div>
         <div className="text-slate-400 text-sm mb-3">{p.desc}</div>
         <div className="text-4xl font-black text-[#f59e0b]">{p.price}</div>
-        <div className="text-slate-400 text-xs mt-1">one-time installed</div>
+        <div className="text-slate-400 text-xs mt-1">one-time · ships nationwide</div>
       </div>
       <div className="p-6 flex-1">
         <ul className="space-y-3">

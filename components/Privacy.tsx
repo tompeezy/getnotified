@@ -43,7 +43,7 @@ const points = [
     title: "Survives Power Outages",
     desc: "UPS backup keeps your hub running for hours during an outage.",
     details: [
-      "Small UPS battery keeps the Pi and router running during outages",
+      "Small UPS battery keeps your GuardianHub and router running during outages",
       "Sensors run on batteries — fully independent of house power",
       "Critical alerts (fall detection, water leak) still fire during blackouts",
       "Especially important for elderly residents living alone",

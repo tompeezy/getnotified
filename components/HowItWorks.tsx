@@ -1,15 +1,15 @@
 export default function HowItWorks() {
   const steps = [
-    { icon: "📞", step: "1", title: "Free Consultation", desc: "Tell us about your home or property. We assess what sensors make sense and build a custom quote — no pressure, no obligation." },
-    { icon: "🛒", step: "2", title: "We Order the Hardware", desc: "Once you approve the quote and put down 50%, we order your equipment. Everything arrives within a few days." },
-    { icon: "🔧", step: "3", title: "Professional Installation", desc: "We come to you. Full install typically takes 2–3 hours. We place every sensor, configure every automation, and test everything before we leave." },
+    { icon: "📞", step: "1", title: "Free Consultation", desc: "Tell us about your home or property. We build a custom quote — no pressure, no obligation." },
+    { icon: "📦", step: "2", title: "Ships to Your Door", desc: "Your GuardianHub ships pre-configured within 2 business days. Plug it in and you're protected — no technician needed." },
+    { icon: "🛠️", step: "3", title: "Remote Setup Included", desc: "Can't figure out a step? We log in remotely and handle it for you. Guaranteed to work before we disconnect." },
     { icon: "📱", step: "4", title: "You're Protected", desc: "Your phone gets alerts the moment anything changes. Your family gets notified. Your property is covered — 24/7, no monthly fees." },
   ]
   return (
     <section id="how-it-works" className="py-20 px-6 bg-white">
       <div className="max-w-5xl mx-auto">
         <h2 className="text-3xl font-extrabold text-[#1a2744] text-center mb-4">How It Works</h2>
-        <p className="text-center text-slate-500 mb-16 max-w-xl mx-auto">From first call to fully protected — most installs are done within a week.</p>
+        <p className="text-center text-slate-500 mb-16 max-w-xl mx-auto">From first call to fully protected — ships in 2 business days.</p>
         <div className="grid md:grid-cols-4 gap-8">
           {steps.map((s) => (
             <div key={s.step} className="text-center">

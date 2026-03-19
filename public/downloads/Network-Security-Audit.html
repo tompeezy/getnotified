@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Network Security Audit Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8FAFC;
+    --white: #FFFFFF;
+    --dark: #0F172A;
+    --gray: #475569;
+    --gray-light: #F1F5F9;
+    --gray-border: #E2E8F0;
+    --blue: #2563EB;
+    --blue-light: #DBEAFE;
+    --blue-mid: #3B82F6;
+    --green: #16A34A;
+    --green-light: #DCFCE7;
+    --amber: #D97706;
+    --amber-light: #FEF3C7;
+    --red: #DC2626;
+    --red-light: #FEE2E2;
+    --red-dark: #991B1B;
+    --orange: #EA580C;
+    --orange-light: #FFEDD5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--dark); min-height: 100vh; }
+  code, .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  /* Header */
+  .header { background: var(--dark); color: white; padding: 28px 20px; text-align: center; position: relative; }
+  .header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--blue), var(--green), var(--amber), var(--red)); }
+  .header-badge { display: inline-block; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 4px 16px; font-size: 0.78rem; margin-bottom: 12px; letter-spacing: 0.8px; text-transform: uppercase; font-weight: 600; }
+  .header h1 { font-size: clamp(1.6rem,4.5vw,2.4rem); font-weight: 700; letter-spacing: -0.5px; }
+  .header p { color: #94A3B8; margin-top: 8px; font-size: 0.92rem; }
+
+  /* Skull Easter Egg */
+  .skull-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; flex-direction: column; }
+  .skull-overlay.active { display: flex; }
+  .skull-emoji { font-size: 7rem; animation: skullBounce 0.6s ease infinite alternate; }
+  .skull-title { color: #EF4444; font-size: 1.8rem; font-weight: 700; margin-top: 20px; text-align: center; padding: 0 20px; animation: blink 1s step-end infinite; }
+  .skull-sub { color: #94A3B8; margin-top: 12px; text-align: center; padding: 0 20px; font-size: 0.95rem; line-height: 1.6; max-width: 500px; }
+  .skull-close { margin-top: 24px; background: var(--red); color: white; border: none; padding: 12px 28px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: 'IBM Plex Sans', sans-serif; }
+  @keyframes skullBounce { from { transform: translateY(0) rotate(-5deg); } to { transform: translateY(-15px) rotate(5deg); } }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Nav */
+  .nav-container { background: var(--white); border-bottom: 1px solid var(--gray-border); position: sticky; top: 0; z-index: 100; }
+  .nav-tabs { display: flex; overflow-x: auto; padding: 0 16px; scrollbar-width: none; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { padding: 13px 16px; border: none; background: none; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 0.82rem; color: var(--gray); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .nav-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  /* Main */
+  .main { max-width: 880px; margin: 0 auto; padding: 28px 16px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Score widget */
+  .score-widget { background: var(--white); border: 1px solid var(--gray-border); border-radius: 14px; padding: 20px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
+  .score-ring-wrap { position: relative; flex-shrink: 0; }
+  .score-ring { width: 100px; height: 100px; }
+  .score-ring-bg { fill: none; stroke: var(--gray-border); stroke-width: 8; }
+  .score-ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.6s, stroke 0.4s; }
+  .score-text { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .score-num { font-size: 1.6rem; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .score-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); }
+  .score-info { flex: 1; min-width: 200px; }
+  .score-info h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }
+  .score-info p { font-size: 0.85rem; color: var(--gray); }
+  .threat-bar { height: 8px; background: var(--gray-border); border-radius: 4px; margin-top: 12px; overflow: hidden; }
+  .threat-fill { height: 100%; border-radius: 4px; transition: width 0.6s, background 0.4s; }
+
+  /* Audit */
+  .audit-progress { margin-bottom: 20px; }
+  .audit-progress-bar { height: 6px; background: var(--gray-border); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .audit-progress-fill { height: 100%; background: var(--blue); border-radius: 3px; transition: width 0.4s; }
+  .question-card { background: var(--white); border: 1px solid var(--gray-border); border-radius: 14px; padding: 24px; margin-bottom: 16px; }
+  .question-num { font-size: 0.78rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .question-text { font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; line-height: 1.5; }
+  .answer-btns { display: flex; gap: 12px; margin-bottom: 12px; }
+  .ans-btn { flex: 1; padding: 12px; border: 2px solid var(--gray-border); border-radius: 10px; background: white; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 1rem; cursor: pointer; transition: all 0.2s; }
+  .ans-btn:hover { transform: translateY(-2px); }
+  .ans-btn.yes { border-color: var(--green); background: var(--green-light); color: var(--green); }
+  .ans-btn.no { border-color: var(--red); background: var(--red-light); color: var(--red); }
+  .ans-btn.selected-yes { background: var(--green); color: white; border-color: var(--green); }
+  .ans-btn.selected-no { background: var(--red); color: white; border-color: var(--red); }
+  .risk-box { background: var(--amber-light); border: 1px solid #FDE68A; border-radius: 10px; padding: 14px; font-size: 0.88rem; line-height: 1.6; display: none; }
+  .risk-box.visible { display: block; }
+  .risk-title { font-weight: 700; color: var(--amber); margin-bottom: 6px; }
+  .risk-box.critical { background: var(--red-light); border-color: #FECACA; }
+  .risk-box.critical .risk-title { color: var(--red); }
+  .risk-box.green { background: var(--green-light); border-color: #BBF7D0; }
+  .risk-box.green .risk-title { color: var(--green); }
+
+  /* Action Plan */
+  .action-item { background: var(--white); border: 1px solid var(--gray-border); border-left: 4px solid; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+  .action-item.critical { border-left-color: var(--red); }
+  .action-item.high { border-left-color: var(--orange); }
+  .action-item.medium { border-left-color: var(--amber); }
+  .action-item.low { border-left-color: var(--green); }
+  .action-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .action-priority { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; letter-spacing: 0.5px; }
+  .priority-critical { background: var(--red-light); color: var(--red); }
+  .priority-high { background: var(--orange-light); color: var(--orange); }
+  .priority-medium { background: var(--amber-light); color: var(--amber); }
+  .priority-low { background: var(--green-light); color: var(--green); }
+  .action-title { font-weight: 600; font-size: 0.95rem; }
+  .action-desc { font-size: 0.85rem; color: var(--gray); line-height: 1.5; }
+
+  /* Router Guide */
+  .router-card { background: var(--white); border: 1px solid var(--gray-border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  .router-header { padding: 14px 18px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; background: var(--white); transition: background 0.2s; }
+  .router-header:hover { background: var(--gray-light); }
+  .router-body { display: none; padding: 18px; border-top: 1px solid var(--gray-border); background: var(--gray-light); }
+  .router-body.open { display: block; }
+  .router-steps { list-style: none; }
+  .router-steps li { padding: 8px 0; font-size: 0.88rem; line-height: 1.5; border-bottom: 1px solid var(--gray-border); display: flex; gap: 10px; }
+  .router-steps li:last-child { border-bottom: none; }
+  .step-icon { color: var(--blue); font-weight: 700; flex-shrink: 0; }
+  .router-tip { background: var(--blue-light); border-radius: 8px; padding: 10px 14px; font-size: 0.83rem; color: #1E40AF; margin-top: 12px; }
+
+  /* Cards */
+  .card { background: var(--white); border: 1px solid var(--gray-border); border-radius: 14px; padding: 22px; margin-bottom: 16px; }
+  .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; }
+
+  /* Section titles */
+  .section-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.3px; }
+  .section-sub { color: var(--gray); font-size: 0.9rem; margin-bottom: 20px; }
+
+  /* Buttons */
+  .btn { padding: 10px 20px; border-radius: 8px; border: none; font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-blue { background: var(--blue); color: white; }
+  .btn-blue:hover { background: #1D4ED8; }
+  .btn-outline { background: white; color: var(--blue); border: 1.5px solid var(--blue); }
+  .btn-outline:hover { background: var(--blue-light); }
+  .btn-red { background: var(--red); color: white; }
+
+  /* Alert */
+  .alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 16px; font-size: 0.87rem; line-height: 1.5; }
+  .alert-blue { background: var(--blue-light); border: 1px solid #BFDBFE; color: #1E40AF; }
+  .alert-green { background: var(--green-light); border: 1px solid #BBF7D0; color: #14532D; }
+  .alert-amber { background: var(--amber-light); border: 1px solid #FDE68A; color: #78350F; }
+  .alert-red { background: var(--red-light); border: 1px solid #FECACA; color: var(--red-dark); }
+
+  /* Threat meter */
+  .threat-meter { background: var(--white); border: 1px solid var(--gray-border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+  .threat-meter-title { font-weight: 600; font-size: 0.85rem; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); }
+  .threat-gradient { height: 14px; border-radius: 7px; background: linear-gradient(90deg, #22C55E, #84CC16, #EAB308, #F97316, #EF4444); margin-bottom: 8px; position: relative; }
+  .threat-indicator { position: absolute; top: -4px; width: 22px; height: 22px; border-radius: 50%; background: var(--dark); border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); transform: translateX(-50%); transition: left 0.6s; }
+  .threat-labels { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--gray); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 580px) { .grid-2 { grid-template-columns: 1fr; } .answer-btns { flex-direction: column; } }
+  
+  .restart-btn { margin-top: 16px; }
+  .complete-section { display: none; }
+  .complete-section.visible { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Skull Easter Egg -->
+<div class="skull-overlay" id="skullOverlay">
+  <div class="skull-emoji">💀</div>
+  <div class="skull-title">⚠️ YOUR HOUSE IS BASICALLY A<br>WI-FI HOTSPOT FOR HACKERS ⚠️</div>
+  <div class="skull-sub">
+    Congratulations! You've achieved a perfect 0/20 score. Your network security is so bad that script kiddies are using it as a <em>teaching example</em>. 
+    The neighborhood squirrel is currently streaming your Netflix. Your smart fridge has joined a botnet. 
+    Your router's admin password is literally "admin". We're not mad, we're just... concerned. Very, very concerned. 🍿
+  </div>
+  <button class="skull-close" onclick="document.getElementById('skullOverlay').classList.remove('active')">OK I'll Fix It... Eventually 😅</button>
+</div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-badge">🔒 Security Audit Tool</div>
+  <h1>Home Network Security Audit</h1>
+  <p>20-question guided audit • Personalized action plan • Router guides for 5 brands</p>
+</div>
+
+<!-- Nav -->
+<div class="nav-container">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('audit')">🔍 Security Audit</button>
+    <button class="nav-tab" onclick="showSection('plan')">📋 Action Plan</button>
+    <button class="nav-tab" onclick="showSection('routers')">📡 Router Guides</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Score Widget (always visible in audit + plan) -->
+  <div class="score-widget" id="scoreWidget">
+    <div class="score-ring-wrap">
+      <svg class="score-ring" viewBox="0 0 100 100">
+        <circle class="score-ring-bg" cx="50" cy="50" r="42"/>
+        <circle class="score-ring-fill" id="scoreRingFill" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="263.89"/>
+      </svg>
+      <div class="score-text">
+        <span class="score-num" id="scoreNum">—</span>
+        <span class="score-label">/ 20</span>
+      </div>
+    </div>
+    <div class="score-info">
+      <h3 id="scoreTitleText">Start the Audit</h3>
+      <p id="scoreSubText">Answer 20 questions to get your security score and personalized action plan.</p>
+      <div class="threat-bar"><div class="threat-fill" id="threatFill" style="width:0%;background:var(--green);"></div></div>
+    </div>
+  </div>
+
+  <!-- Threat Meter -->
+  <div class="threat-meter" id="threatMeter" style="display:none;">
+    <div class="threat-meter-title">Threat Level Visualization</div>
+    <div class="threat-gradient"><div class="threat-indicator" id="threatIndicator" style="left:5%;"></div></div>
+    <div class="threat-labels"><span>Secure</span><span>Low Risk</span><span>Medium</span><span>High Risk</span><span>Critical</span></div>
+  </div>
+
+  <!-- Audit Section -->
+  <div class="section active" id="section-audit">
+    <h2 class="section-title">🔍 Network Security Audit</h2>
+    <p class="section-sub">Answer each question honestly. There are no wrong answers — only insights to help you improve.</p>
+    
+    <div id="auditContent"></div>
+  </div>
+
+  <!-- Action Plan -->
+  <div class="section" id="section-plan">
+    <h2 class="section-title">📋 Your Personalized Action Plan</h2>
+    <p class="section-sub">Based on your audit answers, here's what to fix — in priority order.</p>
+    <div id="actionPlanContent"></div>
+  </div>
+
+  <!-- Router Guides -->
+  <div class="section" id="section-routers">
+    <h2 class="section-title">📡 Router Settings Guide</h2>
+    <p class="section-sub">Step-by-step security settings for the 5 most popular home router brands.</p>
+    <div class="alert alert-blue">ℹ️ Most router admin pages are accessed by typing <code>192.168.1.1</code> or <code>192.168.0.1</code> in your browser. The default username/password is usually on a sticker on the router itself.</div>
+    <div id="routerGuides"></div>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  {
+    q: "Have you changed your router's default admin username and password?",
+    risk: "critical",
+    riskText: "This is the #1 most exploited vulnerability in home networks. Default credentials like 'admin/admin' or 'admin/password' are publicly known. Any device on your network — or someone scanning from outside — can access your router's full settings and spy on all your traffic, redirect websites, or brick your router.",
+    action: { title: "Change Router Admin Credentials NOW", desc: "Log into your router (usually 192.168.1.1 or 192.168.0.1). Go to Administration or System settings. Change the username from 'admin' and set a strong, unique password (16+ characters). Save and log back in.", priority: "critical" }
+  },
+  {
+    q: "Is your Wi-Fi password at least 12 characters and not a common word?",
+    risk: "critical",
+    riskText: "A weak Wi-Fi password can be cracked in minutes using free tools. Once someone is on your network, they can see all your unencrypted traffic, attack other devices on your network, use your internet for illegal activities, and access your smart home devices.",
+    action: { title: "Strengthen Your Wi-Fi Password", desc: "Change your Wi-Fi password to at least 16 characters mixing letters, numbers, and symbols. Avoid names, birthdays, or dictionary words. Something like 'BlueSky!River#2024Tree' is much better than 'smith_family1'.", priority: "critical" }
+  },
+  {
+    q: "Is your Wi-Fi using WPA3 or WPA2 encryption (not WPA or WEP)?",
+    risk: "high",
+    riskText: "WEP encryption can be cracked in under 60 seconds. WPA (original) is nearly as bad. WPA2 is acceptable but WPA3 is much stronger. Check your router's wireless settings — if you see WEP or WPA, upgrade immediately.",
+    action: { title: "Upgrade to WPA2 or WPA3 Encryption", desc: "In your router's wireless settings, change security type to WPA3-Personal if available, or WPA2-AES as a minimum. Avoid WPA/WEP/TKIP. Devices will need to reconnect after this change.", priority: "high" }
+  },
+  {
+    q: "Do you have a separate guest Wi-Fi network for visitors?",
+    risk: "medium",
+    riskText: "When guests use your main Wi-Fi, they share a network with your computers, NAS drives, smart home devices, and security cameras. If their device is infected with malware, it can spread to your devices. A guest network isolates visitors completely.",
+    action: { title: "Enable Guest Wi-Fi Network", desc: "Most modern routers have a guest network option. Enable it in your router settings. Give it a different password, and enable 'Client Isolation' so guests can't see each other or your main devices.", priority: "medium" }
+  },
+  {
+    q: "Have you updated your router's firmware in the past 12 months?",
+    risk: "high",
+    riskText: "Outdated router firmware contains known security vulnerabilities that hackers actively exploit. Router manufacturers regularly patch critical bugs. Many home routers are running firmware that's 3-5 years old with dozens of unpatched vulnerabilities.",
+    action: { title: "Update Router Firmware", desc: "Log into your router admin panel. Look for 'Firmware Update', 'Software Update', or 'System Update' — usually in Administration or Advanced Settings. Enable automatic updates if available.", priority: "high" }
+  },
+  {
+    q: "Is remote management of your router disabled?",
+    risk: "high",
+    riskText: "Remote management allows anyone on the internet to attempt to log into your router's admin page from anywhere in the world. Unless you specifically need to manage your router remotely, this should always be disabled.",
+    action: { title: "Disable Router Remote Management", desc: "In your router's Administration or Remote Management settings, ensure 'Remote Management', 'Remote Access', or 'WAN Access' to the admin panel is DISABLED. This prevents internet-wide attacks on your router.", priority: "high" }
+  },
+  {
+    q: "Do you have a firewall enabled on your router?",
+    risk: "high",
+    riskText: "A router firewall monitors incoming and outgoing network traffic and blocks potentially dangerous connections. Most routers have a built-in firewall, but it's sometimes disabled by default or may have been turned off.",
+    action: { title: "Enable Router Firewall", desc: "In your router settings, find 'Firewall', 'SPI Firewall', or 'Security Settings'. Enable the firewall and set it to 'High' or 'Maximum' security. Also disable 'Respond to Ping' from WAN side.", priority: "high" }
+  },
+  {
+    q: "Have you checked which devices are connected to your network in the past month?",
+    risk: "medium",
+    riskText: "Unknown devices on your network could be unauthorized users (neighbors stealing Wi-Fi), compromised IoT devices (cameras turned into bots), or an intruder who compromised your network earlier and left a device behind.",
+    action: { title: "Audit Connected Devices Monthly", desc: "Use your router's 'Connected Devices' or 'DHCP Client List' page to see all devices. Use Fing app (free) for a detailed scan. Remove any unknown devices and change your Wi-Fi password if you find unauthorized users.", priority: "medium" }
+  },
+  {
+    q: "Are your computers and devices set to auto-update their operating systems?",
+    risk: "medium",
+    riskText: "Unpatched operating systems are a leading cause of malware infections. The WannaCry ransomware attack in 2017 infected 200,000+ computers worldwide — almost all running unpatched Windows. Critical security patches are often released within days of vulnerabilities being discovered by hackers.",
+    action: { title: "Enable Automatic OS Updates", desc: "Windows: Settings → Windows Update → Advanced Options → Enable automatic updates. Mac: System Settings → General → Software Update → Enable automatic updates. Keep at minimum security patches turned on.", priority: "medium" }
+  },
+  {
+    q: "Do you use unique passwords for different online accounts (not reusing passwords)?",
+    risk: "critical",
+    riskText: "Password reuse is the #2 cause of account compromises. When any website is breached (it happens daily), attackers try your credentials on banking, email, Amazon, and other sites. If your Netflix password is the same as your bank password, a Netflix breach means your bank is at risk.",
+    action: { title: "Use a Password Manager", desc: "Install a password manager (Bitwarden is free and excellent, 1Password is premium). Let it generate unique 16+ character passwords for every site. Your 'master password' is the only one you remember. This single step dramatically reduces your risk.", priority: "critical" }
+  },
+  {
+    q: "Do you have two-factor authentication (2FA) enabled on your email account?",
+    risk: "critical",
+    riskText: "Your email account is the master key to everything. If someone gets your email password, they can reset every other account you own — banking, Amazon, social media, etc. 2FA means even if your password is stolen, they can't get in without your phone.",
+    action: { title: "Enable 2FA on Email Immediately", desc: "Gmail: Google Account → Security → 2-Step Verification. Outlook: account.microsoft.com → Security. Use an authenticator app (Google Authenticator, Authy) rather than SMS when possible — SMS 2FA can be bypassed by SIM swapping.", priority: "critical" }
+  },
+  {
+    q: "Do you have IoT/smart home devices on a separate network segment from computers?",
+    risk: "medium",
+    riskText: "Smart home devices (cameras, doorbells, thermostats) often have poor security and rarely get firmware updates. Putting them on the same network as your computers means a compromised smart bulb could be a stepping stone to attacking your laptop or NAS.",
+    action: { title: "Create IoT Device Isolation", desc: "Create a separate Wi-Fi network (your guest network works if it has client isolation) and put all smart home devices on it. Your computers and phones stay on the main network. Many routers support a 'Smart Home' or 'IoT' VLAN for this purpose.", priority: "medium" }
+  },
+  {
+    q: "Do you have antivirus/anti-malware software on all Windows computers?",
+    risk: "medium",
+    riskText: "Windows Defender (built into Windows 10/11) is actually quite good and free. Many people disable it thinking it slows their computer. Macs are less targeted but not immune — macOS malware has increased dramatically. An unprotected device is a liability for your whole network.",
+    action: { title: "Ensure Antivirus on All Devices", desc: "Windows: Check that Windows Security / Defender is enabled (search 'Windows Security' in Start Menu). Mac: Consider Malwarebytes Free for periodic scans. Run a free scan at malwarebytes.com to check for existing infections.", priority: "medium" }
+  },
+  {
+    q: "Is WPS (Wi-Fi Protected Setup) disabled on your router?",
+    risk: "medium",
+    riskText: "WPS is a convenience feature that lets you connect devices by pressing a button or entering an 8-digit PIN. The PIN version has a critical vulnerability that allows an attacker to brute-force it in hours, giving them full Wi-Fi access regardless of how strong your password is.",
+    action: { title: "Disable WPS on Your Router", desc: "Find 'WPS', 'Wi-Fi Protected Setup', or 'Wi-Fi Simple Config' in your router's wireless settings. Disable it. If your router doesn't have this option, it may already be disabled. Note: You'll need to connect new devices the traditional way.", priority: "medium" }
+  },
+  {
+    q: "Do you avoid using public Wi-Fi without a VPN?",
+    risk: "medium",
+    riskText: "Public Wi-Fi networks (coffee shops, hotels, airports) are prime targets for 'man in the middle' attacks where a hacker positions themselves between you and the internet to intercept your data. Although HTTPS has improved things, VPNs provide additional protection.",
+    action: { title: "Use a VPN on Public Wi-Fi", desc: "Install a reputable VPN (ProtonVPN free tier, Mullvad, NordVPN, ExpressVPN) on your phone and laptop. Enable it whenever you're on public Wi-Fi. Alternatively, use your phone's cellular hotspot instead of public Wi-Fi when security matters.", priority: "medium" }
+  },
+  {
+    q: "Have you disabled UPnP (Universal Plug and Play) on your router?",
+    risk: "medium",
+    riskText: "UPnP lets devices automatically open ports on your router — which is convenient but dangerous. Malware can use UPnP to open ports and create back-doors in your firewall without your knowledge. Major attacks like Mirai botnet exploited UPnP extensively.",
+    action: { title: "Disable UPnP on Router", desc: "In your router's Administration, Advanced, or Gaming settings, find 'UPnP' or 'Universal Plug and Play' and disable it. Some games and apps may need manual port forwarding after this — only open ports you specifically need.", priority: "medium" }
+  },
+  {
+    q: "Do your home security cameras use strong, unique passwords?",
+    risk: "high",
+    riskText: "Websites like Insecam.org used to list thousands of live feeds from home security cameras that still had default passwords. Many people set up cameras and never change the default 'admin/123456' credentials. Your camera footage could be live on the internet right now.",
+    action: { title: "Secure All Camera/IoT Credentials", desc: "Log into each camera's app or web interface. Change the admin password to something strong and unique. Enable HTTPS/SSL access only. Check for firmware updates. Disable any remote viewing features you don't use.", priority: "high" }
+  },
+  {
+    q: "Do you regularly back up important data to an offline or off-site location?",
+    risk: "medium",
+    riskText: "Ransomware attacks on homes have increased 400% in the last 3 years. Ransomware encrypts all your files — photos, documents, everything — and demands payment. If you have offline backups (external drive disconnected from PC, or cloud backup), you can recover without paying.",
+    action: { title: "Set Up 3-2-1 Backup Strategy", desc: "3-2-1 rule: 3 copies of data, 2 different media types, 1 off-site. Use: (1) your main device, (2) an external hard drive kept disconnected, (3) cloud backup (Backblaze at $9/mo is excellent). At minimum, back up your photos to Google Photos or iCloud.", priority: "medium" }
+  },
+  {
+    q: "Are you careful about clicking links in unexpected emails or text messages?",
+    risk: "high",
+    riskText: "Phishing is the #1 delivery mechanism for malware and credential theft. Modern phishing emails look nearly identical to real emails from banks, Amazon, FedEx, and the IRS. One click can install ransomware, keyloggers, or hand over your credentials to attackers.",
+    action: { title: "Practice Safe Email Habits", desc: "Rule: Never click email links for banking or passwords — go directly to the website. Hover over links to see real destinations. Check sender email addresses carefully (support@amaz0n.com is not Amazon). When in doubt, delete it.", priority: "high" }
+  },
+  {
+    q: "Have you checked if your email has appeared in a data breach (haveibeenpwned.com)?",
+    risk: "medium",
+    riskText: "Billions of email/password combinations from data breaches are freely available on the dark web. Criminals use these to attempt logins on other services. Not checking means you might be using compromised passwords right now without knowing it.",
+    action: { title: "Check Your Email on HaveIBeenPwned", desc: "Go to haveibeenpwned.com and enter your email addresses. If any are found in breaches, change passwords for those accounts immediately — and any other accounts where you used the same password. Set up their free notification service.", priority: "medium" }
+  }
+];
+
+let answers = {}; // questionIndex -> 'yes' | 'no'
+let currentQ = 0;
+let auditComplete = false;
+
+function loadAll() {
+  const d = JSON.parse(localStorage.getItem('nsat_data') || '{}');
+  answers = d.answers || {};
+  auditComplete = d.complete || false;
+  currentQ = Object.keys(answers).length;
+  if (currentQ >= questions.length) { currentQ = questions.length - 1; auditComplete = true; }
+  updateScore();
+  renderAudit();
+  renderActionPlan();
+  renderRouterGuides();
+}
+
+function saveAll() {
+  localStorage.setItem('nsat_data', JSON.stringify({ answers, complete: auditComplete }));
+}
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function updateScore() {
+  const answered = Object.keys(answers).length;
+  const yesCount = Object.values(answers).filter(a=>a==='yes').length;
+  const noCount = Object.values(answers).filter(a=>a==='no').length;
+  
+  const numEl = document.getElementById('scoreNum');
+  const fillEl = document.getElementById('scoreRingFill');
+  const titleEl = document.getElementById('scoreTitleText');
+  const subEl = document.getElementById('scoreSubText');
+  const threatFill = document.getElementById('threatFill');
+  const threatIndicator = document.getElementById('threatIndicator');
+  const threatMeter = document.getElementById('threatMeter');
+  
+  numEl.textContent = answered > 0 ? yesCount : '—';
+  
+  const pct = answered > 0 ? yesCount / questions.length : 0;
+  const circumference = 263.89;
+  fillEl.style.strokeDashoffset = circumference - (pct * circumference);
+  
+  let color, title, sub, threatColor, threatPct;
+  
+  if (answered === 0) {
+    color = '#94A3B8'; title = 'Start the Audit'; sub = 'Answer 20 yes/no questions to assess your security.';
+    threatPct = 0; threatColor = 'var(--green)';
+  } else if (yesCount >= 18) {
+    color = '#16A34A'; title = '🏆 Excellent Security!'; sub = 'Your home network is well-protected. Keep it up!';
+    threatPct = 5; threatColor = '#22C55E';
+  } else if (yesCount >= 14) {
+    color = '#2563EB'; title = '✅ Good Security'; sub = 'A few gaps to address, but your baseline is solid.';
+    threatPct = 25; threatColor = '#3B82F6';
+  } else if (yesCount >= 10) {
+    color = '#D97706'; title = '⚠️ Moderate Risk'; sub = 'Several vulnerabilities need attention. Review your action plan.';
+    threatPct = 55; threatColor = '#F59E0B';
+  } else if (yesCount >= 6) {
+    color = '#EA580C'; title = '🚨 High Risk'; sub = 'Significant vulnerabilities present. Take action soon.';
+    threatPct = 75; threatColor = '#F97316';
+  } else {
+    color = '#DC2626'; title = '💀 Critical Risk'; sub = 'Your network is severely exposed. Act immediately.';
+    threatPct = 95; threatColor = '#EF4444';
+  }
+  
+  fillEl.style.stroke = color;
+  numEl.style.color = color;
+  titleEl.textContent = title;
+  subEl.textContent = sub;
+  threatFill.style.width = (answered > 0 ? (1 - pct) * 100 : 0) + '%';
+  threatFill.style.background = `linear-gradient(90deg, ${threatColor}, ${threatColor})`;
+  
+  if (answered > 0) {
+    threatMeter.style.display = 'block';
+    threatIndicator.style.left = threatPct + '%';
+  }
+  
+  // Easter egg: all 20 "No"
+  if (auditComplete && yesCount === 0 && noCount === 20) {
+    setTimeout(() => document.getElementById('skullOverlay').classList.add('active'), 500);
+  }
+}
+
+function renderAudit() {
+  const el = document.getElementById('auditContent');
+  const answered = Object.keys(answers).length;
+  
+  if (auditComplete || answered === questions.length) {
+    const yesCount = Object.values(answers).filter(a=>a==='yes').length;
+    el.innerHTML = `
+      <div class="card" style="text-align:center;padding:32px;">
+        <div style="font-size:3.5rem;margin-bottom:16px;">${yesCount>=14?'🏆':yesCount>=8?'👍':'🔧'}</div>
+        <div style="font-size:1.5rem;font-weight:700;margin-bottom:8px;">Audit Complete!</div>
+        <div style="color:var(--gray);margin-bottom:20px;">You scored <strong>${yesCount}/20</strong> (${Math.round((yesCount/20)*100)}% secure)</div>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <button class="btn btn-blue" onclick="showSection('plan');document.querySelectorAll('.nav-tab')[1].classList.add('active');document.querySelectorAll('.nav-tab')[0].classList.remove('active');">📋 View Action Plan</button>
+          <button class="btn btn-outline restart-btn" onclick="restartAudit()">🔄 Restart Audit</button>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        ${questions.map((q,i) => `
+          <div class="question-card" style="opacity:0.85;">
+            <div class="question-num">Question ${i+1}</div>
+            <div class="question-text">${q.q}</div>
+            <div style="font-size:0.9rem;font-weight:600;">
+              Your answer: <span style="color:${answers[i]==='yes'?'var(--green)':'var(--red)'}">${answers[i]==='yes'?'✅ YES':'❌ NO'}</span>
+            </div>
+            ${answers[i]==='no'?`<div class="risk-box visible ${q.risk==='critical'?'critical':''}" style="margin-top:10px;"><div class="risk-title">${q.risk==='critical'?'🚨 Critical Risk':'⚠️ Risk Explanation'}</div>${q.riskText}</div>`:''}
+          </div>
+        `).join('')}
+      </div>
+    `;
+    return;
+  }
+  
+  const q = questions[answered];
+  el.innerHTML = `
+    <div class="audit-progress">
+      <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--gray);">
+        <span>Question ${answered+1} of ${questions.length}</span>
+        <span>${answered} answered</span>
+      </div>
+      <div class="audit-progress-bar"><div class="audit-progress-fill" style="width:${(answered/questions.length)*100}%"></div></div>
+    </div>
+    <div class="question-card">
+      <div class="question-num">Question ${answered+1} of ${questions.length} • ${q.risk.toUpperCase()} RISK AREA</div>
+      <div class="question-text">${q.q}</div>
+      <div class="answer-btns">
+        <button class="ans-btn" onclick="answer('yes')">✅ YES — I've done this</button>
+        <button class="ans-btn" onclick="answer('no')">❌ NO — Not done yet</button>
+      </div>
+      <div class="risk-box" id="riskBox"></div>
+    </div>
+    ${answered > 0 ? `<button class="btn btn-outline btn-sm" onclick="goBack()" style="margin-top:8px;">← Previous Question</button>` : ''}
+  `;
+}
+
+function answer(val) {
+  const qi = Object.keys(answers).length;
+  answers[qi] = val;
+  
+  if (val === 'no') {
+    const riskBox = document.getElementById('riskBox');
+    if (riskBox) {
+      riskBox.className = `risk-box visible ${questions[qi].risk === 'critical' ? 'critical' : ''}`;
+      riskBox.innerHTML = `<div class="risk-title">${questions[qi].risk === 'critical' ? '🚨 Critical Risk' : '⚠️ Why This Matters'}</div>${questions[qi].riskText}<br><br><button class="btn btn-blue btn-sm" onclick="nextQuestion()" style="margin-top:4px;">Got it — Next Question →</button>`;
+      document.querySelectorAll('.ans-btn').forEach(b => b.disabled = true);
+      document.querySelector('.ans-btn:first-child').classList.add('yes');
+      document.querySelector('.ans-btn:last-child').classList.add('selected-no');
+    }
+  } else {
+    nextQuestion();
+  }
+  
+  updateScore();
+  saveAll();
+}
+
+function nextQuestion() {
+  const qi = Object.keys(answers).length;
+  if (qi >= questions.length) {
+    auditComplete = true;
+    saveAll();
+  }
+  renderAudit();
+  updateScore();
+}
+
+function goBack() {
+  const qi = Object.keys(answers).length - 1;
+  if (qi >= 0) {
+    delete answers[qi];
+    saveAll();
+    renderAudit();
+    updateScore();
+  }
+}
+
+function restartAudit() {
+  if (confirm('Restart the audit? Your current answers will be cleared.')) {
+    answers = {}; auditComplete = false; currentQ = 0;
+    saveAll(); renderAudit(); renderActionPlan(); updateScore();
+    document.getElementById('threatMeter').style.display = 'none';
+  }
+}
+
+function renderActionPlan() {
+  const el = document.getElementById('actionPlanContent');
+  const noAnswers = Object.entries(answers).filter(([,v]) => v === 'no');
+  
+  if (noAnswers.length === 0 && Object.keys(answers).length === 0) {
+    el.innerHTML = '<div class="alert alert-blue">ℹ️ Complete the security audit first to generate your personalized action plan.</div>';
+    return;
+  }
+  
+  if (noAnswers.length === 0) {
+    el.innerHTML = `
+      <div class="alert alert-green">🏆 Outstanding! You answered YES to all questions. Your home network security is excellent. Continue to stay vigilant — check back in 6 months to reassess.</div>
+      <div class="card"><div class="card-title">🔄 Ongoing Maintenance Checklist</div>
+        <ul style="padding-left:20px;">
+          <li style="padding:6px 0;font-size:0.9rem;">Check for router firmware updates quarterly</li>
+          <li style="padding:6px 0;font-size:0.9rem;">Review connected devices monthly</li>
+          <li style="padding:6px 0;font-size:0.9rem;">Check haveibeenpwned.com after any major data breach news</li>
+          <li style="padding:6px 0;font-size:0.9rem;">Rotate Wi-Fi password every 6-12 months</li>
+          <li style="padding:6px 0;font-size:0.9rem;">Verify backups are working monthly</li>
+        </ul>
+      </div>
+    `;
+    return;
+  }
+  
+  const priorityOrder = ['critical', 'high', 'medium', 'low'];
+  const items = noAnswers.map(([qi]) => questions[parseInt(qi)].action).filter(Boolean);
+  items.sort((a,b) => priorityOrder.indexOf(a.priority) - priorityOrder.indexOf(b.priority));
+  
+  const critical = items.filter(a=>a.priority==='critical');
+  const high = items.filter(a=>a.priority==='high');
+  const medium = items.filter(a=>a.priority==='medium');
+  
+  el.innerHTML = `
+    <div class="alert alert-amber">⚠️ You have <strong>${items.length} security gaps</strong> to address — ${critical.length} critical, ${high.length} high priority, ${medium.length} medium. Start with Critical items first.</div>
+    ${items.map((a,i) => `
+      <div class="action-item ${a.priority}">
+        <div class="action-header">
+          <span class="action-priority priority-${a.priority}">${a.priority.toUpperCase()}</span>
+          <span class="action-title">#${i+1} ${a.title}</span>
+        </div>
+        <div class="action-desc">${a.desc}</div>
+      </div>
+    `).join('')}
+    <div class="card" style="margin-top:20px;">
+      <div class="card-title">📊 Summary</div>
+      <div style="font-size:0.9rem;line-height:1.8;">
+        <div>✅ Secure: <strong>${Object.values(answers).filter(a=>a==='yes').length}/20 items</strong></div>
+        <div>❌ Needs Work: <strong>${noAnswers.length} items</strong></div>
+        <div>🎯 Security Score: <strong>${Math.round((Object.values(answers).filter(a=>a==='yes').length/20)*100)}%</strong></div>
+      </div>
+      <button class="btn btn-outline" style="margin-top:14px;" onclick="restartAuditFromPlan()">🔄 Retake Audit</button>
+    </div>
+  `;
+}
+
+function restartAuditFromPlan() {
+  if (confirm('Restart the audit?')) {
+    answers = {}; auditComplete = false;
+    saveAll(); 
+    showSection('audit');
+    document.querySelectorAll('.nav-tab').forEach((t,i) => { t.classList.toggle('active', i===0); });
+    renderAudit(); renderActionPlan(); updateScore();
+    document.getElementById('threatMeter').style.display = 'none';
+  }
+}
+
+const routerGuides = [
+  {
+    brand: '🔵 Netgear', color: '#2563EB',
+    admin: 'routerlogin.net or 192.168.1.1',
+    steps: [
+      'Log in at routerlogin.net (default: admin / password on router label)',
+      'Go to ADVANCED → Administration → Set Password → Change admin password',
+      'Go to Basic → Wireless → Change Network Name (SSID) and Password → Set Security to WPA2-AES or WPA3',
+      'Go to ADVANCED → Security → Firewall → Enable SPI Firewall',
+      'Go to ADVANCED → Administration → Remote Management → DISABLE Remote Management',
+      'Go to ADVANCED → Setup → WAN Setup → DISABLE Respond to Ping on Internet Port',
+      'Go to ADVANCED → Advanced Setup → UPnP → DISABLE UPnP',
+      'Go to ADVANCED → Wireless → Guest Network → Enable with client isolation',
+      'Go to ADVANCED → Administration → Firmware Update → Check for updates',
+    ],
+    tip: 'Netgear Armor (subscription service) adds real-time threat protection and device vulnerability scanning to supported models.'
+  },
+  {
+    brand: '🟢 ASUS', color: '#16A34A',
+    admin: 'router.asus.com or 192.168.1.1',
+    steps: [
+      'Log in at router.asus.com (check label for default login)',
+      'Go to Administration → System → Change router login password',
+      'Go to Wireless → General → Set Authentication to WPA3-Personal or WPA2-AES',
+      'Go to Firewall → General → Enable Firewall',
+      'Go to Administration → System → Enable Remote Access from WAN → Set to NO',
+      'Go to WAN → Internet Connection → DISABLE Respond to Ping from WAN',
+      'Go to LAN → IPTV → DISABLE UPnP',
+      'Go to Guest Network → Enable with Enable AP Isolation',
+      'Go to Administration → Firmware Upgrade → Check for latest firmware',
+    ],
+    tip: 'ASUS AiProtection (powered by Trend Micro, free on supported models) provides robust real-time network threat detection and parental controls.'
+  },
+  {
+    brand: '🟠 TP-Link (Archer)', color: '#D97706',
+    admin: 'tplinkwifi.net or 192.168.0.1',
+    steps: [
+      'Log in at tplinkwifi.net (set a password on first login)',
+      'Go to Advanced → System → Administration → Change admin password',
+      'Go to Basic → Wireless → Change SSID and Password → Security: WPA2/WPA3-Personal',
+      'Go to Advanced → Security → Firewall → Enable SPI Firewall',
+      'Go to Advanced → Security → Remote Management → DISABLE',
+      'Go to Advanced → NAT Forwarding → UPnP → DISABLE UPnP',
+      'Go to Advanced → Guest Network → Enable with "Allow Guests to Access My Local Network" DISABLED',
+      'Go to Advanced → System → Firmware Upgrade → Online Upgrade',
+      'Go to Advanced → Security → Settings → Block if number of packets exceeds thresholds',
+    ],
+    tip: 'TP-Link HomeCare (free on supported models) includes QoS, parental controls, and antivirus for your network.'
+  },
+  {
+    brand: '🔴 Linksys', color: '#DC2626',
+    admin: 'myrouter.local or 192.168.1.1',
+    steps: [
+      'Log in at myrouter.local (default: no username, password on router label)',
+      'Go to Connectivity → Administration → Router Password → Change password',
+      'Go to Wi-Fi → Edit → Change Wi-Fi Password → Security Mode: WPA2/WPA3 Personal Mixed',
+      'Go to Security → Firewall → Enable Firewall: ON, Filter Anonymous Internet Requests: ON',
+      'Go to Security → Firewall → Remote Management → DISABLE',
+      'Go to Security → Apps and Gaming → Single Port Forwarding → Review and remove unneeded rules',
+      'Go to Security → Advanced Settings → UPnP → DISABLE UPnP',
+      'Go to Wi-Fi → Guest Access → Enable → set separate password → Block Intranet: ON',
+      'Go to Connectivity → Firmware Update → Check for Updates',
+    ],
+    tip: 'Linksys Velop mesh systems support automatic security updates and can be managed from the Linksys app for easier ongoing maintenance.'
+  },
+  {
+    brand: '⚫ Eero (Amazon)', color: '#374151',
+    admin: 'eero mobile app (no web interface)',
+    steps: [
+      'Open the eero app → tap your network name',
+      'Go to Settings → eero Plus (or security settings) → Enable Advanced Security if subscribed',
+      'Go to Network Settings → Change Wi-Fi Password to a strong unique password',
+      'Go to Advanced → UPnP → DISABLE UPnP',
+      'Eero automatically updates firmware — verify in Settings → About eero → Software version is current',
+      'Enable Guest Network in app: tap + → Create Guest Network → Enable Client Isolation',
+      'Go to Profile → Advanced Settings → Disable remote access via app if not needed',
+      'Enable eero Plus for DNS-level threat blocking (subscription, ~$10/mo)',
+      'Check Connected Devices list monthly: app → Devices tab → review all listed devices',
+    ],
+    tip: 'Eero handles most security automatically via the cloud, but eero Plus (subscription) adds significant protection including DNS filtering, VPN, and parental controls.'
+  }
+];
+
+function renderRouterGuides() {
+  const el = document.getElementById('routerGuides');
+  el.innerHTML = routerGuides.map((r,i) => `
+    <div class="router-card">
+      <div class="router-header" onclick="toggleRouter(${i})">
+        <span style="font-weight:700;">${r.brand}</span>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:0.75rem;color:var(--gray);font-family:'IBM Plex Mono',monospace;">${r.admin}</span>
+          <span id="rchev-${i}">▼</span>
+        </div>
+      </div>
+      <div class="router-body" id="router-${i}">
+        <ol class="router-steps">
+          ${r.steps.map((s,si) => `<li><span class="step-icon">${si+1}.</span><span>${s}</span></li>`).join('')}
+        </ol>
+        <div class="router-tip">💡 <strong>Tip:</strong> ${r.tip}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleRouter(i) {
+  const body = document.getElementById('router-'+i);
+  const chev = document.getElementById('rchev-'+i);
+  const isOpen = body.classList.toggle('open');
+  chev.textContent = isOpen ? '▲' : '▼';
+}
+
+loadAll();
+</script>
+</body>
+</html>

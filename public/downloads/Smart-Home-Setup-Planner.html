@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Home Setup Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0F1E;
+    --bg2: #0F1629;
+    --bg3: #151E35;
+    --bg4: #1A2540;
+    --blue: #3B82F6;
+    --blue-bright: #60A5FA;
+    --blue-dark: #1D4ED8;
+    --cyan: #06B6D4;
+    --purple: #8B5CF6;
+    --green: #10B981;
+    --amber: #F59E0B;
+    --red: #EF4444;
+    --text: #F1F5F9;
+    --text2: #94A3B8;
+    --text3: #64748B;
+    --border: #1E2D4A;
+    --border2: #243554;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  
+  /* Header */
+  .header { background: linear-gradient(135deg, var(--bg2) 0%, #0D1B3E 100%); border-bottom: 1px solid var(--border); padding: 28px 20px; text-align: center; position: relative; overflow: hidden; }
+  .header::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.12) 0%, transparent 70%); pointer-events: none; }
+  .header-badge { display: inline-block; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); border-radius: 20px; padding: 4px 16px; font-size: 0.8rem; color: var(--blue-bright); margin-bottom: 12px; letter-spacing: 0.5px; }
+  .header h1 { font-size: clamp(1.8rem,5vw,2.6rem); font-weight: 900; background: linear-gradient(135deg, #FFFFFF 0%, var(--blue-bright) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .header p { color: var(--text2); margin-top: 8px; font-size: 0.95rem; }
+
+  /* Pro Mode Banner */
+  .pro-banner { display: none; background: linear-gradient(135deg, #7C3AED, #1D4ED8); padding: 12px 20px; text-align: center; font-weight: 700; font-size: 0.95rem; }
+  .pro-banner.active { display: block; animation: slideDown 0.5s ease; }
+  @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* Nav */
+  .nav-container { background: var(--bg2); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .nav-tabs { display: flex; overflow-x: auto; padding: 0 16px; scrollbar-width: none; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { padding: 14px 16px; border: none; background: none; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.82rem; color: var(--text3); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .nav-tab.active { color: var(--blue-bright); border-bottom-color: var(--blue); }
+  .nav-tab:hover { color: var(--text2); }
+
+  /* Main */
+  .main { max-width: 960px; margin: 0 auto; padding: 24px 16px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Cards */
+  .card { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-weight: 700; font-size: 1rem; margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+  .card-title span { background: rgba(59,130,246,0.15); border-radius: 8px; padding: 4px 10px; font-size: 0.75rem; color: var(--blue-bright); }
+
+  /* Form */
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  input[type=text], input[type=number], select, textarea {
+    width: 100%; padding: 9px 13px; background: var(--bg4); border: 1px solid var(--border2); border-radius: 8px;
+    color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.9rem; transition: border-color 0.2s;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); }
+  select option { background: var(--bg4); }
+
+  /* Buttons */
+  .btn { padding: 9px 18px; border-radius: 8px; border: none; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 7px; }
+  .btn-blue { background: var(--blue); color: white; }
+  .btn-blue:hover { background: var(--blue-dark); transform: translateY(-1px); }
+  .btn-outline { background: transparent; color: var(--blue-bright); border: 1px solid var(--border2); }
+  .btn-outline:hover { border-color: var(--blue); background: rgba(59,130,246,0.1); }
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { background: #059669; }
+  .btn-cyan { background: var(--cyan); color: var(--bg); }
+  .btn-cyan:hover { background: #0891B2; }
+  .btn-sm { padding: 5px 12px; font-size: 0.78rem; border-radius: 6px; }
+  .btn-red { background: var(--red); color: white; }
+  .btn-red:hover { background: #DC2626; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+  @media (max-width: 640px) { .grid-2,.grid-3 { grid-template-columns: 1fr; } }
+
+  /* Room Planner */
+  .room-card { background: var(--bg4); border: 1px solid var(--border2); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .room-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .room-name { font-weight: 700; font-size: 1rem; }
+  .room-devices { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; padding: 8px; background: var(--bg2); border-radius: 8px; border: 1px dashed var(--border2); }
+  .device-chip { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: var(--blue-bright); padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .device-chip:hover { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.3); color: var(--red); }
+  .add-device-row { display: flex; gap: 8px; margin-top: 10px; }
+
+  /* Compatibility */
+  .compat-hub { background: var(--bg4); border: 1px solid var(--border2); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .compat-hub-name { font-weight: 700; color: var(--blue-bright); margin-bottom: 10px; font-size: 1rem; }
+  .compat-devices { display: flex; flex-wrap: wrap; gap: 6px; }
+  .compat-chip { padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+  .compat-native { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: var(--green); }
+  .compat-bridge { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); }
+  .compat-no { background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: var(--red); }
+  .legend { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; font-size: 0.78rem; }
+
+  /* Budget */
+  .budget-row { display: flex; gap: 10px; align-items: end; margin-bottom: 10px; }
+  .budget-item { background: var(--bg4); border: 1px solid var(--border2); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .budget-item-name { font-weight: 600; }
+  .budget-item-price { color: var(--green); font-weight: 700; font-size: 1rem; }
+  .budget-total { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(6,182,212,0.1)); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 16px; text-align: center; }
+  .budget-total-num { font-size: 2.5rem; font-weight: 900; color: var(--blue-bright); }
+  .budget-total-label { color: var(--text2); font-size: 0.85rem; }
+
+  /* Automations */
+  .auto-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .auto-filter { padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--text2); font-size: 0.8rem; cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif; }
+  .auto-filter.active { background: rgba(59,130,246,0.15); border-color: var(--blue); color: var(--blue-bright); }
+  .auto-item { background: var(--bg4); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 10px; }
+  .auto-icon { width: 36px; height: 36px; border-radius: 8px; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+  .auto-text { flex: 1; }
+  .auto-title { font-weight: 600; font-size: 0.9rem; }
+  .auto-desc { font-size: 0.78rem; color: var(--text2); margin-top: 3px; }
+  .auto-cat { font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; background: rgba(59,130,246,0.1); color: var(--blue-bright); margin-top: 4px; display: inline-block; }
+  .copy-btn { padding: 5px 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--green); border-radius: 6px; font-size: 0.75rem; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; transition: all 0.2s; white-space: nowrap; }
+  .copy-btn:hover { background: rgba(16,185,129,0.2); }
+
+  /* Shopping List */
+  .shop-item { background: var(--bg4); border: 1px solid var(--border2); border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .shop-check { width: 20px; height: 20px; border: 1.5px solid var(--border2); border-radius: 4px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .shop-check.checked { background: var(--green); border-color: var(--green); }
+  .shop-item-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
+  .amazon-link { padding: 5px 12px; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--amber); border-radius: 6px; font-size: 0.75rem; text-decoration: none; font-weight: 600; white-space: nowrap; }
+  .amazon-link:hover { background: rgba(245,158,11,0.2); }
+
+  /* Priority Guide */
+  .priority-step { background: var(--bg4); border: 1px solid var(--border2); border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; gap: 14px; }
+  .priority-num { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--blue), var(--cyan)); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 900; flex-shrink: 0; }
+  .priority-content { flex: 1; }
+  .priority-title { font-weight: 700; margin-bottom: 6px; }
+  .priority-desc { font-size: 0.85rem; color: var(--text2); line-height: 1.5; }
+  .priority-devices { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+
+  /* Alert */
+  .alert { padding: 12px 16px; border-radius: 10px; margin-bottom: 14px; font-size: 0.87rem; display: flex; gap: 10px; }
+  .alert-blue { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: var(--blue-bright); }
+  .alert-green { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); color: var(--green); }
+  .alert-purple { background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.2); color: #A78BFA; }
+
+  /* Section title */
+  .section-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 4px; }
+  .section-sub { color: var(--text2); font-size: 0.9rem; margin-bottom: 20px; }
+
+  /* Pro section */
+  .pro-section { display: none; background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(29,78,216,0.1)); border: 1px solid rgba(124,58,237,0.3); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  .pro-section.visible { display: block; animation: fadeIn 0.5s; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .search-box { width: 100%; padding: 9px 13px 9px 36px; background: var(--bg4); border: 1px solid var(--border2); border-radius: 8px; color: var(--text); font-family: 'Inter', sans-serif; font-size: 0.9rem; margin-bottom: 16px; }
+  .search-box:focus { outline: none; border-color: var(--blue); }
+  .search-wrap { position: relative; }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); }
+</style>
+</head>
+<body>
+
+<div class="pro-banner" id="proBanner">
+  🚀 PRO MODE UNLOCKED — 25 Bonus Automation Ideas Available Below!
+</div>
+
+<div class="header">
+  <div class="header-badge">🏠 Smart Home Setup Planner</div>
+  <h1>Smart Home Setup Planner</h1>
+  <p>Plan your entire smart home room-by-room. Budget, devices, automations, and more.</p>
+</div>
+
+<div class="nav-container">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('rooms')">🏠 Room Planner</button>
+    <button class="nav-tab" onclick="showSection('compat')">🔗 Compatibility</button>
+    <button class="nav-tab" onclick="showSection('budget')">💰 Budget</button>
+    <button class="nav-tab" onclick="showSection('autos')">⚡ Automations</button>
+    <button class="nav-tab" onclick="showSection('shop')">🛒 Shopping List</button>
+    <button class="nav-tab" onclick="showSection('priority')">📋 Priority Guide</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Room Planner -->
+  <div class="section active" id="section-rooms">
+    <h2 class="section-title">🏠 Room-by-Room Planner</h2>
+    <p class="section-sub">Add rooms and assign smart devices to each one. Click a device chip to remove it.</p>
+    <div class="card">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Room Name</label>
+          <input type="text" id="newRoomName" placeholder="Living Room, Bedroom, etc.">
+        </div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:14px;">
+          <button class="btn btn-blue" onclick="addRoom()">➕ Add Room</button>
+        </div>
+      </div>
+    </div>
+    <div id="roomsList"></div>
+  </div>
+
+  <!-- Compatibility Checker -->
+  <div class="section" id="section-compat">
+    <h2 class="section-title">🔗 Device Compatibility Checker</h2>
+    <p class="section-sub">Select your smart home hub/ecosystem to see which devices work natively, with a bridge, or not at all.</p>
+    <div class="card">
+      <div class="form-group">
+        <label>Your Smart Home Hub / Ecosystem</label>
+        <select id="hubSelect" onchange="showCompat()">
+          <option value="">— Select your hub —</option>
+          <option value="google">Google Home</option>
+          <option value="alexa">Amazon Alexa</option>
+          <option value="homekit">Apple HomeKit</option>
+          <option value="smartthings">Samsung SmartThings</option>
+          <option value="matter">Matter (Universal Standard)</option>
+        </select>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="compat-chip compat-native">● Native Support</span>
+      <span class="compat-chip compat-bridge">● Needs Bridge/Skill</span>
+      <span class="compat-chip compat-no">● Not Compatible</span>
+    </div>
+    <div id="compatResult"></div>
+  </div>
+
+  <!-- Budget Calculator -->
+  <div class="section" id="section-budget">
+    <h2 class="section-title">💰 Budget Calculator</h2>
+    <p class="section-sub">Add devices with their costs and see your total smart home investment.</p>
+    <div class="card">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Device Name</label>
+          <input type="text" id="budgetDevice" placeholder="Smart Thermostat">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="budgetCat">
+            <option>Lighting</option>
+            <option>Security</option>
+            <option>Climate</option>
+            <option>Entertainment</option>
+            <option>Appliances</option>
+            <option>Network/Hub</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Price ($)</label>
+          <input type="number" id="budgetPrice" placeholder="49.99" min="0">
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" id="budgetQty" value="1" min="1">
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="addBudgetItem()">➕ Add to Budget</button>
+    </div>
+    <div id="budgetItems"></div>
+    <div class="budget-total" id="budgetTotal" style="display:none;">
+      <div class="budget-total-label">Total Estimated Cost</div>
+      <div class="budget-total-num" id="budgetTotalNum">$0</div>
+      <div id="budgetBreakdown" style="margin-top:10px;font-size:0.82rem;color:var(--text2);"></div>
+    </div>
+  </div>
+
+  <!-- Automations Library -->
+  <div class="section" id="section-autos">
+    <h2 class="section-title">⚡ Automation Ideas Library</h2>
+    <p class="section-sub">50+ ready-to-use smart home automation ideas. Click Copy to grab the automation description.</p>
+    <div class="pro-section" id="proAutoSection">
+      <div style="font-weight:700;color:#A78BFA;margin-bottom:12px;">🔐 PRO MODE: Bonus Automation Ideas</div>
+      <div id="proAutoList"></div>
+    </div>
+    <div class="auto-filters" id="autoFilters"></div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-box" type="text" id="autoSearch" placeholder="Search automations..." oninput="filterAutos()">
+    </div>
+    <div id="autoList"></div>
+  </div>
+
+  <!-- Shopping List -->
+  <div class="section" id="section-shop">
+    <h2 class="section-title">🛒 Shopping List Generator</h2>
+    <p class="section-sub">Add devices you want to buy. Get direct Amazon search links.</p>
+    <div class="card">
+      <div class="grid-2">
+        <div class="form-group">
+          <label>Device to Buy</label>
+          <input type="text" id="shopItem" placeholder="Philips Hue Starter Kit">
+        </div>
+        <div style="display:flex;align-items:flex-end;padding-bottom:14px;">
+          <button class="btn btn-blue" onclick="addShopItem()">➕ Add to List</button>
+        </div>
+      </div>
+    </div>
+    <div class="alert alert-green">✅ Links open Amazon searches — prices and availability vary. Always compare with other retailers!</div>
+    <div id="shopList"></div>
+  </div>
+
+  <!-- Priority Guide -->
+  <div class="section" id="section-priority">
+    <h2 class="section-title">📋 Smart Home Setup Priority Order</h2>
+    <p class="section-sub">Not sure where to start? Follow this recommended order for the best smart home build experience.</p>
+    <div id="priorityGuide"></div>
+  </div>
+
+</div>
+
+<script>
+// Easter egg: type "smart"
+let typedBuffer = '';
+document.addEventListener('keydown', e => {
+  if (e.key.length === 1) {
+    typedBuffer += e.key.toLowerCase();
+    if (typedBuffer.length > 10) typedBuffer = typedBuffer.slice(-10);
+    if (typedBuffer.includes('smart')) {
+      unlockProMode();
+      typedBuffer = '';
+    }
+  }
+});
+
+let proUnlocked = false;
+function unlockProMode() {
+  if (proUnlocked) return;
+  proUnlocked = true;
+  localStorage.setItem('shsp_pro', '1');
+  document.getElementById('proBanner').classList.add('active');
+  document.getElementById('proAutoSection').classList.add('visible');
+  renderProAutos();
+}
+
+// Load state
+let rooms = [];
+let budgetItems = [];
+let shopItems = [];
+let activeAutoFilter = 'All';
+
+function loadAll() {
+  const d = JSON.parse(localStorage.getItem('shsp_data') || '{}');
+  rooms = d.rooms || [];
+  budgetItems = d.budget || [];
+  shopItems = d.shop || [];
+  if (localStorage.getItem('shsp_pro') === '1') { proUnlocked = true; document.getElementById('proBanner').classList.add('active'); document.getElementById('proAutoSection').classList.add('visible'); renderProAutos(); }
+  renderRooms(); renderBudget(); renderShop(); renderAutos(); renderPriority();
+}
+
+function saveAll() {
+  localStorage.setItem('shsp_data', JSON.stringify({ rooms, budget: budgetItems, shop: shopItems }));
+}
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Rooms
+const deviceOptions = ['Smart Bulb','Smart Switch','Smart Plug','Smart Speaker','Smart Display','Security Camera','Motion Sensor','Door/Window Sensor','Smart Lock','Video Doorbell','Smart Thermostat','Smart TV','Streaming Device','Smart Fan','Smart Blinds','Robot Vacuum','Smart Washer','Smart Dryer','Smart Fridge','Leak Sensor','CO Detector','Smoke Detector','Smart Oven','Smart Dishwasher','Smart Garage Door','Outdoor Camera','Floodlight Camera'];
+
+function addRoom() {
+  const name = document.getElementById('newRoomName').value.trim();
+  if (!name) { alert('Enter a room name!'); return; }
+  rooms.push({ name, devices: [] });
+  document.getElementById('newRoomName').value = '';
+  saveAll(); renderRooms();
+}
+
+function addDeviceToRoom(ri) {
+  const sel = document.getElementById('roomDeviceSel-'+ri);
+  const custom = document.getElementById('roomDeviceCustom-'+ri);
+  const device = custom.value.trim() || sel.value;
+  if (!device) return;
+  rooms[ri].devices.push(device);
+  custom.value = '';
+  saveAll(); renderRooms();
+}
+
+function removeDeviceFromRoom(ri, di) {
+  rooms[ri].devices.splice(di, 1);
+  saveAll(); renderRooms();
+}
+
+function removeRoom(ri) {
+  if (confirm('Remove room "' + rooms[ri].name + '"?')) { rooms.splice(ri, 1); saveAll(); renderRooms(); }
+}
+
+function renderRooms() {
+  const el = document.getElementById('roomsList');
+  if (rooms.length === 0) { el.innerHTML = '<div class="alert alert-blue">ℹ️ No rooms yet. Add your first room above!</div>'; return; }
+  const icons = {'Living Room':'🛋️','Bedroom':'🛏️','Kitchen':'🍳','Bathroom':'🚿','Office':'💻','Garage':'🚗','Backyard':'🌿','Front Door':'🚪','Hallway':'🏃','Basement':'📦'};
+  el.innerHTML = rooms.map((r,ri) => `
+    <div class="room-card">
+      <div class="room-header">
+        <span class="room-name">${icons[r.name]||'🏠'} ${r.name} <span style="color:var(--text3);font-weight:400;font-size:0.8rem;">(${r.devices.length} device${r.devices.length!==1?'s':''})</span></span>
+        <button class="btn btn-sm btn-red" onclick="removeRoom(${ri})">🗑️</button>
+      </div>
+      <div class="room-devices">
+        ${r.devices.map((d,di) => `<div class="device-chip" onclick="removeDeviceFromRoom(${ri},${di})" title="Click to remove">📱 ${d} ×</div>`).join('')}
+        ${r.devices.length===0?'<span style="color:var(--text3);font-size:0.8rem;">No devices yet — add below</span>':''}
+      </div>
+      <div class="add-device-row">
+        <select id="roomDeviceSel-${ri}" style="flex:1;">
+          <option value="">— Pick a device —</option>
+          ${deviceOptions.map(d=>`<option>${d}</option>`).join('')}
+        </select>
+        <input type="text" id="roomDeviceCustom-${ri}" placeholder="or type custom..." style="flex:1;">
+        <button class="btn btn-sm btn-blue" onclick="addDeviceToRoom(${ri})">Add</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Compatibility
+const compatData = {
+  google: {
+    native: ['Smart Bulb (Works with Google)','Google Nest Thermostat','Chromecast','Nest Hub','Nest Cam','Google Nest Doorbell','Nest Protect (Smoke)','TP-Link Kasa Plugs','Ecobee Thermostat','Logitech Harmony (Basic)','Lifx Bulbs','Wyze Cam (Limited)'],
+    bridge: ['Philips Hue (Bridge req.)','Lutron Caseta (Bridge req.)','Samsung SmartThings devices','Z-Wave devices','Zigbee devices','Schlage Smart Locks','August Smart Lock'],
+    no: ['HomeKit-only devices','Proprietary Apple devices','Some older Z-Wave locks']
+  },
+  alexa: {
+    native: ['Amazon Echo devices','Ring Doorbell & Cameras','Ring Alarm','Eero Wi-Fi','Amazon Smart Plug','Blink Cameras','Ecobee Thermostat','TP-Link Kasa devices','Wyze devices','Govee Lights','Lifx Bulbs','Sengled Bulbs'],
+    bridge: ['Philips Hue (Bridge req.)','Lutron Caseta (Bridge req.)','SmartThings devices','Z-Wave devices','Insteon devices','Schlage Locks'],
+    no: ['HomeKit-only devices','Some Chinese brand devices (no Alexa skill)']
+  },
+  homekit: {
+    native: ['Apple HomePod','Apple TV (4K)','Philips Hue (Bridge req.)','Ecobee Thermostat','Lutron Caseta','August Smart Lock','Schlage Encode Plus','Level Lock','Logitech Circle View Cam','Eufy Cameras (Select)','Eve Energy Plug','Nanoleaf Lights'],
+    bridge: ['Wemo switches (via Bridge)','SmartThings (via HomeKit Controller)','Lutron devices','Matter devices'],
+    no: ['Ring devices','Wyze cameras','Most Alexa-only devices','TP-Link Kasa (most models)']
+  },
+  smartthings: {
+    native: ['Samsung appliances','Aeotec SmartThings Hub','Z-Wave devices','Zigbee devices','Sonos Speakers','Yale Smart Locks','Schlage Locks','SmartThings sensors','Ring (Integration)','Philips Hue','Ecobee'],
+    bridge: ['Apple HomeKit devices (via Hub)','Google Home integration','Alexa integration','LG ThinQ appliances'],
+    no: ['Some proprietary cloud-only devices']
+  },
+  matter: {
+    native: ['Matter-certified bulbs','Matter smart plugs','Matter thermostats','Matter locks','Matter sensors','Apple HomePod (2nd gen)','Google Nest Hub (2nd gen)','Amazon Echo (4th gen+)','Samsung SmartThings Hub','Nanoleaf Matter lights','Eve Matter devices'],
+    bridge: ['Older Zigbee/Z-Wave (via Matter Bridge)','Philips Hue (Matter Bridge update)'],
+    no: ['Devices not updated to Matter','Legacy proprietary systems','Most camera-only devices (not yet in Matter spec)']
+  }
+};
+
+function showCompat() {
+  const hub = document.getElementById('hubSelect').value;
+  const el = document.getElementById('compatResult');
+  if (!hub) { el.innerHTML = ''; return; }
+  const d = compatData[hub];
+  el.innerHTML = `
+    <div class="compat-hub">
+      <div class="compat-hub-name">✅ Native Support (${d.native.length} devices)</div>
+      <div class="compat-devices">${d.native.map(x=>`<span class="compat-chip compat-native">${x}</span>`).join('')}</div>
+    </div>
+    <div class="compat-hub">
+      <div class="compat-hub-name">🌉 Works with Bridge/Skill (${d.bridge.length} devices)</div>
+      <div class="compat-devices">${d.bridge.map(x=>`<span class="compat-chip compat-bridge">${x}</span>`).join('')}</div>
+    </div>
+    <div class="compat-hub">
+      <div class="compat-hub-name">❌ Not Compatible / Limited (${d.no.length} devices)</div>
+      <div class="compat-devices">${d.no.map(x=>`<span class="compat-chip compat-no">${x}</span>`).join('')}</div>
+    </div>
+  `;
+}
+
+// Budget
+function addBudgetItem() {
+  const name = document.getElementById('budgetDevice').value.trim();
+  if (!name) { alert('Enter a device name!'); return; }
+  budgetItems.push({
+    name, cat: document.getElementById('budgetCat').value,
+    price: parseFloat(document.getElementById('budgetPrice').value) || 0,
+    qty: parseInt(document.getElementById('budgetQty').value) || 1
+  });
+  document.getElementById('budgetDevice').value = '';
+  document.getElementById('budgetPrice').value = '';
+  document.getElementById('budgetQty').value = '1';
+  saveAll(); renderBudget();
+}
+
+function removeBudgetItem(i) { budgetItems.splice(i,1); saveAll(); renderBudget(); }
+
+function renderBudget() {
+  const el = document.getElementById('budgetItems');
+  const tot = document.getElementById('budgetTotal');
+  if (budgetItems.length === 0) { el.innerHTML = '<div class="alert alert-blue">ℹ️ Add devices above to build your budget.</div>'; tot.style.display='none'; return; }
+  const total = budgetItems.reduce((s,b) => s + b.price*b.qty, 0);
+  const cats = {};
+  budgetItems.forEach(b => { cats[b.cat] = (cats[b.cat]||0) + b.price*b.qty; });
+  el.innerHTML = budgetItems.map((b,i) => `
+    <div class="budget-item">
+      <div>
+        <div class="budget-item-name">${b.name} <span style="font-size:0.75rem;color:var(--text3);">${b.cat}</span></div>
+        ${b.qty>1?`<div style="font-size:0.78rem;color:var(--text2);">$${b.price.toFixed(2)} × ${b.qty}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="budget-item-price">$${(b.price*b.qty).toFixed(2)}</span>
+        <button class="btn btn-sm btn-red" onclick="removeBudgetItem(${i})">✕</button>
+      </div>
+    </div>
+  `).join('');
+  tot.style.display = 'block';
+  document.getElementById('budgetTotalNum').textContent = '$' + total.toFixed(2);
+  document.getElementById('budgetBreakdown').innerHTML = Object.entries(cats).map(([k,v]) => `<span style="margin:0 6px;"><strong>${k}:</strong> $${v.toFixed(2)}</span>`).join('');
+}
+
+// Automations
+const autoIdeas = [
+  {icon:'🌅',title:'Good Morning Routine',desc:'Gradually turn on lights at 7AM, adjust thermostat to 72°F, and start coffee maker.',cat:'Morning'},
+  {icon:'🌙',title:'Good Night Routine',desc:'At 10PM, dim all lights to 10%, lock all doors, set thermostat to 68°F, and arm security system.',cat:'Evening'},
+  {icon:'🚪',title:'Away Mode Auto-Activate',desc:'When last person leaves (geofence), turn off all lights, lock doors, set thermostat to eco mode.',cat:'Security'},
+  {icon:'🏠',title:'Welcome Home',desc:'When you arrive home (geofence), unlock door, turn on entryway lights, adjust thermostat to comfort temp.',cat:'Convenience'},
+  {icon:'📺',title:'Movie Mode',desc:'When TV turns on, dim lights to 20%, close smart blinds, and set "Do Not Disturb" on speakers.',cat:'Entertainment'},
+  {icon:'☀️',title:'Sunrise Simulation',desc:'30 minutes before alarm, gradually brighten bedroom lights from red to warm white to simulate sunrise.',cat:'Morning'},
+  {icon:'🔔',title:'Doorbell Smart Alert',desc:'When doorbell rings, flash porch light, send phone notification with live camera view.',cat:'Security'},
+  {icon:'💨',title:'Air Quality Auto-Fan',desc:'When CO2 or VOC sensor exceeds threshold, automatically turn on ventilation fan.',cat:'Climate'},
+  {icon:'🌡️',title:'Smart Temperature Zones',desc:'Automatically adjust bedroom thermostat separately from living room based on occupancy sensors.',cat:'Climate'},
+  {icon:'🌧️',title:'Rain Auto-Close Blinds',desc:'When weather service reports rain, automatically close exterior smart blinds.',cat:'Weather'},
+  {icon:'💡',title:'Motion Night Light',desc:'Between midnight and 6AM, when motion detected in hallway, turn on lights to 5% warm white.',cat:'Lighting'},
+  {icon:'🛌',title:'Sleep Prep Mode',desc:'1 hour before bedtime, gradually dim all lights, lower thermostat 2 degrees, play white noise.',cat:'Evening'},
+  {icon:'🔋',title:'Phone Charge Reminder',desc:'If you\'re home after 9PM and phone battery < 20%, flash a light to remind you to charge it.',cat:'Convenience'},
+  {icon:'🧹',title:'Clean House Mode',desc:'While robot vacuum runs, pause smart speakers, send notifications when vacuum finishes.',cat:'Convenience'},
+  {icon:'🍳',title:'Kitchen Exhaust Fan',desc:'When smart oven turns on, automatically turn on kitchen exhaust fan at low speed.',cat:'Kitchen'},
+  {icon:'🚗',title:'Garage Arrival Lights',desc:'When garage door opens after dark, turn on garage and entryway lights for 5 minutes.',cat:'Security'},
+  {icon:'👶',title:'Baby Monitor Alert',desc:'When nursery sound sensor detects noise above threshold, send alert and turn on soft nursery light.',cat:'Family'},
+  {icon:'💧',title:'Water Leak Alert',desc:'When leak sensor is triggered, turn off smart water valve and send urgent push notification.',cat:'Safety'},
+  {icon:'🔥',title:'Smoke Alarm Integration',desc:'When smoke detector triggers, turn on all lights to full, unlock all doors, announce on speakers.',cat:'Safety'},
+  {icon:'🏋️',title:'Workout Mode',desc:'When you say "start workout," turn on bright lights, play energizing playlist, and set thermostat cooler.',cat:'Health'},
+  {icon:'📖',title:'Reading Mode',desc:'Activate warm, focused desk light at 40%, turn off overhead lights, silence notifications.',cat:'Lighting'},
+  {icon:'🌿',title:'Plant Watering Alert',desc:'When soil moisture sensor drops below threshold, send notification or turn on smart irrigation.',cat:'Garden'},
+  {icon:'⚡',title:'Energy Peak Saver',desc:'During peak energy hours (typically 4-9PM), automatically reduce non-essential device power.',cat:'Energy'},
+  {icon:'🔐',title:'Lock Reminder',desc:'If door has been unlocked for more than 30 minutes while nobody\'s home, auto-lock and notify.',cat:'Security'},
+  {icon:'🌤️',title:'Vacation Mode',desc:'While away on vacation, randomly turn lights on/off at varied times to simulate occupancy.',cat:'Security'},
+  {icon:'📡',title:'Guest Wi-Fi Auto-Create',desc:'When doorbell rings, automatically create a temporary guest Wi-Fi network with time limit.',cat:'Network'},
+  {icon:'🎵',title:'Music Follows You',desc:'As you move through rooms, your music automatically transfers to speakers in the room you\'re in.',cat:'Entertainment'},
+  {icon:'🌬️',title:'Window Open HVAC Off',desc:'When window sensor detects window open, pause HVAC to avoid heating/cooling outside.',cat:'Climate'},
+  {icon:'🌡️',title:'Hot Day Preheat',desc:'On days forecast above 90°F, pre-cool home to 70°F before 2PM to reduce energy cost.',cat:'Energy'},
+  {icon:'🚿',title:'Shower Ready Mode',desc:'When alarm goes off, start warming bathroom floor heat and set bathroom lights to bright.',cat:'Morning'},
+  {icon:'📺',title:'Kids Bedtime Screen Lock',desc:'At 8PM on school nights, automatically disable streaming devices in kids\' rooms.',cat:'Family'},
+  {icon:'🔦',title:'Power Outage Lighting',desc:'When smart plug senses power fluctuation, activate battery-powered emergency lights.',cat:'Safety'},
+  {icon:'🌙',title:'Moonlight Mode',desc:'After midnight, keep all lights at maximum 3% brightness — just enough to navigate safely.',cat:'Evening'},
+  {icon:'🎁',title:'Holiday Decoration Schedule',desc:'Automatically turn holiday lights on at sunset and off at 11PM, daily during holiday season.',cat:'Seasonal'},
+  {icon:'🏃',title:'Morning Exercise Trigger',desc:'When sleep tracker shows you\'re awake, wait 5 min then start morning routine automatically.',cat:'Health'},
+  {icon:'🔊',title:'Doorbell Announcement',desc:'When doorbell rings, announce "Someone is at the door!" on all smart speakers in house.',cat:'Convenience'},
+  {icon:'🌅',title:'Sunset Adaptive Lighting',desc:'Starting 30 min before sunset, gradually shift bulbs from cool white to warm amber for eye comfort.',cat:'Lighting'},
+  {icon:'🚗',title:'School Pickup Reminder',desc:'At 2:45PM on weekdays, announce reminder on speakers: "Time to leave for school pickup!"',cat:'Family'},
+  {icon:'🔒',title:'Night Security Check',desc:'At midnight, verify all doors locked, garage closed, windows closed, and send you a status report.',cat:'Security'},
+  {icon:'💡',title:'Bathroom Occupancy Light',desc:'When motion detected in bathroom, turn on to 100%. 3 min after motion stops, turn off automatically.',cat:'Lighting'},
+  {icon:'☕',title:'Coffee Auto-Start',desc:'On weekdays, start smart coffee maker 10 minutes before your first alarm.',cat:'Morning'},
+  {icon:'🌡️',title:'Guest Room Prep',desc:'1 hour before guests arrive (manually triggered), set guest room to 72°F, turn on welcoming lights.',cat:'Convenience'},
+  {icon:'📱',title:'Focus Mode Lighting',desc:'When your phone enters Focus/DND mode, shift home office lights to cool white at 100%.',cat:'Work'},
+  {icon:'🧊',title:'Freezer Alert',desc:'If freezer temperature sensor rises above 20°F, immediately send critical alert to your phone.',cat:'Safety'},
+  {icon:'🐾',title:'Pet Home Alone Mode',desc:'When you leave (geofence), turn on ambient lighting and white noise for pets, check on camera.',cat:'Pets'},
+  {icon:'⏰',title:'Weekend Sleep-In Mode',desc:'On weekends, delay all morning automations by 2 hours and keep bedroom blackout mode until 9AM.',cat:'Morning'},
+  {icon:'🏠',title:'Party Mode',desc:'Activate colorful lights, boost thermostat, unlock front door, play party playlist — all with one command.',cat:'Entertainment'},
+  {icon:'🌩️',title:'Storm Prep Auto-Close',desc:'When severe weather alert received, close all smart blinds, move garden furniture (reminder), secure doors.',cat:'Weather'},
+  {icon:'💰',title:'Energy Usage Report',desc:'Every Sunday at 6PM, send weekly energy usage summary to your phone.',cat:'Energy'},
+  {icon:'🔕',title:'Meeting Mode',desc:'When calendar shows you\'re in a meeting, automatically enable DND on speakers, dim office lights.',cat:'Work'},
+];
+
+const proAutoIdeas = [
+  {icon:'🎭',title:'Presence Simulation Advanced',desc:'Use AI learning to simulate your exact daily light patterns — not just random — for realistic away mode.',cat:'PRO'},
+  {icon:'🧠',title:'Mood Lighting AI',desc:'Analyze your calendar, time of day, and music choice to automatically select the perfect lighting scene.',cat:'PRO'},
+  {icon:'📊',title:'Energy Anomaly Alert',desc:'Learn your average daily energy use; alert you when usage is 30%+ above normal — detect appliance failures early.',cat:'PRO'},
+  {icon:'🏃',title:'Activity Recognition Lighting',desc:'Use multiple motion sensors with time-of-day logic to detect if you\'re exercising, working, relaxing and adjust accordingly.',cat:'PRO'},
+  {icon:'🌐',title:'Local AI Voice Control',desc:'Run a local LLM (like Ollama + Home Assistant) for voice commands that work without internet.',cat:'PRO'},
+  {icon:'🔍',title:'Delivery Detection',desc:'When doorbell camera detects a package delivery (object recognition), send photo alert and log delivery time.',cat:'PRO'},
+  {icon:'🎵',title:'Context-Aware Music',desc:'When you enter kitchen at lunchtime on weekdays, automatically play your lunch playlist on kitchen speaker.',cat:'PRO'},
+  {icon:'🛡️',title:'Intrusion Pattern Detection',desc:'If unusual motion patterns detected after midnight in unexpected rooms, send alert AND record 30s clips.',cat:'PRO'},
+  {icon:'💧',title:'Water Usage Optimization',desc:'Track daily water usage via smart meter; alert when usage is abnormally high (possible leak or left on).',cat:'PRO'},
+  {icon:'🌡️',title:'Predictive Pre-Cooling',desc:'Analyze tomorrow\'s weather forecast tonight; pre-cool home before peak rates start in afternoon.',cat:'PRO'},
+  {icon:'🔋',title:'EV Charge Optimization',desc:'Auto-start EV charging when electricity rates are lowest (typically 2-5AM); stop before peak rate hours.',cat:'PRO'},
+  {icon:'🏠',title:'Room Acoustic Mode',desc:'Adjust speaker EQ settings automatically based on which room you\'re in using presence detection.',cat:'PRO'},
+  {icon:'👁️',title:'Face Recognition Unlock',desc:'When trusted face detected at front door, auto-unlock and greet by name on doorbell speaker.',cat:'PRO'},
+  {icon:'🩺',title:'Health Metric Lighting',desc:'Integrate with health tracker; if poor sleep detected, adjust morning light therapy routine to help circadian rhythm.',cat:'PRO'},
+  {icon:'📈',title:'Adaptive Learning Schedule',desc:'After 30 days, have your hub learn your patterns and suggest automation improvements automatically.',cat:'PRO'},
+  {icon:'🔊',title:'Emergency Broadcast System',desc:'Create household intercom system: press button in any room to broadcast audio to all smart speakers.',cat:'PRO'},
+  {icon:'🏗️',title:'Construction/Work Mode',desc:'When power tools detected (smart plug monitoring), boost ventilation fans and alert family not to disturb.',cat:'PRO'},
+  {icon:'🌱',title:'Garden AI Irrigation',desc:'Combine soil sensors, local weather data, and plant database to calculate exact watering needs per zone.',cat:'PRO'},
+  {icon:'🎓',title:'Homework Mode',desc:'When kids\' tablets show educational apps active, boost desk lighting, reduce household noise, block gaming.',cat:'PRO'},
+  {icon:'🔐',title:'Biometric Door History',desc:'Log every door lock/unlock event with photo, time, user ID; generate weekly access report.',cat:'PRO'},
+  {icon:'☀️',title:'Solar Production Optimization',desc:'When solar production is high, automatically run high-energy appliances (dishwasher, laundry) to maximize free energy.',cat:'PRO'},
+  {icon:'🚨',title:'Carbon Monoxide Chain Reaction',desc:'CO sensor triggers: turn on all fans, open smart windows (if available), unlock all doors, call emergency contact.',cat:'PRO'},
+  {icon:'📡',title:'Mesh Wi-Fi Roaming Presence',desc:'Track which Wi-Fi node you\'re connected to for room-level presence detection without extra hardware.',cat:'PRO'},
+  {icon:'🎪',title:'Scene Scheduling AI',desc:'Automatically rotate through 5 different lighting scenes throughout the day based on your learned preferences.',cat:'PRO'},
+  {icon:'🏥',title:'Medical Alert Integration',desc:'If elderly family member\'s motion sensor shows no movement for 4+ hours, send wellness check alert.',cat:'PRO'},
+];
+
+let filteredAutos = [...autoIdeas];
+
+function renderAutos() {
+  const cats = ['All', ...new Set(autoIdeas.map(a => a.cat))];
+  document.getElementById('autoFilters').innerHTML = cats.map(c => `<button class="auto-filter ${c===activeAutoFilter?'active':''}" onclick="setAutoFilter('${c}')">${c}</button>`).join('');
+  filterAutos();
+}
+
+function setAutoFilter(cat) {
+  activeAutoFilter = cat;
+  renderAutos();
+}
+
+function filterAutos() {
+  const q = document.getElementById('autoSearch').value.toLowerCase();
+  const cats = autoIdeas.filter(a => (activeAutoFilter==='All'||a.cat===activeAutoFilter) && (!q||(a.title+a.desc+a.cat).toLowerCase().includes(q)));
+  const el = document.getElementById('autoList');
+  el.innerHTML = cats.length ? cats.map(a => `
+    <div class="auto-item">
+      <div class="auto-icon">${a.icon}</div>
+      <div class="auto-text">
+        <div class="auto-title">${a.title}</div>
+        <div class="auto-desc">${a.desc}</div>
+        <span class="auto-cat">${a.cat}</span>
+      </div>
+      <button class="copy-btn" onclick="copyAuto('${a.title}: ${a.desc.replace(/'/g,'\\'')}')" >📋 Copy</button>
+    </div>
+  `).join('') : '<div style="text-align:center;padding:30px;color:var(--text3);">No automations match your search.</div>';
+}
+
+function renderProAutos() {
+  const el = document.getElementById('proAutoList');
+  el.innerHTML = proAutoIdeas.map(a => `
+    <div class="auto-item" style="margin-bottom:8px;">
+      <div class="auto-icon" style="background:rgba(139,92,246,0.1);">${a.icon}</div>
+      <div class="auto-text">
+        <div class="auto-title">${a.title}</div>
+        <div class="auto-desc">${a.desc}</div>
+      </div>
+      <button class="copy-btn" style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.3);color:#A78BFA;" onclick="copyAuto('${a.title}: ${a.desc.replace(/'/g,'\\'')}')" >📋 Copy</button>
+    </div>
+  `).join('');
+}
+
+function copyAuto(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    const btns = document.querySelectorAll('.copy-btn');
+    btns.forEach(b => { if (b.onclick && b.onclick.toString().includes(text.substring(0,20).replace(/'/g,"\\'"))) { b.textContent = '✅ Copied!'; setTimeout(() => b.textContent = '📋 Copy', 2000); } });
+  }).catch(() => { alert(text); });
+}
+
+// Shopping List
+function addShopItem() {
+  const name = document.getElementById('shopItem').value.trim();
+  if (!name) { alert('Enter a device name!'); return; }
+  shopItems.push({ name, checked: false });
+  document.getElementById('shopItem').value = '';
+  saveAll(); renderShop();
+}
+
+function toggleShopCheck(i) { shopItems[i].checked = !shopItems[i].checked; saveAll(); renderShop(); }
+function removeShopItem(i) { shopItems.splice(i,1); saveAll(); renderShop(); }
+
+function renderShop() {
+  const el = document.getElementById('shopList');
+  if (shopItems.length === 0) { el.innerHTML = '<div class="alert alert-blue">ℹ️ Add devices above to generate your shopping list.</div>'; return; }
+  el.innerHTML = shopItems.map((s,i) => `
+    <div class="shop-item" style="${s.checked?'opacity:0.6;':''}" >
+      <div class="shop-check ${s.checked?'checked':''}" onclick="toggleShopCheck(${i})">${s.checked?'✓':''}</div>
+      <div class="shop-item-name" style="${s.checked?'text-decoration:line-through;':''}">${s.name}</div>
+      <a href="https://www.amazon.com/s?k=${encodeURIComponent(s.name+' smart home')}" target="_blank" class="amazon-link">🔍 Amazon</a>
+      <button class="btn btn-sm btn-red" onclick="removeShopItem(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+// Priority Guide
+const prioritySteps = [
+  { num: '1', title: 'Network Foundation', desc: 'Before any smart devices, upgrade your router. Mesh Wi-Fi is strongly recommended. All smart home devices live or die by your network quality. Aim for a router that handles 50+ devices.', devices: ['Mesh Wi-Fi Router','Network Switch','Wi-Fi Extenders'] },
+  { num: '2', title: 'Smart Hub / Voice Control', desc: 'Choose your ecosystem first (Google, Alexa, HomeKit, SmartThings) before buying devices. This decision determines which devices are compatible. Install the hub and get comfortable with it.', devices: ['Smart Speaker','Smart Display','Smart Hub'] },
+  { num: '3', title: 'Lighting (Quick Wins)', desc: 'Smart bulbs are the fastest way to make your home feel "smart." They\'re affordable, easy to install, and immediately impressive. Start with living room and bedroom.', devices: ['Smart Bulbs','Smart Switches','Dimmer Switches'] },
+  { num: '4', title: 'Security Basics', desc: 'Add a video doorbell and outdoor camera next. These provide real value (package detection, visitor alerts) and don\'t require professional installation.', devices: ['Video Doorbell','Outdoor Camera','Indoor Camera'] },
+  { num: '5', title: 'Smart Thermostat', desc: 'A smart thermostat typically pays for itself in 1-2 years through energy savings. Easy to install (most are DIY-friendly) and works with most HVAC systems.', devices: ['Smart Thermostat'] },
+  { num: '6', title: 'Entry & Access Control', desc: 'Smart locks and garage door openers add massive convenience. Never lock yourself out again. Remote access lets you let in guests without being home.', devices: ['Smart Lock','Smart Garage Door','Keypad Entry'] },
+  { num: '7', title: 'Safety Sensors', desc: 'Add water leak sensors (under sinks, near water heater), CO detectors, and additional smoke detectors. These can save your home from serious damage.', devices: ['Leak Sensor','CO Detector','Door/Window Sensors'] },
+  { num: '8', title: 'Comfort & Convenience', desc: 'Smart plugs, robot vacuums, smart blinds, and appliances. These are the "nice to have" layer that completes the full smart home experience.', devices: ['Smart Plugs','Robot Vacuum','Smart Blinds','Smart Appliances'] },
+];
+
+function renderPriority() {
+  document.getElementById('priorityGuide').innerHTML = prioritySteps.map(s => `
+    <div class="priority-step">
+      <div class="priority-num">${s.num}</div>
+      <div class="priority-content">
+        <div class="priority-title">${s.title}</div>
+        <div class="priority-desc">${s.desc}</div>
+        <div class="priority-devices">${s.devices.map(d=>`<span class="compat-chip compat-native" style="margin-top:4px;">${d}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+loadAll();
+</script>
+</body>
+</html>

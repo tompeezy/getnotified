@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔐 Home Security Command Center</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --danger: #f85149;
+    --warning: #d29922;
+    --success: #3fb950;
+    --purple: #a371f7;
+    --glow: rgba(88, 166, 255, 0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Starfield background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.1) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 80%, rgba(255,255,255,0.1) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.08) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.08) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #1f6feb, #58a6ff);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 0 0 rgba(88, 166, 255, 0);
+  }
+
+  .logo:hover { transform: scale(1.05); }
+  .logo.clicked { animation: logoClick 0.3s ease; }
+
+  @keyframes logoClick {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.9); box-shadow: 0 0 20px rgba(88, 166, 255, 0.5); }
+    100% { transform: scale(1); }
+  }
+
+  .header-title h1 {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #58a6ff, #a371f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-title p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .last-updated {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  .reset-btn {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover {
+    border-color: var(--danger);
+    color: var(--danger);
+  }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 20px;
+  }
+
+  .col-12 { grid-column: span 12; }
+  .col-8 { grid-column: span 8; }
+  .col-4 { grid-column: span 4; }
+  .col-6 { grid-column: span 6; }
+  .col-3 { grid-column: span 3; }
+
+  @media (max-width: 1024px) {
+    .col-8, .col-4 { grid-column: span 12; }
+    .col-6 { grid-column: span 12; }
+    .col-3 { grid-column: span 6; }
+  }
+  @media (max-width: 600px) {
+    .col-3 { grid-column: span 12; }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    transition: border-color 0.3s;
+  }
+
+  .card:hover { border-color: rgba(88, 166, 255, 0.3); }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .icon { font-size: 16px; }
+
+  /* Score Card */
+  .score-card {
+    background: linear-gradient(135deg, #0d1117 0%, #1a1f35 100%);
+    border: 1px solid rgba(88, 166, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .score-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(88, 166, 255, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .score-display {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+  }
+
+  .score-ring {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    flex-shrink: 0;
+  }
+
+  .score-ring svg {
+    transform: rotate(-90deg);
+    width: 160px;
+    height: 160px;
+  }
+
+  .score-ring .track {
+    fill: none;
+    stroke: var(--surface2);
+    stroke-width: 10;
+  }
+
+  .score-ring .progress {
+    fill: none;
+    stroke-width: 10;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.5s;
+  }
+
+  .score-number {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .score-number span.score-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 4px;
+  }
+
+  .score-details { flex: 1; }
+
+  .score-grade {
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .score-description {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+
+  .score-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .stat-box {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .stat-box .stat-num {
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  .stat-box .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Checklist */
+  .checklist { display: flex; flex-direction: column; gap: 8px; }
+
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .check-item:hover { border-color: var(--border); background: #2d333b; }
+  .check-item.checked { background: rgba(63, 185, 80, 0.08); border-color: rgba(63, 185, 80, 0.2); }
+
+  .check-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    font-size: 12px;
+  }
+
+  .check-item.checked .check-box {
+    background: var(--success);
+    border-color: var(--success);
+  }
+
+  .check-content { flex: 1; }
+
+  .check-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 0.2s;
+  }
+
+  .check-item.checked .check-name {
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+
+  .check-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .check-badge {
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .badge-critical { background: rgba(248, 81, 73, 0.15); color: var(--danger); }
+  .badge-high { background: rgba(210, 153, 34, 0.15); color: var(--warning); }
+  .badge-medium { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+  .badge-low { background: rgba(63, 185, 80, 0.15); color: var(--success); }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-danger { background: var(--danger); box-shadow: 0 0 6px var(--danger); animation: pulse-danger 2s infinite; }
+  .dot-warning { background: var(--warning); box-shadow: 0 0 6px var(--warning); animation: pulse-warning 2s infinite; }
+  .dot-success { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .dot-muted { background: var(--text-muted); }
+
+  @keyframes pulse-danger {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--danger); }
+    50% { opacity: 0.6; box-shadow: 0 0 12px var(--danger); }
+  }
+
+  @keyframes pulse-warning {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--warning); }
+    50% { opacity: 0.6; box-shadow: 0 0 12px var(--warning); }
+  }
+
+  /* Device Table */
+  .device-table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(48, 54, 61, 0.5);
+    vertical-align: middle;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  tr:hover td { background: rgba(48, 54, 61, 0.3); }
+
+  .device-name {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .device-icon { font-size: 16px; }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .tag-network { background: rgba(88, 166, 255, 0.1); color: var(--accent); }
+  .tag-iot { background: rgba(163, 113, 247, 0.1); color: var(--purple); }
+  .tag-secure { background: rgba(63, 185, 80, 0.1); color: var(--success); }
+  .tag-risk { background: rgba(248, 81, 73, 0.1); color: var(--danger); }
+  .tag-unknown { background: rgba(139, 148, 158, 0.1); color: var(--text-muted); }
+
+  .add-device-btn {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: all 0.2s;
+  }
+
+  .add-device-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--glow);
+  }
+
+  /* Threat Tracker */
+  .threat-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .threat-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: 10px;
+    border-left: 3px solid transparent;
+  }
+
+  .threat-item.threat-high { border-left-color: var(--danger); }
+  .threat-item.threat-medium { border-left-color: var(--warning); }
+  .threat-item.threat-low { border-left-color: var(--accent); }
+
+  .threat-icon { font-size: 20px; flex-shrink: 0; }
+
+  .threat-content { flex: 1; }
+
+  .threat-title { font-size: 14px; font-weight: 600; }
+
+  .threat-meta {
+    display: flex;
+    gap: 12px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .threat-level {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .level-high { background: rgba(248,81,73,0.2); color: var(--danger); }
+  .level-medium { background: rgba(210,153,34,0.2); color: var(--warning); }
+  .level-low { background: rgba(88,166,255,0.2); color: var(--accent); }
+
+  /* Progress Bars */
+  .privacy-category { margin-bottom: 16px; }
+
+  .privacy-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .privacy-name {
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .privacy-score { font-size: 13px; font-weight: 700; }
+
+  .progress-bar {
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Quick Actions */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .action-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(88,166,255,0.05));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .action-btn:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .action-btn:hover::before { opacity: 1; }
+
+  .action-icon { font-size: 20px; flex-shrink: 0; }
+
+  .action-text .action-label { font-size: 13px; font-weight: 500; }
+  .action-text .action-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+  /* Notes */
+  textarea {
+    width: 100%;
+    min-height: 120px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    padding: 14px;
+    resize: vertical;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+  }
+
+  textarea::placeholder { color: var(--text-muted); }
+
+  .reminders-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+
+  .reminder-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+
+  .reminder-date { font-size: 11px; color: var(--text-muted); }
+
+  /* Monthly Audit */
+  .audit-section { margin-bottom: 16px; }
+  .audit-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: var(--surface2);
+    padding: 4px;
+    border-radius: 10px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Modal / Easter Egg */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .modal-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid rgba(88, 166, 255, 0.3);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    text-align: center;
+    transform: scale(0.9);
+    transition: transform 0.3s;
+    position: relative;
+    box-shadow: 0 0 60px rgba(88, 166, 255, 0.2);
+  }
+
+  .modal-overlay.show .modal { transform: scale(1); }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    background: var(--surface2);
+    border: none;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { color: var(--text); background: var(--border); }
+
+  .modal-emoji { font-size: 56px; margin-bottom: 16px; display: block; animation: float 3s ease-in-out infinite; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .modal h2 {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #58a6ff, #a371f7, #3fb950);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .modal p { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+
+  .modal-code {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 4px;
+  }
+
+  /* Add Device Modal */
+  .device-modal {
+    text-align: left;
+  }
+
+  .device-modal h2 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    background: none;
+    -webkit-text-fill-color: var(--text);
+    color: var(--text);
+  }
+
+  .form-group { margin-bottom: 14px; }
+
+  .form-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+  }
+
+  .form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .form-select option { background: var(--surface2); }
+
+  .btn-primary {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #1f6feb, #58a6ff);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(88, 166, 255, 0.3);
+  }
+
+  /* Secret terminal easter egg */
+  .secret-terminal {
+    background: #000;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    color: #00ff41;
+    margin-top: 16px;
+    text-align: left;
+    line-height: 1.8;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .terminal-line { opacity: 0; animation: typeIn 0.1s forwards; }
+
+  @keyframes typeIn { to { opacity: 1; } }
+
+  /* Scan animation on score */
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(400%); }
+  }
+
+  .score-ring::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 30%;
+    background: linear-gradient(transparent, rgba(88,166,255,0.1), transparent);
+    animation: scanline 3s linear infinite;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  /* Celebration */
+  @keyframes confetti-fall {
+    0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .confetti-piece {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    animation: confetti-fall 3s ease-in forwards;
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* Score color transitions */
+  .score-good { color: var(--success); }
+  .score-medium { color: var(--warning); }
+  .score-bad { color: var(--danger); }
+
+  /* Input for new threat */
+  .add-threat-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .add-threat-row input {
+    flex: 1;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: inherit;
+  }
+
+  .add-threat-row input:focus { outline: none; border-color: var(--accent); }
+
+  .add-threat-row button {
+    padding: 8px 14px;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .add-threat-row button:hover { background: #79c0ff; }
+
+  /* Misc */
+  .section-badge {
+    padding: 3px 10px;
+    background: var(--surface2);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 16px 0;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+  /* Tooltip */
+  .tooltip-wrap { position: relative; }
+  .tooltip-wrap:hover .tooltip { opacity: 1; pointer-events: none; }
+  .tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2d333b;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+    margin-bottom: 6px;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* Delete button on threats */
+  .threat-delete {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .threat-delete:hover { color: var(--danger); background: rgba(248,81,73,0.1); }
+
+  /* Watermark */
+  .watermark {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 24px 0 8px;
+    opacity: 0.5;
+  }
+</style>
+</head>
+<body>
+
+<!-- Easter Egg Modal -->
+<div class="modal-overlay" id="easterEggModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('easterEggModal')">✕</button>
+    <span class="modal-emoji">🕵️</span>
+    <h2>You Found the Agent Room.</h2>
+    <p>Most people never make it here. You've proven you take security seriously — or you're just really curious. Either way, we respect it.</p>
+    <p style="margin-top:12px;">Your secret access code:</p>
+    <div class="modal-code">GHOST-7X</div>
+    <div class="secret-terminal" id="terminalOutput"></div>
+    <p style="margin-top:16px;font-size:12px;color:var(--text-muted);">Keep this between us. 🤫<br>Press <kbd style="background:var(--surface2);padding:2px 6px;border-radius:4px;border:1px solid var(--border);">Esc</kbd> to close.</p>
+  </div>
+</div>
+
+<!-- Add Device Modal -->
+<div class="modal-overlay" id="deviceModal">
+  <div class="modal device-modal">
+    <button class="modal-close" onclick="closeModal('deviceModal')">✕</button>
+    <h2>➕ Add Device</h2>
+    <div class="form-group">
+      <label class="form-label">Device Name</label>
+      <input class="form-input" id="d-name" placeholder="e.g. Nest Thermostat" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Device Type</label>
+      <select class="form-select" id="d-type">
+        <option>📡 Router/Network</option>
+        <option>📱 Phone/Tablet</option>
+        <option>💻 Computer/Laptop</option>
+        <option>📺 Smart TV</option>
+        <option>💡 Smart Bulb/Light</option>
+        <option>🔒 Lock/Camera</option>
+        <option>🌡️ Thermostat</option>
+        <option>🔊 Smart Speaker</option>
+        <option>🎮 Game Console</option>
+        <option>❓ Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Network</label>
+      <select class="form-select" id="d-network">
+        <option>Main WiFi</option>
+        <option>Guest Network</option>
+        <option>IoT Network</option>
+        <option>Wired/Ethernet</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Security Status</label>
+      <select class="form-select" id="d-status">
+        <option value="secure">✅ Secure</option>
+        <option value="risk">⚠️ Needs Attention</option>
+        <option value="unknown">❓ Unknown</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="saveDevice()">Add Device</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo" id="logo" onclick="logoClick()" title="Click me 3 times...">🔐</div>
+      <div class="header-title">
+        <h1>Home Security Command Center</h1>
+        <p>Your personal privacy & security dashboard</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="last-updated">
+        <div>Last updated</div>
+        <div id="lastUpdatedTime">Never</div>
+      </div>
+      <button class="reset-btn" onclick="confirmReset()">↺ Reset</button>
+    </div>
+  </div>
+
+  <div class="grid">
+
+    <!-- Score Card (full width) -->
+    <div class="col-12">
+      <div class="card score-card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🛡️</span> Home Security Score</div>
+          <div class="section-badge" id="scoreStatus">Calculating...</div>
+        </div>
+        <div class="score-display">
+          <div class="score-ring">
+            <svg viewBox="0 0 160 160">
+              <circle class="track" cx="80" cy="80" r="65"/>
+              <circle class="progress" id="scoreProgress" cx="80" cy="80" r="65"
+                stroke-dasharray="408.41"
+                stroke-dashoffset="408.41"
+                stroke="#58a6ff"/>
+            </svg>
+            <div class="score-number">
+              <span id="scoreNum" class="score-bad">0</span>
+              <span class="score-label">/ 100</span>
+            </div>
+          </div>
+          <div class="score-details">
+            <div class="score-grade" id="scoreGrade">F</div>
+            <div class="score-description" id="scoreDesc">Start checking items below to improve your security score. Each completed item strengthens your home's digital defenses.</div>
+            <div class="score-stats">
+              <div class="stat-box">
+                <div class="stat-num" id="statCompleted" style="color:var(--success)">0</div>
+                <div class="stat-label">Completed</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-num" id="statRemaining" style="color:var(--warning)">0</div>
+                <div class="stat-label">Remaining</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-num" id="statDevices" style="color:var(--accent)">0</div>
+                <div class="stat-label">Devices</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Network Security Checklist -->
+    <div class="col-8">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📡</span> Network Security</div>
+          <div class="section-badge" id="networkBadge">0/0</div>
+        </div>
+        <div class="checklist" id="networkChecklist">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Privacy Score by Category -->
+    <div class="col-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">🔏</span> Privacy Score</div>
+        </div>
+        <div id="privacyBars">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Device Inventory -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📱</span> Device Inventory</div>
+          <div class="section-badge" id="deviceCount">0 devices</div>
+        </div>
+        <div class="device-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Device</th>
+                <th>Network</th>
+                <th>Status</th>
+                <th>Last Checked</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="deviceTableBody">
+            </tbody>
+          </table>
+        </div>
+        <button class="add-device-btn" onclick="openModal('deviceModal')">+ Add Device</button>
+      </div>
+    </div>
+
+    <!-- Threat Tracker -->
+    <div class="col-6">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">⚡</span> Threat Tracker</div>
+          <div class="section-badge" id="threatCount">0 events</div>
+        </div>
+        <div class="threat-list" id="threatList">
+          <!-- Populated by JS -->
+        </div>
+        <div class="add-threat-row">
+          <input id="threatInput" placeholder="Log a security event..." onkeydown="if(event.key==='Enter')addThreat()" />
+          <button onclick="addThreat()">+ Log</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-6">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">⚡</span> Quick Actions</div>
+        </div>
+        <div class="actions-grid">
+          <a class="action-btn" href="http://192.168.1.1" target="_blank">
+            <span class="action-icon">📡</span>
+            <div class="action-text">
+              <div class="action-label">Router Login</div>
+              <div class="action-sub">192.168.1.1</div>
+            </div>
+          </a>
+          <a class="action-btn" href="https://myaccount.google.com/security" target="_blank">
+            <span class="action-icon">🔑</span>
+            <div class="action-text">
+              <div class="action-label">Google Security</div>
+              <div class="action-sub">Review account access</div>
+            </div>
+          </a>
+          <a class="action-btn" href="https://haveibeenpwned.com" target="_blank">
+            <span class="action-icon">🕵️</span>
+            <div class="action-text">
+              <div class="action-label">Breach Check</div>
+              <div class="action-sub">Have I Been Pwned</div>
+            </div>
+          </a>
+          <a class="action-btn" href="https://account.microsoft.com/security" target="_blank">
+            <span class="action-icon">🪟</span>
+            <div class="action-text">
+              <div class="action-label">Microsoft Security</div>
+              <div class="action-sub">Account & privacy</div>
+            </div>
+          </a>
+          <a class="action-btn" href="https://www.apple.com/account" target="_blank">
+            <span class="action-icon">🍎</span>
+            <div class="action-text">
+              <div class="action-label">Apple ID</div>
+              <div class="action-sub">Review devices & access</div>
+            </div>
+          </a>
+          <a class="action-btn" href="https://www.facebook.com/settings?tab=security" target="_blank">
+            <span class="action-icon">📘</span>
+            <div class="action-text">
+              <div class="action-label">Facebook Security</div>
+              <div class="action-sub">Privacy & login settings</div>
+            </div>
+          </a>
+          <a class="action-btn" href="https://passwords.google.com" target="_blank">
+            <span class="action-icon">🔐</span>
+            <div class="action-text">
+              <div class="action-label">Password Manager</div>
+              <div class="action-sub">Google Passwords</div>
+            </div>
+          </a>
+          <a class="action-btn" href="https://www.virustotal.com" target="_blank">
+            <span class="action-icon">🦠</span>
+            <div class="action-text">
+              <div class="action-label">Virus Total</div>
+              <div class="action-sub">Scan files & URLs</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly Security Audit -->
+    <div class="col-8">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📋</span> Monthly Security Audit</div>
+          <div>
+            <span class="section-badge" id="auditBadge">0/0</span>
+            <button onclick="resetAudit()" style="margin-left:8px;padding:3px 10px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);font-size:11px;cursor:pointer;">New Month</button>
+          </div>
+        </div>
+        <div id="auditContent">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Notes & Reminders -->
+    <div class="col-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><span class="icon">📝</span> Notes & Reminders</div>
+        </div>
+        <textarea id="notesArea" placeholder="Add security notes, passwords hints, things to investigate...&#10;&#10;Tip: Note when you last changed your router password, VPN subscription renewal dates, etc." oninput="saveNotes()"></textarea>
+        <div class="reminders-list">
+          <div class="reminder-item">
+            <span>🔄 Next monthly audit</span>
+            <span class="reminder-date" id="nextAuditDate">—</span>
+          </div>
+          <div class="reminder-item">
+            <span>📧 Check breach alerts</span>
+            <span class="reminder-date">Weekly</span>
+          </div>
+          <div class="reminder-item">
+            <span>🔑 Rotate passwords</span>
+            <span class="reminder-date">Quarterly</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <div class="watermark">Home Security Command Center · Built with care 🔐</div>
+
+</div><!-- /container -->
+
+<script>
+// ============================================================
+// DATA DEFINITIONS
+// ============================================================
+
+const NETWORK_ITEMS = [
+  { id: 'n1', name: 'Router uses WPA3 or WPA2 encryption', desc: 'Check your router settings — WEP is dangerously outdated', badge: 'critical', points: 8 },
+  { id: 'n2', name: 'Default router password changed', desc: 'Never use admin/admin or the sticker password', badge: 'critical', points: 8 },
+  { id: 'n3', name: 'Router firmware is up to date', desc: 'Log into your router and check for firmware updates', badge: 'high', points: 6 },
+  { id: 'n4', name: 'Guest network enabled for IoT devices', desc: 'Isolates smart home devices from your main network', badge: 'high', points: 6 },
+  { id: 'n5', name: 'VPN in use on home network or devices', desc: 'Encrypts your traffic from your ISP and public WiFi', badge: 'medium', points: 5 },
+  { id: 'n6', name: 'DNS-over-HTTPS or Pi-hole configured', desc: 'Blocks malicious domains and prevents DNS spying', badge: 'medium', points: 5 },
+  { id: 'n7', name: 'Remote access / UPnP disabled on router', desc: 'Reduces attack surface from the internet', badge: 'high', points: 6 },
+  { id: 'n8', name: 'WiFi network name (SSID) does not reveal your info', desc: 'Avoid SSIDs like "Smith Family Home"', badge: 'low', points: 3 },
+  { id: 'n9', name: 'Two-factor authentication on router admin', desc: 'If your router supports it, enable 2FA', badge: 'medium', points: 5 },
+  { id: 'n10', name: 'Firewall enabled on router', desc: 'Most routers have this, verify it\'s on', badge: 'high', points: 6 },
+];
+
+const AUDIT_SECTIONS = [
+  {
+    title: '🔑 Passwords & Accounts',
+    items: [
+      { id: 'a1', name: 'Review and update any reused passwords', points: 4 },
+      { id: 'a2', name: 'Check Have I Been Pwned for new breaches', points: 4 },
+      { id: 'a3', name: 'Remove unused apps from Google/Apple account', points: 3 },
+      { id: 'a4', name: 'Review active sessions on email accounts', points: 3 },
+    ]
+  },
+  {
+    title: '📡 Network & Devices',
+    items: [
+      { id: 'a5', name: 'Check router logs for unknown devices', points: 4 },
+      { id: 'a6', name: 'Update firmware on router and smart devices', points: 4 },
+      { id: 'a7', name: 'Scan network for unexpected open ports', points: 3 },
+      { id: 'a8', name: 'Review connected devices list in router admin', points: 3 },
+    ]
+  },
+  {
+    title: '🏠 Smart Home',
+    items: [
+      { id: 'a9', name: 'Check smart device app permissions', points: 3 },
+      { id: 'a10', name: 'Review voice assistant purchase/activity history', points: 3 },
+      { id: 'a11', name: 'Verify security camera access logs', points: 4 },
+    ]
+  },
+  {
+    title: '👨‍👩‍👧 Family',
+    items: [
+      { id: 'a12', name: 'Review children\'s app and screen time settings', points: 3 },
+      { id: 'a13', name: 'Check parental control configurations', points: 3 },
+      { id: 'a14', name: 'Remind family members about phishing awareness', points: 3 },
+    ]
+  }
+];
+
+const PRIVACY_CATEGORIES = [
+  { id: 'network', name: 'Network', icon: '📡', color: '#58a6ff', items: ['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10'] },
+  { id: 'devices', name: 'Devices', icon: '📱', color: '#a371f7', items: ['a5','a6','a7','a8'] },
+  { id: 'accounts', name: 'Accounts', icon: '🔑', color: '#3fb950', items: ['a1','a2','a3','a4'] },
+  { id: 'smarthome', name: 'Smart Home', icon: '🏠', color: '#d29922', items: ['a9','a10','a11'] },
+  { id: 'family', name: 'Family', icon: '👨‍👩‍👧', color: '#f85149', items: ['a12','a13','a14'] },
+];
+
+const DEFAULT_THREATS = [
+  { id: 't1', title: 'Check if your email was in recent data breach', level: 'high', icon: '📧', date: 'Today' },
+  { id: 't2', title: 'Router default credentials vulnerability (unresolved)', level: 'medium', icon: '📡', date: '2 days ago' },
+];
+
+const DEFAULT_DEVICES = [
+  { id: 'dev1', name: 'Home Router', type: '📡 Router/Network', network: 'Main WiFi', status: 'unknown', added: 'Today' },
+  { id: 'dev2', name: 'iPhone (Main)', type: '📱 Phone/Tablet', network: 'Main WiFi', status: 'secure', added: 'Today' },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+
+let state = {
+  checks: {},
+  devices: [...DEFAULT_DEVICES],
+  threats: [...DEFAULT_THREATS],
+  notes: '',
+  lastUpdated: null,
+  logoClicks: 0,
+};
+
+function loadState() {
+  const saved = localStorage.getItem('hscc-state-v2');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      state = { ...state, ...parsed };
+    } catch(e) {}
+  }
+}
+
+function saveState() {
+  state.lastUpdated = new Date().toISOString();
+  localStorage.setItem('hscc-state-v2', JSON.stringify(state));
+  document.getElementById('lastUpdatedTime').textContent = 'Just now';
+}
+
+// ============================================================
+// RENDER FUNCTIONS
+// ============================================================
+
+function renderNetworkChecklist() {
+  const el = document.getElementById('networkChecklist');
+  let checked = 0;
+  el.innerHTML = NETWORK_ITEMS.map(item => {
+    const isChecked = state.checks[item.id];
+    if (isChecked) checked++;
+    return `
+      <div class="check-item ${isChecked ? 'checked' : ''}" onclick="toggleCheck('${item.id}')">
+        <div class="check-box">${isChecked ? '✓' : ''}</div>
+        <div class="status-dot ${isChecked ? 'dot-success' : (item.badge === 'critical' ? 'dot-danger' : item.badge === 'high' ? 'dot-warning' : 'dot-muted')}"></div>
+        <div class="check-content">
+          <div class="check-name">${item.name}</div>
+          <div class="check-desc">${item.desc}</div>
+        </div>
+        <span class="check-badge badge-${item.badge}">${item.badge.toUpperCase()}</span>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('networkBadge').textContent = `${checked}/${NETWORK_ITEMS.length}`;
+}
+
+function renderAudit() {
+  const el = document.getElementById('auditContent');
+  let totalChecked = 0;
+  let total = 0;
+  let html = '';
+  AUDIT_SECTIONS.forEach(section => {
+    html += `<div class="audit-section"><div class="audit-section-title">${section.title}</div>`;
+    html += `<div class="checklist">`;
+    section.items.forEach(item => {
+      total++;
+      const isChecked = state.checks[item.id];
+      if (isChecked) totalChecked++;
+      html += `
+        <div class="check-item ${isChecked ? 'checked' : ''}" onclick="toggleCheck('${item.id}')">
+          <div class="check-box">${isChecked ? '✓' : ''}</div>
+          <div class="check-content">
+            <div class="check-name">${item.name}</div>
+          </div>
+        </div>
+      `;
+    });
+    html += `</div></div>`;
+  });
+  el.innerHTML = html;
+  document.getElementById('auditBadge').textContent = `${totalChecked}/${total}`;
+  
+  // Next audit date
+  const nextMonth = new Date();
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+  document.getElementById('nextAuditDate').textContent = nextMonth.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+
+function renderDeviceTable() {
+  const tbody = document.getElementById('deviceTableBody');
+  if (!state.devices.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">No devices added yet. Click "+ Add Device" to start tracking.</td></tr>`;
+  } else {
+    tbody.innerHTML = state.devices.map(d => `
+      <tr>
+        <td><div class="device-name"><span class="device-icon">${d.type.split(' ')[0]}</span> ${d.name}</div></td>
+        <td><span class="tag tag-network">${d.network}</span></td>
+        <td>
+          ${d.status === 'secure' ? '<span class="tag tag-secure">✅ Secure</span>' :
+            d.status === 'risk' ? '<span class="tag tag-risk">⚠️ At Risk</span>' :
+            '<span class="tag tag-unknown">❓ Unknown</span>'}
+        </td>
+        <td style="color:var(--text-muted);font-size:12px">${d.added}</td>
+        <td><button onclick="deleteDevice('${d.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:4px;transition:all 0.2s" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-muted)'">✕</button></td>
+      </tr>
+    `).join('');
+  }
+  document.getElementById('deviceCount').textContent = `${state.devices.length} device${state.devices.length !== 1 ? 's' : ''}`;
+  document.getElementById('statDevices').textContent = state.devices.length;
+}
+
+function renderThreats() {
+  const el = document.getElementById('threatList');
+  if (!state.threats.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--text-muted);padding:16px;font-size:13px">No threats logged. Stay vigilant! 🛡️</div>`;
+  } else {
+    el.innerHTML = state.threats.map(t => `
+      <div class="threat-item threat-${t.level}">
+        <span class="threat-icon">${t.icon || '⚠️'}</span>
+        <div class="threat-content">
+          <div class="threat-title">${t.title}</div>
+          <div class="threat-meta">
+            <span class="threat-level level-${t.level}">${t.level.toUpperCase()}</span>
+            <span>${t.date}</span>
+          </div>
+        </div>
+        <button class="threat-delete" onclick="deleteThreat('${t.id}')">✕</button>
+      </div>
+    `).join('');
+  }
+  document.getElementById('threatCount').textContent = `${state.threats.length} event${state.threats.length !== 1 ? 's' : ''}`;
+}
+
+function renderPrivacyBars() {
+  const el = document.getElementById('privacyBars');
+  let html = '';
+  PRIVACY_CATEGORIES.forEach(cat => {
+    const completed = cat.items.filter(id => state.checks[id]).length;
+    const pct = cat.items.length ? Math.round((completed / cat.items.length) * 100) : 0;
+    html += `
+      <div class="privacy-category">
+        <div class="privacy-header">
+          <div class="privacy-name">${cat.icon} ${cat.name}</div>
+          <div class="privacy-score" style="color:${cat.color}">${pct}%</div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${pct}%;background:${cat.color}"></div>
+        </div>
+      </div>
+    `;
+  });
+  el.innerHTML = html;
+}
+
+function renderNotes() {
+  document.getElementById('notesArea').value = state.notes || '';
+}
+
+function updateScore() {
+  // Calculate score from all check items
+  const allItems = [
+    ...NETWORK_ITEMS,
+    ...AUDIT_SECTIONS.flatMap(s => s.items),
+  ];
+  const maxPoints = allItems.reduce((acc, item) => acc + (item.points || 3), 0);
+  const earnedPoints = allItems.filter(item => state.checks[item.id]).reduce((acc, item) => acc + (item.points || 3), 0);
+  const score = Math.round((earnedPoints / maxPoints) * 100);
+  const completed = allItems.filter(item => state.checks[item.id]).length;
+  const remaining = allItems.length - completed;
+
+  animateScore(score);
+
+  document.getElementById('statCompleted').textContent = completed;
+  document.getElementById('statRemaining').textContent = remaining;
+
+  // Grade & description
+  let grade, desc, color, status;
+  if (score >= 90) {
+    grade = 'A+ Excellent'; desc = 'Outstanding! Your home network is a fortress. Keep maintaining this level.';
+    color = '#3fb950'; status = '🟢 Excellent';
+  } else if (score >= 75) {
+    grade = 'B+ Good'; desc = 'Strong security posture. A few more items will make you near-bulletproof.';
+    color = '#58a6ff'; status = '🔵 Good';
+  } else if (score >= 50) {
+    grade = 'C Average'; desc = 'Decent start, but significant gaps remain. Focus on critical items first.';
+    color = '#d29922'; status = '🟡 Average';
+  } else if (score >= 25) {
+    grade = 'D Needs Work'; desc = 'Your home has real vulnerabilities. Start with the CRITICAL items immediately.';
+    color = '#e3b341'; status = '🟠 Needs Work';
+  } else {
+    grade = 'F At Risk'; desc = 'Your home network is exposed. Begin with router security and password changes right away.';
+    color = '#f85149'; status = '🔴 At Risk';
+  }
+
+  document.getElementById('scoreGrade').textContent = grade;
+  document.getElementById('scoreGrade').style.color = color;
+  document.getElementById('scoreDesc').textContent = desc;
+  document.getElementById('scoreStatus').textContent = status;
+  document.getElementById('scoreNum').style.color = color;
+
+  // Ring color
+  document.getElementById('scoreProgress').style.stroke = color;
+
+  // Celebration at 100
+  if (score === 100) celebrate();
+}
+
+let scoreAnimFrame = null;
+let displayedScore = 0;
+
+function animateScore(target) {
+  if (scoreAnimFrame) cancelAnimationFrame(scoreAnimFrame);
+  const start = displayedScore;
+  const startTime = performance.now();
+  const duration = 800;
+
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(start + (target - start) * eased);
+    displayedScore = current;
+    document.getElementById('scoreNum').textContent = current;
+
+    // Update ring
+    const circumference = 408.41;
+    const offset = circumference - (current / 100) * circumference;
+    document.getElementById('scoreProgress').style.strokeDashoffset = offset;
+
+    if (progress < 1) scoreAnimFrame = requestAnimationFrame(update);
+  }
+  scoreAnimFrame = requestAnimationFrame(update);
+}
+
+function renderAll() {
+  renderNetworkChecklist();
+  renderAudit();
+  renderDeviceTable();
+  renderThreats();
+  renderPrivacyBars();
+  renderNotes();
+  updateScore();
+}
+
+// ============================================================
+// INTERACTIONS
+// ============================================================
+
+function toggleCheck(id) {
+  state.checks[id] = !state.checks[id];
+  saveState();
+  renderNetworkChecklist();
+  renderAudit();
+  renderPrivacyBars();
+  updateScore();
+}
+
+function saveNotes() {
+  state.notes = document.getElementById('notesArea').value;
+  saveState();
+}
+
+function addThreat() {
+  const input = document.getElementById('threatInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const icons = ['⚠️','🔓','📧','🌐','💻','📱','🔑','❗'];
+  const levels = ['high','medium','low'];
+  state.threats.unshift({
+    id: 't' + Date.now(),
+    title: val,
+    level: levels[Math.floor(Math.random() * levels.length)],
+    icon: icons[Math.floor(Math.random() * icons.length)],
+    date: 'Just now'
+  });
+  input.value = '';
+  saveState();
+  renderThreats();
+}
+
+function deleteThreat(id) {
+  state.threats = state.threats.filter(t => t.id !== id);
+  saveState();
+  renderThreats();
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function saveDevice() {
+  const name = document.getElementById('d-name').value.trim();
+  if (!name) return;
+  const today = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  state.devices.push({
+    id: 'dev' + Date.now(),
+    name,
+    type: document.getElementById('d-type').value,
+    network: document.getElementById('d-network').value,
+    status: document.getElementById('d-status').value,
+    added: today,
+  });
+  document.getElementById('d-name').value = '';
+  saveState();
+  renderDeviceTable();
+  closeModal('deviceModal');
+}
+
+function deleteDevice(id) {
+  state.devices = state.devices.filter(d => d.id !== id);
+  saveState();
+  renderDeviceTable();
+  updateScore();
+}
+
+function resetAudit() {
+  if (!confirm('Reset the monthly audit checklist? This will uncheck all audit items.')) return;
+  AUDIT_SECTIONS.flatMap(s => s.items).forEach(item => {
+    delete state.checks[item.id];
+  });
+  saveState();
+  renderAudit();
+  renderPrivacyBars();
+  updateScore();
+}
+
+function confirmReset() {
+  if (!confirm('Reset ALL data? This cannot be undone.')) return;
+  localStorage.removeItem('hscc-state-v2');
+  state = {
+    checks: {},
+    devices: [...DEFAULT_DEVICES],
+    threats: [...DEFAULT_THREATS],
+    notes: '',
+    lastUpdated: null,
+    logoClicks: 0,
+  };
+  displayedScore = 0;
+  renderAll();
+}
+
+// ============================================================
+// 🥚 EASTER EGG — Click logo 3 times
+// ============================================================
+
+let logoClickCount = 0;
+let logoClickTimer = null;
+
+function logoClick() {
+  logoClickCount++;
+  const logo = document.getElementById('logo');
+  logo.classList.remove('clicked');
+  void logo.offsetWidth;
+  logo.classList.add('clicked');
+
+  if (logoClickTimer) clearTimeout(logoClickTimer);
+  logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2000);
+
+  if (logoClickCount >= 3) {
+    logoClickCount = 0;
+    clearTimeout(logoClickTimer);
+    openEasterEgg();
+  }
+}
+
+// Also: Konami code
+const KONAMI = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+let konamiIdx = 0;
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === KONAMI[konamiIdx]) {
+    konamiIdx++;
+    if (konamiIdx === KONAMI.length) {
+      konamiIdx = 0;
+      openEasterEgg();
+    }
+  } else {
+    konamiIdx = 0;
+  }
+  if (e.key === 'Escape') {
+    closeModal('easterEggModal');
+    closeModal('deviceModal');
+  }
+});
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+
+function openEasterEgg() {
+  openModal('easterEggModal');
+  runTerminal();
+}
+
+function runTerminal() {
+  const terminal = document.getElementById('terminalOutput');
+  terminal.innerHTML = '';
+  const lines = [
+    '> Initializing secure channel...',
+    '> Bypassing firewall [████████████] 100%',
+    '> Identity verified: Curious Human ✓',
+    '> Loading classified files...',
+    '> ACCESS GRANTED — Welcome, Agent.',
+    '> ',
+    '> You have discovered the GHOST ROOM.',
+    '> Only 3% of users ever find this.',
+    '> ',
+    '> Your security level: ELITE',
+    '> Bonus tip: Always use a password manager.',
+    '> Stay safe out there. 🕵️',
+  ];
+  lines.forEach((line, i) => {
+    const div = document.createElement('div');
+    div.className = 'terminal-line';
+    div.textContent = line;
+    div.style.animationDelay = `${i * 120}ms`;
+    terminal.appendChild(div);
+  });
+}
+
+function celebrate() {
+  const colors = ['#58a6ff','#a371f7','#3fb950','#d29922','#f85149'];
+  for (let i = 0; i < 60; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + 'vw';
+    piece.style.top = '-10px';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = Math.random() * 2 + 's';
+    piece.style.width = (Math.random() * 8 + 4) + 'px';
+    piece.style.height = (Math.random() * 8 + 4) + 'px';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 4000);
+  }
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+loadState();
+renderAll();
+
+// Load notes
+if (state.lastUpdated) {
+  const d = new Date(state.lastUpdated);
+  document.getElementById('lastUpdatedTime').textContent = d.toLocaleDateString('en-US', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rental Property Water Damage Prevention Kit</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --navy: #1e3a5f; --blue: #2563eb; --blue-light: #dbeafe; --green: #16a34a; --green-light: #dcfce7; --red: #dc2626; --red-light: #fee2e2; --yellow: #ca8a04; --yellow-light: #fef9c3; --border: #e5e7eb; --bg: #f8fafc; --white: #fff; --text: #111827; --gray: #6b7280; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); }
+  .header { background: var(--navy); color: white; padding: 18px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  .header h1 { font-size: 20px; font-weight: 800; }
+  .header p { font-size: 13px; opacity: 0.7; margin-top: 2px; }
+  .nav { background: white; border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; }
+  .nav-btn { padding: 12px 16px; font-size: 14px; font-weight: 600; color: var(--gray); border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav-btn.active { color: var(--navy); border-bottom-color: var(--navy); }
+  .main { padding: 24px; max-width: 1100px; margin: 0 auto; }
+  .tab { display: none; } .tab.active { display: block; }
+  .card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .card h3 { font-size: 16px; font-weight: 700; margin-bottom: 14px; color: var(--navy); }
+  .section-title { font-size: 18px; font-weight: 800; color: var(--navy); margin-bottom: 16px; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-yellow { background: var(--yellow-light); color: var(--yellow); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .check-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .check-item:last-child { border-bottom: none; }
+  .check-item input[type=checkbox] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--navy); cursor: pointer; flex-shrink: 0; }
+  .check-item label { font-size: 14px; cursor: pointer; line-height: 1.5; }
+  .check-item.checked label { text-decoration: line-through; color: var(--gray); }
+  .progress-bar { background: #e5e7eb; border-radius: 99px; height: 10px; margin: 8px 0; overflow: hidden; }
+  .progress-fill { background: var(--navy); height: 100%; border-radius: 99px; transition: width 0.4s; }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select, .form-group textarea { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; outline: none; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--navy); }
+  .btn { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; }
+  .btn-primary { background: var(--navy); color: white; } .btn-primary:hover { background: #162d4a; }
+  .btn-danger { background: var(--red-light); color: var(--red); } .btn-danger:hover { background: #fca5a5; }
+  .btn-full { width: 100%; padding: 10px; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; background: #f9fafb; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 14px; font-size: 14px; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .cal-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .cal-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .cal-card .month { font-size: 13px; font-weight: 800; color: var(--navy); text-transform: uppercase; margin-bottom: 8px; }
+  .cal-item { font-size: 13px; color: var(--text); padding: 4px 0; border-bottom: 1px solid var(--border); }
+  .cal-item:last-child { border-bottom: none; }
+  .cal-item::before { content: "• "; color: var(--navy); font-weight: 700; }
+  .sensor-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .sensor-icon { font-size: 28px; width: 40px; text-align: center; }
+  .sensor-info .name { font-weight: 700; font-size: 14px; }
+  .sensor-info .loc { font-size: 12px; color: var(--gray); }
+  .cost-input { text-align: right; }
+  .cost-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .cost-total { font-size: 22px; font-weight: 900; color: var(--red); }
+  .promo { background: var(--navy); color: white; border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .promo p { font-size: 13px; line-height: 1.5; }
+  .promo a { background: #f59e0b; color: #111; font-weight: 700; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: 13px; white-space: nowrap; }
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+  .modal.open { display: flex; }
+  .modal-box { background: white; border-radius: 16px; padding: 32px; max-width: 420px; width: 90%; text-align: center; animation: pop 0.3s ease; }
+  @keyframes pop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-box .big { font-size: 60px; margin-bottom: 12px; display: block; }
+  .modal-box h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+  .modal-box p { color: var(--gray); font-size: 14px; margin-bottom: 16px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>💧 Water Damage Prevention Kit</h1>
+    <p>Rental Property Protection System — Get Notified LLC</p>
+  </div>
+  <div style="text-align:right">
+    <div style="font-size:22px;font-weight:900" id="header-score">0%</div>
+    <div style="font-size:11px;opacity:0.7">Inspection Complete</div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showTab('inspection')">🔍 Inspection</button>
+  <button class="nav-btn" onclick="showTab('calendar')">📅 Maintenance Calendar</button>
+  <button class="nav-btn" onclick="showTab('contractors')">📞 Contractors</button>
+  <button class="nav-btn" onclick="showTab('insurance')">📋 Insurance Docs</button>
+  <button class="nav-btn" onclick="showTab('calculator')">💰 Cost Calculator</button>
+  <button class="nav-btn" onclick="showTab('sensors')">📡 Sensor Placement</button>
+</div>
+
+<div class="main">
+
+  <!-- INSPECTION -->
+  <div class="tab active" id="tab-inspection">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <h3>🔍 Property Inspection Checklist</h3>
+        <button class="btn btn-danger" onclick="resetChecklist()">Reset</button>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="check-progress" style="width:0%"></div></div>
+      <div style="font-size:13px;color:var(--gray);margin-bottom:16px" id="check-label">0 of 50 items checked</div>
+      <div id="checklist-container"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="tab" id="tab-calendar">
+    <div class="section-title">📅 Seasonal Maintenance Calendar</div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- CONTRACTORS -->
+  <div class="tab" id="tab-contractors">
+    <div class="card">
+      <h3>➕ Add Contractor</h3>
+      <div class="form-row">
+        <div class="form-group"><label>Name</label><input id="c-name" placeholder="Joe's Plumbing"></div>
+        <div class="form-group"><label>Trade</label>
+          <select id="c-trade">
+            <option>Plumber</option><option>HVAC</option><option>Electrician</option>
+            <option>Roofer</option><option>General Contractor</option><option>Restoration</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Phone</label><input id="c-phone" placeholder="704-555-0100"></div>
+        <div class="form-group"><label>Email</label><input id="c-email" placeholder="joe@plumbing.com"></div>
+        <div class="form-group"><label>Notes</label><input id="c-notes" placeholder="24hr emergency, great rates"></div>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="addContractor()">Save Contractor</button>
+    </div>
+    <div class="card">
+      <h3>📞 Your Contractors</h3>
+      <table>
+        <thead><tr><th>Name</th><th>Trade</th><th>Phone</th><th>Email</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="contractor-tbody"><tr><td colspan="6" style="text-align:center;color:var(--gray);padding:20px">No contractors added yet.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- INSURANCE -->
+  <div class="tab" id="tab-insurance">
+    <div class="card">
+      <h3>📋 Insurance Claim Documentation Template</h3>
+      <p style="font-size:14px;color:var(--gray);margin-bottom:16px">Fill this out immediately when damage occurs. Photos + this form = faster claims.</p>
+      <div class="form-row">
+        <div class="form-group"><label>Property Address</label><input id="i-addr" placeholder="123 Main St"></div>
+        <div class="form-group"><label>Date of Incident</label><input id="i-date" type="date"></div>
+        <div class="form-group"><label>Time Discovered</label><input id="i-time" type="time"></div>
+        <div class="form-group"><label>Type of Damage</label>
+          <select id="i-type">
+            <option>Water Leak — Pipe Burst</option><option>Water Leak — Appliance</option>
+            <option>Flooding</option><option>Roof Leak</option><option>Sewage Backup</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Estimated Damage ($)</label><input id="i-damage" type="number" placeholder="0"></div>
+        <div class="form-group"><label>Insurance Policy #</label><input id="i-policy" placeholder="POL-12345"></div>
+        <div class="form-group"><label>Insurance Phone</label><input id="i-insphone" placeholder="1-800-..."></div>
+        <div class="form-group"><label>Claim # (after filing)</label><input id="i-claim" placeholder="Assigned by insurer"></div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px"><label>Description of Damage</label>
+        <textarea id="i-desc" rows="4" style="resize:vertical;width:100%" placeholder="Describe what happened, what was damaged, what immediate action was taken..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="printClaim()">🖨️ Print / Save Claim Report</button>
+    </div>
+  </div>
+
+  <!-- CALCULATOR -->
+  <div class="tab" id="tab-calculator">
+    <div class="card">
+      <h3>💰 Water Damage Cost Calculator</h3>
+      <p style="font-size:13px;color:var(--gray);margin-bottom:16px">Enter the estimated cost for each damage scenario. See how fast it adds up — and why sensors pay for themselves.</p>
+      <div id="calc-rows"></div>
+      <div style="padding:16px 0;border-top:2px solid var(--navy);margin-top:8px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:800;font-size:16px">Total Potential Damage:</span>
+        <span class="cost-total" id="calc-total">$0</span>
+      </div>
+      <div style="background:var(--green-light);border-radius:8px;padding:14px;margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;color:var(--green);font-weight:700">💧 Get Notified Sensor System:</span>
+        <span style="font-size:18px;font-weight:900;color:var(--green)">$599 once</span>
+      </div>
+      <div style="background:var(--navy);color:white;border-radius:8px;padding:14px;margin-top:8px;text-align:center" id="roi-text"></div>
+    </div>
+  </div>
+
+  <!-- SENSORS -->
+  <div class="tab" id="tab-sensors">
+    <div class="promo">
+      <p>🛡️ <strong>Get Notified LLC</strong> installs smart water sensors in rental properties across Rowan County NC — and ships sensor kits nationwide. One leak alert saves thousands.<br><small style="opacity:0.7">getnotifiedllc.com · 704-239-7532</small></p>
+      <a href="https://getnotifiedllc.com" target="_blank">Get Sensors →</a>
+    </div>
+    <div class="section-title">📡 Sensor Placement Guide</div>
+    <div id="sensor-guide"></div>
+  </div>
+
+</div>
+
+<!-- EASTER EGG MODAL -->
+<div class="modal" id="boat-modal">
+  <div class="modal-box">
+    <span class="big">⛵</span>
+    <h2>Congratulations!</h2>
+    <p>Your property has <strong>$0 in potential water damage</strong>, which means one of two things:</p>
+    <p>1. You live in a boat.<br>2. You forgot to fill anything in.</p>
+    <p style="color:var(--navy);font-weight:700;">Either way, you probably still need sensors. 😄</p>
+    <button class="btn btn-primary btn-full" onclick="document.getElementById('boat-modal').classList.remove('open')">Fair enough 🚢</button>
+  </div>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem('wdpk') || '{"checks":{},"contractors":[],"expenses":[]}');
+function save() { localStorage.setItem('wdpk', JSON.stringify(data)); }
+
+// CHECKLIST DATA
+const checkSections = [
+  { title: '🚿 Bathrooms', items: ['Check under sink for moisture/stains','Inspect toilet base for water damage','Test toilet flapper (listen for running water)','Check caulk around tub/shower','Inspect shower drain for clogs','Look for mold/mildew on grout','Check water pressure','Inspect supply lines for bulging or rust'] },
+  { title: '🍳 Kitchen', items: ['Check under sink for leaks','Inspect dishwasher door seal','Check refrigerator ice maker line','Look for water stains on cabinet floors','Inspect garbage disposal for leaks','Check faucet for drips','Look at ceiling below upstairs bathroom'] },
+  { title: '🛠️ Basement / Crawl Space', items: ['Check for standing water','Inspect sump pump operation','Look for efflorescence (white mineral deposits)','Check foundation walls for cracks','Inspect floor drains','Look for rust on water heater base','Check pipe insulation in winter months','Smell for musty odors'] },
+  { title: '🌊 Water Heater', items: ['Check for rust or corrosion','Inspect pressure relief valve','Look for water stains on floor below','Listen for popping/rumbling sounds','Check age (replace at 10-12 years)','Inspect supply and drain lines'] },
+  { title: '🌧️ Roof & Gutters', items: ['Inspect gutters for blockage','Check downspout drainage (away from foundation)','Look for missing/damaged shingles','Inspect attic for water stains','Check roof flashing around chimney/vents','Look for sagging ceiling inside'] },
+  { title: '🔧 HVAC & Appliances', items: ['Check AC condensate drain line','Inspect washing machine hoses (replace every 5 years)','Look for water stains around HVAC unit','Check dryer vent for blockage','Inspect water softener if present'] },
+  { title: '🌿 Exterior', items: ['Check grading slopes away from foundation','Inspect window caulk and seals','Look for cracks in driveway near foundation','Check irrigation system for leaks','Inspect outdoor faucets (winterize in fall)','Look for tree roots near sewer line'] }
+];
+
+function renderChecklist() {
+  let total = 0, checked = 0;
+  const html = checkSections.map(s => {
+    const items = s.items.map((item, i) => {
+      const key = s.title + i;
+      const isChecked = data.checks[key];
+      total++; if (isChecked) checked++;
+      return `<div class="check-item ${isChecked ? 'checked' : ''}">
+        <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleCheck('${key}',this.checked)">
+        <label onclick="this.previousElementSibling.click()">${item}</label>
+      </div>`;
+    }).join('');
+    return `<div style="margin-bottom:20px"><div style="font-weight:700;font-size:15px;color:var(--navy);margin-bottom:8px">${s.title}</div>${items}</div>`;
+  }).join('');
+  document.getElementById('checklist-container').innerHTML = html;
+  const pct = Math.round(checked/total*100);
+  document.getElementById('check-progress').style.width = pct + '%';
+  document.getElementById('check-label').textContent = `${checked} of ${total} items checked`;
+  document.getElementById('header-score').textContent = pct + '%';
+}
+
+function toggleCheck(key, val) { data.checks[key] = val; save(); renderChecklist(); }
+function resetChecklist() { if(confirm('Reset all checkboxes?')) { data.checks = {}; save(); renderChecklist(); } }
+
+// CALENDAR
+const calData = [
+  { month: 'January', items: ['Check pipe insulation','Test smoke detectors','Inspect water heater'] },
+  { month: 'February', items: ['Check for ice dams','Inspect attic ventilation','Test sump pump'] },
+  { month: 'March', items: ['Check gutters after winter','Inspect foundation for cracks','Test outdoor faucets'] },
+  { month: 'April', items: ['Clean gutters (spring)','Check AC condensate drain','Inspect roof for winter damage'] },
+  { month: 'May', items: ['Test irrigation system','Check window seals','Inspect washing machine hoses'] },
+  { month: 'June', items: ['Clean dryer vent','Check AC filter','Inspect crawl space for moisture'] },
+  { month: 'July', items: ['Check water pressure','Inspect outdoor faucets','Look for lawn irrigation leaks'] },
+  { month: 'August', items: ['Mid-season AC check','Check caulk around tubs/showers','Inspect basement for moisture'] },
+  { month: 'September', items: ['Check gutters before fall','Inspect roof flashing','Service water heater'] },
+  { month: 'October', items: ['Shut off exterior faucets','Insulate exposed pipes','Check sump pump before rainy season'] },
+  { month: 'November', items: ['Clean gutters (fall leaves)','Check water heater temp','Inspect for drafts near pipes'] },
+  { month: 'December', items: ['Know water main shutoff location','Check pipe insulation','Inspect heating system'] }
+];
+
+function renderCalendar() {
+  document.getElementById('cal-grid').innerHTML = calData.map(m => `
+    <div class="cal-card">
+      <div class="month">${m.month}</div>
+      ${m.items.map(i => `<div class="cal-item">${i}</div>`).join('')}
+    </div>`).join('');
+}
+
+// CONTRACTORS
+function addContractor() {
+  data.contractors.push({
+    id: Date.now(),
+    name: document.getElementById('c-name').value || 'Unknown',
+    trade: document.getElementById('c-trade').value,
+    phone: document.getElementById('c-phone').value,
+    email: document.getElementById('c-email').value,
+    notes: document.getElementById('c-notes').value
+  });
+  save(); renderContractors();
+}
+function deleteContractor(id) { data.contractors = data.contractors.filter(c => c.id !== id); save(); renderContractors(); }
+function renderContractors() {
+  const tbody = document.getElementById('contractor-tbody');
+  if (!data.contractors.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray);padding:20px">No contractors added yet.</td></tr>'; return; }
+  tbody.innerHTML = data.contractors.map(c => `<tr>
+    <td><strong>${c.name}</strong></td><td><span class="badge badge-blue">${c.trade}</span></td>
+    <td><a href="tel:${c.phone}">${c.phone}</a></td><td>${c.email}</td><td style="color:var(--gray)">${c.notes}</td>
+    <td><button class="btn btn-danger" style="padding:4px 10px;font-size:12px" onclick="deleteContractor(${c.id})">✕</button></td>
+  </tr>`).join('');
+}
+
+// CALCULATOR
+const calcItems = [
+  { label: '💧 Minor pipe leak (caught early)', default: 500 },
+  { label: '🚿 Bathroom water damage', default: 3500 },
+  { label: '🍳 Kitchen flooding', default: 8000 },
+  { label: '🌊 Basement flooding', default: 15000 },
+  { label: '🏗️ Mold remediation', default: 5000 },
+  { label: '🛋️ Damaged flooring/carpet', default: 4000 },
+  { label: '🪵 Drywall replacement', default: 2500 },
+  { label: '🚰 Emergency plumber (after-hours)', default: 800 },
+  { label: '🏠 Tenant displacement costs', default: 3000 },
+  { label: '📉 Lost rent during repairs', default: 4000 }
+];
+
+function renderCalculator() {
+  document.getElementById('calc-rows').innerHTML = calcItems.map((item, i) => `
+    <div class="cost-row">
+      <span>${item.label}</span>
+      <input type="number" value="${item.default}" min="0" style="width:100px;padding:6px;border:1px solid var(--border);border-radius:6px;text-align:right;font-weight:700"
+        oninput="updateCalcTotal()">
+    </div>`).join('');
+  updateCalcTotal();
+}
+
+function updateCalcTotal() {
+  const inputs = document.querySelectorAll('#calc-rows input');
+  const total = Array.from(inputs).reduce((s,i) => s + (parseFloat(i.value)||0), 0);
+
+  // Easter egg: all zeros
+  if (total === 0) {
+    document.getElementById('boat-modal').classList.add('open');
+  }
+
+  document.getElementById('calc-total').textContent = '$' + total.toLocaleString();
+  const roi = total > 0 ? Math.round(total / 599) : 0;
+  document.getElementById('roi-text').textContent = total > 0
+    ? `🛡️ Get Notified sensors ($599) could prevent $${total.toLocaleString()} in damage — a ${roi}× return on investment.`
+    : 'Enter damage estimates above to see your ROI.';
+}
+
+// SENSORS
+const sensorPlacements = [
+  { icon: '🚿', name: 'Under Every Sink', loc: 'Kitchen + all bathrooms', priority: 'CRITICAL', reason: 'Most common source of slow leaks that go undetected for weeks.' },
+  { icon: '🚽', name: 'Behind Toilet', loc: 'All bathrooms', priority: 'HIGH', reason: 'Supply line failures cause rapid flooding.' },
+  { icon: '🍽️', name: 'Under Dishwasher', loc: 'Kitchen', priority: 'HIGH', reason: 'Door seal failures common in older units.' },
+  { icon: '🧺', name: 'Behind Washing Machine', loc: 'Laundry room', priority: 'CRITICAL', reason: 'Hose bursts are catastrophic — can dump 650 gallons/hour.' },
+  { icon: '🌡️', name: 'Water Heater Base', loc: 'Utility room', priority: 'CRITICAL', reason: 'Tank failures happen without warning. Early detection saves the floor.' },
+  { icon: '🏚️', name: 'Basement Floor', loc: 'Lowest point', priority: 'HIGH', reason: 'Catches any water that makes it to the lowest level.' },
+  { icon: '❄️', name: 'Near HVAC Unit', loc: 'Utility room', priority: 'MEDIUM', reason: 'Condensate drain backups are common in summer.' },
+  { icon: '🌧️', name: 'Crawl Space', loc: 'Access point + center', priority: 'HIGH', reason: 'Ground moisture and pipe leaks go undetected longest here.' }
+];
+
+const priorityColor = { CRITICAL: 'badge-red', HIGH: 'badge-yellow', MEDIUM: 'badge-blue' };
+
+function renderSensors() {
+  document.getElementById('sensor-guide').innerHTML = `
+    <div class="card">
+      ${sensorPlacements.map(s => `
+        <div class="sensor-row">
+          <div class="sensor-icon">${s.icon}</div>
+          <div class="sensor-info" style="flex:1">
+            <div class="name">${s.name} <span class="badge ${priorityColor[s.priority]}">${s.priority}</span></div>
+            <div class="loc">📍 ${s.loc}</div>
+            <div style="font-size:12px;color:var(--gray);margin-top:2px">${s.reason}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// TABS
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function printClaim() { window.print(); }
+
+// INIT
+renderChecklist();
+renderCalendar();
+renderContractors();
+renderCalculator();
+renderSensors();
+document.getElementById('i-date').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>

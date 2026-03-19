@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Landlord Property Tracker</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --blue: #1e40af;
+    --blue-light: #dbeafe;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --yellow: #ca8a04;
+    --yellow-light: #fef9c3;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --gray: #6b7280;
+    --border: #e5e7eb;
+    --bg: #f9fafb;
+    --white: #ffffff;
+    --text: #111827;
+    --text-light: #6b7280;
+  }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  
+  /* HEADER */
+  .header { background: var(--blue); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .header h1 { font-size: 20px; font-weight: 800; cursor: pointer; }
+  .header h1 span { opacity: 0.7; font-weight: 400; font-size: 14px; margin-left: 8px; }
+  .header-stats { display: flex; gap: 20px; }
+  .hstat { text-align: center; }
+  .hstat .num { font-size: 22px; font-weight: 900; }
+  .hstat .lbl { font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* NAV */
+  .nav { background: white; border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; }
+  .nav-btn { padding: 12px 16px; font-size: 14px; font-weight: 600; color: var(--gray); border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .nav-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .nav-btn:hover { color: var(--blue); }
+
+  /* MAIN */
+  .main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* CARDS */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: box-shadow 0.2s; }
+  .card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .card-title { font-size: 16px; font-weight: 700; }
+  .card-addr { font-size: 13px; color: var(--gray); margin-top: 2px; }
+
+  /* STATUS BADGES */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-yellow { background: var(--yellow-light); color: var(--yellow); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-gray { background: #f3f4f6; color: var(--gray); }
+
+  /* PROPERTY CARD DETAILS */
+  .prop-detail { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-top: 1px solid var(--border); margin-top: 6px; font-size: 13px; }
+  .prop-detail .label { color: var(--gray); }
+  .prop-detail .value { font-weight: 600; }
+  .prop-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: #1d3a8a; }
+  .btn-danger { background: var(--red-light); color: var(--red); }
+  .btn-danger:hover { background: #fca5a5; }
+  .btn-gray { background: #f3f4f6; color: var(--text); }
+  .btn-gray:hover { background: #e5e7eb; }
+
+  /* FORMS */
+  .form-card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; }
+  .form-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 12px; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select, .form-group textarea { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; color: var(--text); background: white; outline: none; transition: border-color 0.2s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--blue); }
+  .btn-full { width: 100%; padding: 10px; font-size: 14px; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; background: var(--blue); color: white; margin-top: 12px; transition: background 0.2s; }
+  .btn-full:hover { background: #1d3a8a; }
+
+  /* TABLE */
+  .table-wrap { background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 24px; }
+  .table-header { padding: 16px 20px; font-size: 15px; font-weight: 700; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  table { width: 100%; border-collapse: collapse; }
+  th { padding: 10px 16px; text-align: left; font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; background: #f9fafb; border-bottom: 1px solid var(--border); }
+  td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f9fafb; }
+
+  /* FINANCIAL SUMMARY */
+  .fin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .fin-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 16px 20px; text-align: center; }
+  .fin-card .fin-num { font-size: 28px; font-weight: 900; }
+  .fin-card .fin-lbl { font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+  /* LEASE CALENDAR */
+  .lease-item { background: white; border-radius: 8px; border: 1px solid var(--border); padding: 14px 16px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .lease-item .days { font-size: 28px; font-weight: 900; min-width: 60px; text-align: center; }
+
+  /* SENSOR LOG */
+  .sensor-item { background: white; border-radius: 8px; border: 1px solid var(--border); padding: 12px 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .sensor-icon { font-size: 24px; }
+  .sensor-info { flex: 1; }
+  .sensor-info .title { font-size: 14px; font-weight: 600; }
+  .sensor-info .meta { font-size: 12px; color: var(--gray); }
+
+  /* SECTION HEADER */
+  .section-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  /* PROMO BOX */
+  .promo-box { background: #1e3a5f; color: white; border-radius: 10px; padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .promo-box .promo-text { font-size: 14px; line-height: 1.5; }
+  .promo-box .promo-link { background: #f59e0b; color: #111; font-weight: 700; padding: 8px 16px; border-radius: 6px; text-decoration: none; white-space: nowrap; font-size: 13px; }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 40px; color: var(--gray); }
+  .empty .emoji { font-size: 40px; margin-bottom: 12px; }
+
+  /* MODAL */
+  .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+  .modal.open { display: flex; }
+  .modal-box { background: white; border-radius: 16px; padding: 32px; max-width: 400px; width: 90%; text-align: center; animation: popIn 0.3s ease; }
+  @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .modal-box .emoji { font-size: 60px; margin-bottom: 16px; display: block; }
+  .modal-box h2 { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+  .modal-box p { color: var(--gray); margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+  .terminal { background: #111; color: #00ff41; font-family: monospace; font-size: 13px; padding: 16px; border-radius: 8px; text-align: left; margin-bottom: 16px; min-height: 80px; line-height: 1.6; }
+
+  /* VACANT SAD */
+  .sad-card { animation: wobble 0.5s ease infinite alternate; }
+  @keyframes wobble { from { transform: rotate(-1deg); } to { transform: rotate(1deg); } }
+
+  /* CHECKLIST */
+  .check-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .check-item:last-child { border-bottom: none; }
+  .check-item input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--blue); cursor: pointer; }
+  .check-item label { font-size: 14px; cursor: pointer; }
+  .check-item.checked label { text-decoration: line-through; color: var(--gray); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1 id="logo-trigger" onclick="logoClick()">🏠 Landlord Tracker <span>Pro</span></h1>
+  <div class="header-stats">
+    <div class="hstat"><div class="num" id="stat-props">0</div><div class="lbl">Properties</div></div>
+    <div class="hstat"><div class="num" id="stat-rent">$0</div><div class="lbl">Monthly Rent</div></div>
+    <div class="hstat"><div class="num" id="stat-issues">0</div><div class="lbl">Open Issues</div></div>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="nav-btn active" onclick="showTab('properties')">🏠 Properties</button>
+  <button class="nav-btn" onclick="showTab('maintenance')">🔧 Maintenance</button>
+  <button class="nav-btn" onclick="showTab('financials')">💰 Financials</button>
+  <button class="nav-btn" onclick="showTab('leases')">📅 Leases</button>
+  <button class="nav-btn" onclick="showTab('sensors')">📡 Sensor Alerts</button>
+  <button class="nav-btn" onclick="showTab('documents')">📋 Documents</button>
+  <button class="nav-btn" onclick="showTab('notes')">📝 Notes</button>
+</div>
+
+<div class="main">
+
+  <!-- PROPERTIES TAB -->
+  <div class="tab active" id="tab-properties">
+    <div class="form-card">
+      <h3>➕ Add Property</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Property Name</label><input id="p-name" placeholder="e.g. Oak Street Duplex"></div>
+        <div class="form-group"><label>Address</label><input id="p-addr" placeholder="123 Main St, City NC"></div>
+        <div class="form-group"><label>Tenant Name</label><input id="p-tenant" placeholder="John Smith"></div>
+        <div class="form-group"><label>Monthly Rent</label><input id="p-rent" type="number" placeholder="1200"></div>
+        <div class="form-group"><label>Lease End Date</label><input id="p-lease" type="date"></div>
+        <div class="form-group"><label>Status</label>
+          <select id="p-status">
+            <option value="occupied">Occupied</option>
+            <option value="vacant">Vacant</option>
+            <option value="maintenance">Maintenance</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn-full" onclick="addProperty()">Add Property</button>
+    </div>
+    <div class="section-title">🏘️ Your Properties</div>
+    <div class="grid" id="properties-grid">
+      <div class="empty"><div class="emoji">🏚️</div><p>No properties yet. Add one above!</p></div>
+    </div>
+  </div>
+
+  <!-- MAINTENANCE TAB -->
+  <div class="tab" id="tab-maintenance">
+    <div class="form-card">
+      <h3>🔧 Log Maintenance Issue</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Property</label><select id="m-prop"><option value="">Select property...</option></select></div>
+        <div class="form-group"><label>Issue Description</label><input id="m-desc" placeholder="e.g. Leaking faucet in bathroom"></div>
+        <div class="form-group"><label>Priority</label>
+          <select id="m-priority">
+            <option value="urgent">🔴 Urgent</option>
+            <option value="normal">🟡 Normal</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Estimated Cost</label><input id="m-cost" type="number" placeholder="150"></div>
+        <div class="form-group"><label>Date Reported</label><input id="m-date" type="date"></div>
+      </div>
+      <button class="btn-full" onclick="addMaintenance()">Log Issue</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">🔧 Open Issues <span id="maintenance-count" class="badge badge-red">0</span></div>
+      <table>
+        <thead><tr><th>Property</th><th>Issue</th><th>Priority</th><th>Est. Cost</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="maintenance-tbody"><tr><td colspan="7" style="text-align:center;color:#6b7280;padding:24px;">No maintenance issues logged.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FINANCIALS TAB -->
+  <div class="tab" id="tab-financials">
+    <div class="fin-grid" id="fin-summary"></div>
+    <div class="form-card">
+      <h3>💸 Log Expense</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Property</label><select id="e-prop"><option value="">Select...</option></select></div>
+        <div class="form-group"><label>Category</label>
+          <select id="e-cat">
+            <option>Repairs & Maintenance</option>
+            <option>Insurance</option>
+            <option>Property Tax</option>
+            <option>Mortgage</option>
+            <option>Utilities</option>
+            <option>HOA</option>
+            <option>Management Fee</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Amount</label><input id="e-amount" type="number" placeholder="0"></div>
+        <div class="form-group"><label>Date</label><input id="e-date" type="date"></div>
+        <div class="form-group"><label>Description</label><input id="e-desc" placeholder="Notes..."></div>
+      </div>
+      <button class="btn-full" onclick="addExpense()">Log Expense</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header">📊 Expense Log</div>
+      <table>
+        <thead><tr><th>Property</th><th>Category</th><th>Amount</th><th>Date</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="expenses-tbody"><tr><td colspan="6" style="text-align:center;color:#6b7280;padding:24px;">No expenses logged.</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- LEASES TAB -->
+  <div class="tab" id="tab-leases">
+    <div class="section-title">📅 Lease Expiration Tracker</div>
+    <div id="lease-list"><div class="empty"><div class="emoji">📋</div><p>Add properties with lease end dates to see them here.</p></div></div>
+  </div>
+
+  <!-- SENSORS TAB -->
+  <div class="tab" id="tab-sensors">
+    <div class="promo-box">
+      <div class="promo-text">🛡️ <strong>Want automatic sensor alerts?</strong> Get Notified LLC installs smart water, temperature, and motion sensors in rental properties. One leak alert can save you $10,000+.<br><small style="opacity:0.7;">getnotifiedllc.com · 704-239-7532</small></div>
+      <a href="https://getnotifiedllc.com" target="_blank" class="promo-link">Learn More →</a>
+    </div>
+    <div class="form-card">
+      <h3>📡 Log Sensor Alert</h3>
+      <div class="form-grid">
+        <div class="form-group"><label>Property</label><select id="s-prop"><option value="">Select...</option></select></div>
+        <div class="form-group"><label>Alert Type</label>
+          <select id="s-type">
+            <option>💧 Water Leak</option>
+            <option>🌡️ Temperature Alert</option>
+            <option>🚪 Door/Window Alert</option>
+            <option>💨 Smoke/CO Alert</option>
+            <option>⚡ Power Outage</option>
+            <option>🏃 Motion Alert</option>
+            <option>📶 Hub Offline</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Location</label><input id="s-location" placeholder="e.g. Basement, Bathroom"></div>
+        <div class="form-group"><label>Date & Time</label><input id="s-date" type="datetime-local"></div>
+        <div class="form-group"><label>Notes</label><input id="s-notes" placeholder="What happened?"></div>
+      </div>
+      <button class="btn-full" onclick="addSensor()">Log Alert</button>
+    </div>
+    <div id="sensor-list"><div class="empty"><div class="emoji">📡</div><p>No sensor alerts logged.</p></div></div>
+  </div>
+
+  <!-- DOCUMENTS TAB -->
+  <div class="tab" id="tab-documents">
+    <div class="section-title">📋 Document Checklist</div>
+    <div id="doc-list"><div class="empty"><div class="emoji">📁</div><p>Add properties to see document checklists.</p></div></div>
+  </div>
+
+  <!-- NOTES TAB -->
+  <div class="tab" id="tab-notes">
+    <div class="section-title">📝 Property Notes</div>
+    <div id="notes-list"></div>
+  </div>
+
+</div>
+
+<!-- EASTER EGG MODAL -->
+<div class="modal" id="easter-modal">
+  <div class="modal-box">
+    <span class="emoji">🕵️</span>
+    <h2>LANDLORD SECRETS UNLOCKED</h2>
+    <div class="terminal" id="terminal-text"></div>
+    <p style="color:#111;font-weight:700;">Secret Code: <span style="color:#1e40af;font-size:18px;">RENT-2-OWN-7X</span></p>
+    <p>Share this with a fellow landlord. Or don't. Your call.</p>
+    <button class="btn-full" onclick="closeEaster()" style="margin-top:0;">Close (if you dare)</button>
+  </div>
+</div>
+
+<script>
+// ============ DATA ============
+let data = JSON.parse(localStorage.getItem('landlord-data') || '{"properties":[],"maintenance":[],"expenses":[],"sensors":{}}');
+let logoClicks = 0, logoTimer = null;
+
+function save() { localStorage.setItem('landlord-data', JSON.stringify(data)); }
+
+// ============ TABS ============
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  render();
+}
+
+// ============ PROPERTIES ============
+function addProperty() {
+  const p = {
+    id: Date.now(),
+    name: document.getElementById('p-name').value || 'Untitled Property',
+    addr: document.getElementById('p-addr').value,
+    tenant: document.getElementById('p-tenant').value,
+    rent: parseFloat(document.getElementById('p-rent').value) || 0,
+    lease: document.getElementById('p-lease').value,
+    status: document.getElementById('p-status').value,
+    docs: { lease: false, insurance: false, inspection: false, permits: false, taxRecords: false },
+    notes: ''
+  };
+  data.properties.push(p);
+  save();
+  ['p-name','p-addr','p-tenant','p-rent','p-lease'].forEach(id => document.getElementById(id).value = '');
+  render();
+}
+
+function deleteProperty(id) {
+  if (!confirm('Delete this property?')) return;
+  data.properties = data.properties.filter(p => p.id !== id);
+  data.maintenance = data.maintenance.filter(m => m.propId !== id);
+  save(); render();
+}
+
+// ============ MAINTENANCE ============
+function addMaintenance() {
+  const propId = parseInt(document.getElementById('m-prop').value);
+  if (!propId) return alert('Select a property');
+  const prop = data.properties.find(p => p.id === propId);
+  data.maintenance.push({
+    id: Date.now(), propId, propName: prop.name,
+    desc: document.getElementById('m-desc').value,
+    priority: document.getElementById('m-priority').value,
+    cost: parseFloat(document.getElementById('m-cost').value) || 0,
+    date: document.getElementById('m-date').value,
+    status: 'open'
+  });
+  save(); render();
+}
+
+function closeMaintenance(id) {
+  const item = data.maintenance.find(m => m.id === id);
+  if (item) { item.status = 'closed'; save(); render(); }
+}
+
+// ============ EXPENSES ============
+function addExpense() {
+  const propId = parseInt(document.getElementById('e-prop').value);
+  const prop = data.properties.find(p => p.id === propId);
+  data.expenses = data.expenses || [];
+  data.expenses.push({
+    id: Date.now(), propId, propName: prop ? prop.name : 'General',
+    cat: document.getElementById('e-cat').value,
+    amount: parseFloat(document.getElementById('e-amount').value) || 0,
+    date: document.getElementById('e-date').value,
+    desc: document.getElementById('e-desc').value
+  });
+  save(); render();
+}
+
+function deleteExpense(id) {
+  data.expenses = (data.expenses || []).filter(e => e.id !== id);
+  save(); render();
+}
+
+// ============ SENSORS ============
+function addSensor() {
+  const propId = document.getElementById('s-prop').value;
+  if (!data.sensors) data.sensors = {};
+  if (!data.sensors[propId]) data.sensors[propId] = [];
+  data.sensors[propId].push({
+    id: Date.now(),
+    type: document.getElementById('s-type').value,
+    location: document.getElementById('s-location').value,
+    date: document.getElementById('s-date').value,
+    notes: document.getElementById('s-notes').value
+  });
+  save(); render();
+}
+
+// ============ RENDER ============
+function render() {
+  updateSelects();
+  renderProperties();
+  renderMaintenance();
+  renderFinancials();
+  renderLeases();
+  renderSensors();
+  renderDocuments();
+  renderNotes();
+  updateHeaderStats();
+}
+
+function updateSelects() {
+  ['m-prop','e-prop','s-prop'].forEach(id => {
+    const sel = document.getElementById(id);
+    const val = sel.value;
+    sel.innerHTML = '<option value="">Select property...</option>' +
+      data.properties.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    sel.value = val;
+  });
+}
+
+function updateHeaderStats() {
+  document.getElementById('stat-props').textContent = data.properties.length;
+  const totalRent = data.properties.filter(p => p.status === 'occupied').reduce((s,p) => s + p.rent, 0);
+  document.getElementById('stat-rent').textContent = '$' + totalRent.toLocaleString();
+  const openIssues = data.maintenance.filter(m => m.status === 'open').length;
+  document.getElementById('stat-issues').textContent = openIssues;
+}
+
+function renderProperties() {
+  const grid = document.getElementById('properties-grid');
+  if (!data.properties.length) {
+    grid.innerHTML = '<div class="empty"><div class="emoji">🏚️</div><p>No properties yet. Add one above!</p></div>';
+    return;
+  }
+  const today = new Date();
+  grid.innerHTML = data.properties.map(p => {
+    const leaseDate = p.lease ? new Date(p.lease) : null;
+    const daysLeft = leaseDate ? Math.ceil((leaseDate - today) / 86400000) : null;
+    const statusMap = { occupied: 'badge-green', vacant: 'badge-red', maintenance: 'badge-yellow' };
+    const labelMap = { occupied: '✅ Occupied', vacant: '🔴 Vacant', maintenance: '🔧 Maintenance' };
+    const isVacant = p.status === 'vacant';
+    const vacantDays = isVacant ? 30 : 0; // simplified
+    return `
+    <div class="card ${isVacant && vacantDays > 14 ? 'sad-card' : ''}">
+      <div class="card-header">
+        <div>
+          <div class="card-title">${isVacant && vacantDays > 14 ? '😢 ' : ''}${p.name}</div>
+          <div class="card-addr">📍 ${p.addr || 'No address'}</div>
+        </div>
+        <span class="badge ${statusMap[p.status]}">${labelMap[p.status]}</span>
+      </div>
+      <div class="prop-detail"><span class="label">👤 Tenant</span><span class="value">${p.tenant || '—'}</span></div>
+      <div class="prop-detail"><span class="label">💰 Rent</span><span class="value">$${p.rent.toLocaleString()}/mo</span></div>
+      <div class="prop-detail">
+        <span class="label">📅 Lease Ends</span>
+        <span class="value ${daysLeft !== null && daysLeft < 60 ? 'badge badge-red' : ''}">${p.lease || '—'}${daysLeft !== null ? ` (${daysLeft}d)` : ''}</span>
+      </div>
+      <div class="prop-actions">
+        <button class="btn-sm btn-danger" onclick="deleteProperty(${p.id})">🗑️ Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMaintenance() {
+  const open = data.maintenance.filter(m => m.status === 'open');
+  document.getElementById('maintenance-count').textContent = open.length;
+  const tbody = document.getElementById('maintenance-tbody');
+  const all = data.maintenance;
+  if (!all.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#6b7280;padding:24px;">No maintenance issues logged.</td></tr>';
+    return;
+  }
+  const pMap = { urgent: '🔴 Urgent', normal: '🟡 Normal', low: '🟢 Low' };
+  tbody.innerHTML = all.map(m => `
+    <tr>
+      <td>${m.propName}</td>
+      <td>${m.desc}</td>
+      <td>${pMap[m.priority] || m.priority}</td>
+      <td>$${m.cost.toLocaleString()}</td>
+      <td>${m.date || '—'}</td>
+      <td><span class="badge ${m.status === 'open' ? 'badge-red' : 'badge-green'}">${m.status}</span></td>
+      <td>${m.status === 'open' ? `<button class="btn-sm btn-primary" onclick="closeMaintenance(${m.id})">✓ Close</button>` : ''}</td>
+    </tr>`).join('');
+}
+
+function renderFinancials() {
+  const occupied = data.properties.filter(p => p.status === 'occupied');
+  const totalExpected = data.properties.reduce((s,p) => s + p.rent, 0);
+  const totalCollected = occupied.reduce((s,p) => s + p.rent, 0);
+  const totalExpenses = (data.expenses || []).reduce((s,e) => s + e.amount, 0);
+  const netProfit = totalCollected - totalExpenses;
+
+  document.getElementById('fin-summary').innerHTML = `
+    <div class="fin-card"><div class="fin-num" style="color:var(--blue)">$${totalExpected.toLocaleString()}</div><div class="fin-lbl">Expected Rent</div></div>
+    <div class="fin-card"><div class="fin-num" style="color:var(--green)">$${totalCollected.toLocaleString()}</div><div class="fin-lbl">Collected</div></div>
+    <div class="fin-card"><div class="fin-num" style="color:var(--red)">$${totalExpenses.toLocaleString()}</div><div class="fin-lbl">Expenses</div></div>
+    <div class="fin-card"><div class="fin-num" style="color:${netProfit >= 0 ? 'var(--green)' : 'var(--red)'}">$${netProfit.toLocaleString()}</div><div class="fin-lbl">Net Profit</div></div>
+    <div class="fin-card"><div class="fin-num" style="color:var(--blue)">${data.properties.filter(p=>p.status==='occupied').length}/${data.properties.length}</div><div class="fin-lbl">Occupancy</div></div>`;
+
+  const tbody = document.getElementById('expenses-tbody');
+  const expenses = data.expenses || [];
+  if (!expenses.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:24px;">No expenses logged.</td></tr>'; return; }
+  tbody.innerHTML = expenses.map(e => `
+    <tr>
+      <td>${e.propName}</td><td>${e.cat}</td>
+      <td style="color:var(--red);font-weight:700;">-$${e.amount.toLocaleString()}</td>
+      <td>${e.date || '—'}</td><td>${e.desc || '—'}</td>
+      <td><button class="btn-sm btn-danger" onclick="deleteExpense(${e.id})">✕</button></td>
+    </tr>`).join('');
+}
+
+function renderLeases() {
+  const list = document.getElementById('lease-list');
+  const today = new Date();
+  const props = data.properties.filter(p => p.lease).map(p => {
+    const d = new Date(p.lease);
+    const days = Math.ceil((d - today) / 86400000);
+    return { ...p, days };
+  }).sort((a,b) => a.days - b.days);
+
+  if (!props.length) { list.innerHTML = '<div class="empty"><div class="emoji">📋</div><p>Add properties with lease end dates to see them here.</p></div>'; return; }
+
+  list.innerHTML = props.map(p => {
+    const color = p.days < 30 ? 'var(--red)' : p.days < 60 ? 'var(--yellow)' : 'var(--green)';
+    const label = p.days < 0 ? '⚠️ EXPIRED' : p.days < 30 ? '🔴 Expiring Soon' : p.days < 60 ? '🟡 Upcoming' : '🟢 Active';
+    return `<div class="lease-item">
+      <div class="days" style="color:${color}">${p.days < 0 ? '!' : p.days}</div>
+      <div style="flex:1"><div style="font-weight:700">${p.name}</div><div style="font-size:13px;color:var(--gray)">${p.tenant || 'No tenant'} · Ends ${p.lease}</div></div>
+      <span class="badge" style="background:${color}20;color:${color}">${label}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderSensors() {
+  const list = document.getElementById('sensor-list');
+  const all = [];
+  Object.entries(data.sensors || {}).forEach(([propId, alerts]) => {
+    alerts.forEach(a => {
+      const prop = data.properties.find(p => p.id == propId);
+      all.push({ ...a, propName: prop ? prop.name : 'Unknown' });
+    });
+  });
+  all.sort((a,b) => new Date(b.date) - new Date(a.date));
+  if (!all.length) { list.innerHTML = '<div class="empty"><div class="emoji">📡</div><p>No sensor alerts logged.</p></div>'; return; }
+  list.innerHTML = all.slice(0,20).map(a => `
+    <div class="sensor-item">
+      <div class="sensor-icon">${a.type.split(' ')[0]}</div>
+      <div class="sensor-info">
+        <div class="title">${a.type} — ${a.propName}</div>
+        <div class="meta">📍 ${a.location || 'Unknown location'} · 🕐 ${a.date || 'No date'}</div>
+        ${a.notes ? `<div class="meta">${a.notes}</div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function renderDocuments() {
+  const list = document.getElementById('doc-list');
+  if (!data.properties.length) { list.innerHTML = '<div class="empty"><div class="emoji">📁</div><p>Add properties to see document checklists.</p></div>'; return; }
+  const docs = ['lease','insurance','inspection','permits','taxRecords'];
+  const labels = { lease:'Lease Agreement', insurance:'Insurance Policy', inspection:'Last Inspection Report', permits:'Permits & Licenses', taxRecords:'Property Tax Records' };
+  list.innerHTML = data.properties.map(p => `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" style="margin-bottom:12px">📁 ${p.name}</div>
+      ${docs.map(d => `
+        <div class="check-item ${p.docs && p.docs[d] ? 'checked' : ''}">
+          <input type="checkbox" ${p.docs && p.docs[d] ? 'checked' : ''} onchange="toggleDoc(${p.id},'${d}',this.checked)">
+          <label>${labels[d]}</label>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function toggleDoc(propId, doc, val) {
+  const prop = data.properties.find(p => p.id === propId);
+  if (prop) { if (!prop.docs) prop.docs = {}; prop.docs[doc] = val; save(); renderDocuments(); }
+}
+
+function renderNotes() {
+  const list = document.getElementById('notes-list');
+  if (!data.properties.length) { list.innerHTML = '<div class="empty"><div class="emoji">📝</div><p>Add properties to write notes.</p></div>'; return; }
+  list.innerHTML = data.properties.map(p => `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-title" style="margin-bottom:12px">📝 ${p.name}</div>
+      <textarea style="width:100%;border:1px solid var(--border);border-radius:6px;padding:10px;font-size:14px;min-height:100px;resize:vertical;font-family:inherit" 
+        placeholder="Notes about this property..." onchange="saveNote(${p.id},this.value)">${p.notes || ''}</textarea>
+    </div>`).join('');
+}
+
+function saveNote(propId, val) {
+  const prop = data.properties.find(p => p.id === propId);
+  if (prop) { prop.notes = val; save(); }
+}
+
+// ============ EASTER EGG ============
+function logoClick() {
+  logoClicks++;
+  if (logoTimer) clearTimeout(logoTimer);
+  logoTimer = setTimeout(() => { logoClicks = 0; }, 2000);
+  if (logoClicks >= 3) { logoClicks = 0; triggerEaster(); }
+}
+
+function triggerEaster() {
+  document.getElementById('easter-modal').classList.add('open');
+  const lines = [
+    '> Accessing landlord mainframe...',
+    '> Bypassing tenant excuses database...',
+    '> Loading: "The check is in the mail" counter: 847',
+    '> Secret code unlocked: RENT-2-OWN-7X',
+    '> Pro tip: The best tenants never ask about rent.',
+    '> The real treasure was the properties we collected along the way.',
+    '> Welcome to the 1% (of landlords who use good software) 🏠'
+  ];
+  let i = 0;
+  const terminal = document.getElementById('terminal-text');
+  terminal.textContent = '';
+  const interval = setInterval(() => {
+    if (i >= lines.length) { clearInterval(interval); return; }
+    terminal.textContent += lines[i] + '\n';
+    i++;
+  }, 500);
+}
+
+function closeEaster() {
+  document.getElementById('easter-modal').classList.remove('open');
+}
+
+// Konami code
+let konami = [], konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+document.addEventListener('keydown', e => {
+  konami.push(e.key);
+  if (konami.length > 10) konami.shift();
+  if (konami.join(',') === konamiCode.join(',')) triggerEaster();
+});
+
+// ============ INIT ============
+render();
+document.getElementById('m-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('e-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('s-date').value = new Date().toISOString().slice(0,16);
+</script>
+</body>
+</html>

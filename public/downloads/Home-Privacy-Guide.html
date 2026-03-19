@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Home Privacy Guide</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #1a1a1a;
+    background: #fff;
+    line-height: 1.8;
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 40px 30px;
+  }
+  .cover {
+    text-align: center;
+    padding: 80px 20px;
+    border-bottom: 3px solid #111;
+    margin-bottom: 60px;
+  }
+  .cover .pretitle {
+    font-size: 13px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 20px;
+  }
+  .cover h1 {
+    font-size: 38px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    color: #111;
+  }
+  .cover .subtitle {
+    font-size: 18px;
+    color: #555;
+    margin-bottom: 40px;
+    font-style: italic;
+  }
+  .cover .author {
+    font-size: 14px;
+    color: #888;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .toc {
+    background: #f8f8f8;
+    border-left: 4px solid #111;
+    padding: 30px 40px;
+    margin-bottom: 60px;
+    border-radius: 0 8px 8px 0;
+  }
+  .toc h2 { font-size: 20px; margin-bottom: 20px; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 8px; font-size: 15px; color: #333; }
+  .chapter {
+    margin-bottom: 60px;
+    page-break-inside: avoid;
+  }
+  .chapter-header {
+    border-bottom: 2px solid #111;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+  }
+  .chapter-num {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #888;
+    display: block;
+    margin-bottom: 8px;
+  }
+  h2 { font-size: 28px; color: #111; }
+  h3 { font-size: 20px; color: #111; margin: 25px 0 10px; }
+  p { margin-bottom: 16px; font-size: 16px; }
+  .callout {
+    background: #f0f0f0;
+    border-left: 4px solid #111;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout strong { display: block; margin-bottom: 4px; }
+  .action-box {
+    background: #111;
+    color: white;
+    padding: 20px 24px;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+  .action-box .title { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: #aaa; margin-bottom: 10px; }
+  .action-box ol, .action-box ul { padding-left: 20px; }
+  .action-box li { margin-bottom: 6px; font-size: 15px; }
+  .stat { font-size: 32px; font-weight: 900; color: #111; }
+  .stat-label { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 25px 0; text-align: center; }
+  .stat-box { background: #f8f8f8; padding: 20px; border-radius: 8px; }
+  ul { padding-left: 24px; margin-bottom: 16px; }
+  li { margin-bottom: 8px; font-size: 16px; }
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { padding: 8px 0; border-bottom: 1px solid #eee; }
+  .checklist li::before { content: "☐ "; font-size: 18px; }
+  .checklist li.done::before { content: "☑ "; color: green; }
+  .page-break { page-break-after: always; }
+  @media print {
+    body { padding: 20px; }
+    .chapter { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="pretitle">Get Notified LLC · 2026</div>
+  <h1>The Home Privacy Guide</h1>
+  <div class="subtitle">Take Back Control of Your Network, Your Data,<br>and Your Digital Life</div>
+  <div class="author">By Get Notified LLC · getnotifiedllc.com · 704-239-7532</div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h2>What's Inside</h2>
+  <ol>
+    <li>Why Your Privacy Matters More Than Ever</li>
+    <li>What Big Tech Actually Collects (and how to stop it)</li>
+    <li>Your Home Network — The Front Door Nobody Locks</li>
+    <li>Ad Blocking — Kill Ads on Every Device Forever</li>
+    <li>Private Cloud Storage — Stop Paying Google to Store Your Life</li>
+    <li>VPN Explained — What It Is, What It Isn't, Do You Need One?</li>
+    <li>Your Smart Home Is Spying On You</li>
+    <li>Kids &amp; Privacy — Protecting Your Family Online</li>
+    <li>Simple Daily Habits That Protect You</li>
+    <li>The Ultimate Home Privacy Checklist</li>
+  </ol>
+</div>
+
+<!-- CHAPTER 1 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 1</span>
+    <h2>Why Your Privacy Matters More Than Ever</h2>
+  </div>
+
+  <p>Here's something most people don't realize: right now, as you read this, hundreds of companies know what you bought last Tuesday, what you searched for at 2 AM, which websites you visited, how long you watched that show, where you drove yesterday, and what your home looks like inside.</p>
+
+  <p>They didn't break into your house. You let them in. Not on purpose — just by using the apps, devices, and services that have become part of everyday life.</p>
+
+  <p>This guide isn't about becoming a paranoid hermit who lives off the grid. It's about understanding what's actually happening and making simple, practical choices to protect yourself and your family.</p>
+
+  <div class="stats-grid">
+    <div class="stat-box">
+      <div class="stat">4,000+</div>
+      <div class="stat-label">Data brokers sell your info</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat">$240B</div>
+      <div class="stat-label">Size of the data industry</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat">72%</div>
+      <div class="stat-label">Of Americans feel surveilled</div>
+    </div>
+  </div>
+
+  <h3>The Business Model Nobody Explains</h3>
+  <p>When something is free — Google Search, Facebook, Gmail, most apps — you're not the customer. You're the product. The actual customers are advertisers who pay billions to reach you based on everything these companies know about you.</p>
+
+  <p>Google made $237 billion in 2023. Almost all of it came from selling access to you — your attention, your habits, your data — to advertisers. Facebook made $134 billion the same way.</p>
+
+  <p>This isn't illegal. You agreed to it. Buried in those Terms of Service nobody reads is permission to collect, analyze, and sell everything about you.</p>
+
+  <div class="callout">
+    <strong>The good news:</strong>
+    You don't have to accept it. With the right setup — most of it free — you can take back enormous amounts of your privacy without giving up the things you actually like about technology.
+  </div>
+
+  <h3>What This Guide Will Do For You</h3>
+  <p>By the time you finish this guide, you'll know exactly what data is being collected, who has it, and most importantly — how to stop it. We'll cover your home network, your devices, your cloud storage, your smart home, and your kids.</p>
+
+  <p>No technical background needed. We'll explain everything in plain language, and every chapter ends with exact steps you can take today.</p>
+</div>
+
+<!-- CHAPTER 2 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 2</span>
+    <h2>What Big Tech Actually Collects</h2>
+  </div>
+
+  <p>Let's be specific. Here's what the major players know about you right now.</p>
+
+  <h3>Google</h3>
+  <p>If you use Google Search, Gmail, YouTube, Google Maps, Android, or Chrome — Google knows:</p>
+  <ul>
+    <li>Every search you've ever made (and when)</li>
+    <li>Every YouTube video you've watched and how long you watched it</li>
+    <li>Every place you've been (your location history goes back years)</li>
+    <li>The contents of your emails</li>
+    <li>Every website you've visited in Chrome</li>
+    <li>Your voice commands from Google Assistant</li>
+    <li>Your contacts, calendar, photos if you use Google services</li>
+  </ul>
+
+  <div class="action-box">
+    <div class="title">See What Google Has on You</div>
+    <ol>
+      <li>Go to <strong>myaccount.google.com</strong></li>
+      <li>Click "Data &amp; Privacy"</li>
+      <li>Click "My Activity" — prepare to be shocked</li>
+      <li>Under "Things you've done and places you've been" — click each one</li>
+    </ol>
+  </div>
+
+  <h3>Facebook / Meta</h3>
+  <p>Facebook tracks you even when you're NOT on Facebook. Any website with a "Like" button or Facebook pixel — which is most of the internet — reports your visit back to Meta. They build what they call a "shadow profile" of non-users.</p>
+
+  <p>Meta knows your political views, religious beliefs, relationship status, income bracket, what you're likely to buy next, and emotional state (they've published research on manipulating users' moods).</p>
+
+  <div class="action-box">
+    <div class="title">Download Your Facebook Data</div>
+    <ol>
+      <li>Go to Facebook Settings → Your Facebook Information</li>
+      <li>Click "Download Your Information"</li>
+      <li>Select "All" and download</li>
+      <li>Open the file and look at "Ads" — you'll see exactly how they've categorized you</li>
+    </ol>
+  </div>
+
+  <h3>Amazon</h3>
+  <p>Amazon knows what you buy, what you browse without buying (even more revealing), what you say to Alexa, what you watch on Prime Video, what books you read on Kindle, and if you have Ring cameras — what happens in and around your home.</p>
+
+  <h3>Apple</h3>
+  <p>Apple's privacy reputation is better than the others — but they still collect app usage data, Siri recordings, location data, and purchase history. The difference: Apple uses it for their own services, not to sell to third-party advertisers.</p>
+
+  <h3>Data Brokers — The Companies You've Never Heard Of</h3>
+  <p>Beyond Big Tech, there are thousands of companies called data brokers whose entire business is collecting and selling information about you. Companies like Acxiom, LexisNexis, and Spokeo have files containing your name, address, phone number, family members, income estimates, political affiliation, health conditions, and more.</p>
+
+  <div class="action-box">
+    <div class="title">How to Opt Out of Data Brokers</div>
+    <ol>
+      <li>Search your name on Spokeo.com, WhitePages.com, BeenVerified.com</li>
+      <li>Each site has an opt-out process (usually under Privacy or Help)</li>
+      <li>Use a service like DeleteMe ($129/yr) to automate this</li>
+      <li>Repeat every 6 months — data comes back</li>
+    </ol>
+  </div>
+</div>
+
+<!-- CHAPTER 3 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 3</span>
+    <h2>Your Home Network — The Front Door Nobody Locks</h2>
+  </div>
+
+  <p>Your home network is the single most important thing to protect — and the most overlooked. Every device in your house goes through your router. That means your router is either your best defense or your biggest vulnerability.</p>
+
+  <h3>What Your Router Knows</h3>
+  <p>Your Internet Service Provider (ISP) — Spectrum, AT&amp;T, Comcast, whoever — can see every website you visit, every app you use, and roughly when you're home and active. They sell this data. It's legal. You agreed to it.</p>
+
+  <p>Additionally, your router's default settings are usually terrible for privacy. Default passwords, no encryption, outdated firmware, and zero protection against the devices on your own network spying on each other.</p>
+
+  <h3>The 5 Router Settings to Change Today</h3>
+
+  <div class="action-box">
+    <div class="title">Router Security Checklist</div>
+    <ol>
+      <li><strong>Change your router admin password.</strong> The default is usually "admin/admin" or printed on a sticker. Change it to something strong.</li>
+      <li><strong>Update your router firmware.</strong> Log in to your router (usually 192.168.1.1 or 192.168.0.1) and check for firmware updates.</li>
+      <li><strong>Change your DNS server.</strong> Default DNS goes through your ISP. Switch to 1.1.1.1 (Cloudflare) for better privacy and speed.</li>
+      <li><strong>Enable WPA3 or WPA2 encryption.</strong> Never use WEP or "Open" networks.</li>
+      <li><strong>Create a guest network for smart devices.</strong> Keep your Alexa, Ring, and smart TV on a separate network from your laptops and phones.</li>
+    </ol>
+  </div>
+
+  <h3>The Nuclear Option: DNS-Level Blocking</h3>
+  <p>The most powerful thing you can do for your home network privacy is install a DNS-level ad and tracker blocker. This works differently from a browser extension — it blocks tracking at the network level, before the request ever leaves your house.</p>
+
+  <p>This means ads are blocked on your Smart TV, your phone, your kids' tablets, gaming consoles — every device, without installing anything on those devices.</p>
+
+  <p>Free tools that do this: Pi-hole (requires a Raspberry Pi) or AdGuard Home. Or you can buy a pre-configured device that does it plug-and-play. Either way, this one change eliminates the majority of tracking on your entire network.</p>
+
+  <div class="callout">
+    <strong>Real result:</strong> Most homes block 20-40% of all internet traffic after installing DNS-level blocking. That's how much of your bandwidth was going to ads and trackers.
+  </div>
+</div>
+
+<!-- CHAPTER 4 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 4</span>
+    <h2>Ad Blocking — Kill Ads on Every Device Forever</h2>
+  </div>
+
+  <p>Ads aren't just annoying. They're surveillance. Every ad you see has been targeted at you based on your data. Every ad click tells the advertiser more about you. And the ad networks that serve them are some of the biggest data collectors on the internet.</p>
+
+  <p>Here's what most people don't realize: blocking ads doesn't just remove annoying popups. It breaks the data collection pipeline that funds the surveillance economy. When ads don't load, the tracking pixels don't fire. When tracking pixels don't fire, the data isn't collected.</p>
+
+  <h3>Three Levels of Ad Blocking</h3>
+
+  <h3>Level 1: Browser Extensions (Phone &amp; Computer)</h3>
+  <p>The easiest starting point. Install uBlock Origin on Chrome, Firefox, or Edge. It's free, open source, and incredibly effective. This handles ads on your browser — but not on apps or Smart TVs.</p>
+
+  <div class="action-box">
+    <div class="title">Install Browser Ad Blocking</div>
+    <ol>
+      <li>Open Chrome/Firefox/Edge</li>
+      <li>Search "uBlock Origin" in the extension store</li>
+      <li>Install and enable it</li>
+      <li>Done — ads blocked in your browser immediately</li>
+    </ol>
+  </div>
+
+  <h3>Level 2: DNS Blocking (Every Device)</h3>
+  <p>Change your device's DNS to a privacy-respecting, ad-blocking DNS server. This blocks ads across every app on that device — not just the browser.</p>
+
+  <ul>
+    <li><strong>On iPhone:</strong> Settings → Wi-Fi → tap your network → Configure DNS → Manual → add 1.1.1.2</li>
+    <li><strong>On Android:</strong> Settings → Network → Private DNS → enter dns.adguard.com</li>
+    <li><strong>On Windows:</strong> Settings → Network → DNS → 1.1.1.2</li>
+  </ul>
+
+  <h3>Level 3: Network-Wide Blocking (Every Device, No Setup)</h3>
+  <p>The gold standard. A device on your network that intercepts every DNS request and blocks ads and trackers before they even load. This covers Smart TVs, gaming consoles, IoT devices — everything on your network.</p>
+
+  <p>Tools: AdGuard Home, Pi-hole, or a pre-built privacy hub device. Once it's set up, you never have to touch it again — ads just stop appearing everywhere in your house.</p>
+
+  <div class="callout">
+    <strong>The subscription math:</strong> YouTube Premium costs $14/month to remove ads from one app. Network-wide ad blocking removes ads from every screen in your house — for free (or the one-time cost of a small device).
+  </div>
+
+  <h3>What About YouTube?</h3>
+  <p>YouTube ads are served from Google's own servers, which makes them harder to block. DNS blocking catches most of them. For the rest, use a third-party YouTube client like Invidious (on desktop) or Newpipe (on Android). Both are free, open source, and show no ads.</p>
+</div>
+
+<!-- CHAPTER 5 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 5</span>
+    <h2>Private Cloud Storage — Stop Paying Google to Store Your Life</h2>
+  </div>
+
+  <p>Right now, your photos are on Apple's servers or Google's servers. Your documents are on Microsoft's servers or Google's servers. Your files are on Dropbox's servers. Every one of those companies scans your files — to serve you ads, to comply with law enforcement requests, to train their AI models.</p>
+
+  <p>You're paying $10/month for the privilege of having your private photos analyzed by a corporation's algorithms.</p>
+
+  <h3>What These Companies Actually Do With Your Files</h3>
+  <ul>
+    <li><strong>Google Photos:</strong> Scans every photo to identify faces, locations, objects, and events. Uses this to serve you targeted ads and train AI.</li>
+    <li><strong>iCloud:</strong> Apple scans photos for illegal content (CSAM). Has complied with thousands of government data requests. "End-to-end encryption" has exceptions.</li>
+    <li><strong>Dropbox:</strong> Employees can access your files for internal purposes. Has received government subpoenas.</li>
+    <li><strong>Microsoft OneDrive:</strong> Scans files for "violations" and can lock your account without warning.</li>
+  </ul>
+
+  <h3>The Alternative: Your Own Private Cloud</h3>
+  <p>Software called Nextcloud lets you run your own Google Drive on a device in your home. Your photos, files, and documents are stored on YOUR hardware — not a corporation's server. Nobody scans them. Nobody sells access to them.</p>
+
+  <p>The Nextcloud app on your phone automatically backs up photos and contacts — just like iCloud or Google Photos — except the files go to your device at home instead of a company's server.</p>
+
+  <div class="action-box">
+    <div class="title">Setting Up Your Private Cloud</div>
+    <ol>
+      <li>You need a small computer to act as your server (Raspberry Pi, old laptop, NAS device)</li>
+      <li>Install Nextcloud (free, open source — nextcloud.com)</li>
+      <li>Install the Nextcloud app on your phone</li>
+      <li>Point it at your home server</li>
+      <li>Enable auto-backup — photos now sync to YOUR device, not Google's</li>
+    </ol>
+  </div>
+
+  <h3>Storage That Pays for Itself</h3>
+  <p>A Raspberry Pi 4 with a 2TB USB drive costs about $130 total. At $10/month for Google One or iCloud, that pays for itself in 13 months. After that, you're saving $120/year — forever — while having more storage than any free plan offers.</p>
+
+  <div class="callout">
+    <strong>Bonus benefit:</strong> Your cloud storage works even when the internet is down, because it's on your local network. Try that with iCloud.
+  </div>
+</div>
+
+<!-- CHAPTER 6 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 6</span>
+    <h2>VPN Explained — What It Is, What It Isn't</h2>
+  </div>
+
+  <p>VPNs are everywhere right now. Every YouTube channel has a sponsor selling one. But most people using VPNs don't actually understand what they do — or don't do. Let's clear it up.</p>
+
+  <h3>What a VPN Actually Does</h3>
+  <p>A VPN creates an encrypted tunnel between your device and a VPN server. When you use a VPN:</p>
+  <ul>
+    <li>Your ISP can't see what websites you visit (they just see encrypted traffic to the VPN)</li>
+    <li>Websites you visit see the VPN's IP address, not your real one</li>
+    <li>On public WiFi, anyone snooping can't read your traffic</li>
+  </ul>
+
+  <h3>What a VPN Does NOT Do</h3>
+  <p>This is where most people are misled by VPN advertising:</p>
+  <ul>
+    <li><strong>It does NOT make you anonymous.</strong> Google still knows who you are when you're logged into Google. Facebook still tracks you. Your VPN company knows everything your ISP knew before.</li>
+    <li><strong>It does NOT protect you from malware.</strong> Clicking a bad link still infects your device.</li>
+    <li><strong>It does NOT hide your activity from websites.</strong> Cookies and login sessions still identify you.</li>
+  </ul>
+
+  <h3>When You Actually Need a VPN</h3>
+  <ul>
+    <li>Using public WiFi (coffee shop, airport, hotel) — VPN is essential here</li>
+    <li>Traveling internationally and need to access home services</li>
+    <li>Accessing your home network remotely</li>
+    <li>Your ISP is particularly invasive and you want to hide your traffic from them</li>
+  </ul>
+
+  <h3>The Best VPN Option: Your Own</h3>
+  <p>Commercial VPN services cost $5-15/month and you're trusting them with all your traffic. The better option: run your own VPN at home using WireGuard (free, open source). This lets you tunnel back to your home network from anywhere, encrypting your traffic without trusting a third party.</p>
+
+  <div class="action-box">
+    <div class="title">Setting Up WireGuard (Home VPN)</div>
+    <ol>
+      <li>Install WireGuard on a home server or router</li>
+      <li>Generate client configs for your devices</li>
+      <li>Install the WireGuard app on your phone/laptop (free)</li>
+      <li>Scan the QR code to connect</li>
+      <li>Now you have an encrypted tunnel back to your home network from anywhere</li>
+    </ol>
+  </div>
+</div>
+
+<!-- CHAPTER 7 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 7</span>
+    <h2>Your Smart Home Is Spying On You</h2>
+  </div>
+
+  <p>Smart TVs, Alexa, Ring doorbells, Nest thermostats, smart fridges, robot vacuums — these devices have transformed our homes. They've also turned our homes into the most invasive surveillance environments we've ever lived in.</p>
+
+  <h3>Smart TVs</h3>
+  <p>Every major smart TV brand — Samsung, LG, Vizio, TCL, Roku — has a technology called Automatic Content Recognition (ACR). It captures screenshots of everything you watch — including cable, DVDs, streaming, gaming — and reports it back to the manufacturer and their advertising partners.</p>
+
+  <p>Samsung's privacy policy explicitly says their smart TVs record nearby conversations. LG was caught sending viewing data unencrypted to their servers — including when the TV was "off."</p>
+
+  <div class="action-box">
+    <div class="title">Disable Smart TV Surveillance</div>
+    <ol>
+      <li>Go to Settings → Privacy or Advertising on your TV</li>
+      <li>Disable "Viewing Information Services," "ACR," "Interest-Based Advertising"</li>
+      <li>On Samsung: Settings → Terms &amp; Privacy → turn off SyncPlus, Viewing Info</li>
+      <li>On Vizio: Menu → System → Reset &amp; Admin → Viewing Data → Off</li>
+      <li>On Roku: Settings → Privacy → Advertising → Limit Ad Tracking</li>
+    </ol>
+  </div>
+
+  <h3>Amazon Alexa / Google Home</h3>
+  <p>These devices are always listening for their wake word. The problem: they mishear and record things constantly. Amazon employs thousands of contractors who listen to Alexa recordings to "improve accuracy." So do Google and Apple with their voice assistants.</p>
+
+  <p>Amazon has admitted to sharing Alexa recordings with law enforcement. Ring (owned by Amazon) has partnerships with hundreds of police departments that allow access to camera footage.</p>
+
+  <div class="action-box">
+    <div class="title">Lock Down Your Voice Assistant</div>
+    <ol>
+      <li>In the Alexa app: More → Settings → Alexa Privacy → Manage Your Alexa Data → Auto-delete recordings → 3 months</li>
+      <li>Disable "Use of voice recordings to improve services"</li>
+      <li>Review and delete existing recordings regularly</li>
+      <li>Consider a physical mute button — most devices have one</li>
+    </ol>
+  </div>
+
+  <h3>The IoT Security Problem</h3>
+  <p>Every smart device on your network is a potential entry point for hackers. A compromised smart TV or smart bulb can be used as a launchpad to attack your laptops and phones on the same network.</p>
+
+  <p>The solution: put all your smart devices on a separate network (guest network) isolated from your main devices. This way, even if your smart fridge gets hacked, it can't reach your laptop.</p>
+
+  <div class="callout">
+    <strong>This is called network segmentation</strong> — and it's standard security practice at every major company. You should do it at home too. Most modern routers make it easy.
+  </div>
+</div>
+
+<!-- CHAPTER 8 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 8</span>
+    <h2>Kids &amp; Privacy — Protecting Your Family Online</h2>
+  </div>
+
+  <p>Children are the most aggressively targeted demographic online. Apps and platforms designed for kids are some of the worst privacy offenders, often collecting data that follows children into adulthood.</p>
+
+  <h3>What's Being Collected From Your Kids</h3>
+  <ul>
+    <li>TikTok collects face data, voiceprints, location, browsing history, and contact lists</li>
+    <li>YouTube Kids still serves ads and tracks viewing behavior</li>
+    <li>Many "kids' games" sell data to third parties</li>
+    <li>School platforms (Google Classroom, etc.) collect extensive data on students</li>
+  </ul>
+
+  <h3>Network-Level Parental Controls</h3>
+  <p>Browser-based parental controls are easily bypassed — kids use different browsers, use friends' phones, or find workarounds. Network-level controls are different. They work at the router level, covering every device on your network automatically.</p>
+
+  <p>With a DNS-level filter, you can block entire categories of content — adult sites, gambling, social media, gaming — across every device in your house. You can also set schedules: no social media after 9 PM, no gaming during school hours.</p>
+
+  <div class="action-box">
+    <div class="title">Set Up Family Filtering</div>
+    <ol>
+      <li>Change your router's DNS to CleanBrowsing (185.228.168.9) for free family filtering</li>
+      <li>Or install AdGuard Home and enable parental controls in Settings → DNS → Parental Controls</li>
+      <li>Set schedules in your router — most routers have a "Parental Controls" section</li>
+      <li>Consider routers with built-in family features: Eero, Circle, or Firewalla</li>
+    </ol>
+  </div>
+
+  <h3>The Screen Time Conversation</h3>
+  <p>Technology aside, privacy and safety online starts with conversation. Talk to your kids about what personal information means. Explain that nothing online is ever truly private. Help them understand that social media platforms are designed to be addictive — by engineers who don't let their own kids use these apps.</p>
+
+  <div class="callout">
+    <strong>Worth knowing:</strong> Many Silicon Valley executives — including former Google and Facebook employees — send their kids to tech-free private schools. They know exactly what these platforms do to young brains.
+  </div>
+</div>
+
+<!-- CHAPTER 9 -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 9</span>
+    <h2>Simple Daily Habits That Protect You</h2>
+  </div>
+
+  <p>Big technical setups matter — but so do small daily habits. These take minutes to implement and dramatically reduce your exposure.</p>
+
+  <h3>Browser Habits</h3>
+  <ul>
+    <li><strong>Use Firefox or Brave</strong> instead of Chrome. Both block more trackers by default and don't feed your data to Google.</li>
+    <li><strong>Use DuckDuckGo</strong> for searches instead of Google. Your searches aren't logged or used to build your profile.</li>
+    <li><strong>Use Private/Incognito mode</strong> for sensitive searches — though note this only prevents local storage, not your ISP from seeing your traffic.</li>
+    <li><strong>Clear cookies regularly</strong> — monthly at minimum. Settings → Privacy → Clear Browsing Data.</li>
+    <li><strong>Don't log in to websites with Google or Facebook</strong> — this gives those platforms a map of everywhere you go online.</li>
+  </ul>
+
+  <h3>Email Habits</h3>
+  <ul>
+    <li><strong>Use ProtonMail or Tutanota</strong> for sensitive emails. Both are end-to-end encrypted and don't scan your emails for advertising.</li>
+    <li><strong>Use email aliases</strong> for signups. Services like SimpleLogin or Apple's Hide My Email give websites a fake address that forwards to your real one. When companies sell your email, the spam goes nowhere.</li>
+    <li><strong>Unsubscribe aggressively.</strong> Every marketing email is a data point. Fewer subscriptions = less data floating around.</li>
+  </ul>
+
+  <h3>Phone Habits</h3>
+  <ul>
+    <li><strong>Audit your app permissions monthly.</strong> Settings → Apps → [App name] → Permissions. Does your flashlight app really need your contacts?</li>
+    <li><strong>Turn off location tracking</strong> for apps that don't need it. Most apps work fine without continuous location access.</li>
+    <li><strong>Use Signal</strong> for sensitive conversations instead of regular text messages. SMS is not encrypted. Signal is.</li>
+    <li><strong>Disable ad tracking.</strong> iPhone: Settings → Privacy → Tracking → turn off "Allow Apps to Request to Track." Android: Settings → Privacy → Ads → Opt out of Ads Personalization.</li>
+  </ul>
+
+  <h3>Password Habits</h3>
+  <ul>
+    <li><strong>Use a password manager.</strong> Bitwarden is free and open source. 1Password costs $3/month. Both are vastly better than reusing passwords.</li>
+    <li><strong>Enable two-factor authentication</strong> on every account that offers it. Bank, email, social media — all of them.</li>
+    <li><strong>Use an authenticator app</strong> (Authy, Google Authenticator) rather than SMS for 2FA. SMS can be intercepted.</li>
+    <li><strong>Check haveibeenpwned.com</strong> to see if your email has been in any data breaches. Change any compromised passwords immediately.</li>
+  </ul>
+</div>
+
+<!-- CHAPTER 10 - CHECKLIST -->
+<div class="chapter">
+  <div class="chapter-header">
+    <span class="chapter-num">Chapter 10 — Print This Page</span>
+    <h2>The Ultimate Home Privacy Checklist</h2>
+  </div>
+
+  <h3>🏠 Home Network</h3>
+  <ul class="checklist">
+    <li>Changed router admin password from default</li>
+    <li>Updated router firmware</li>
+    <li>Switched DNS to 1.1.1.1 or AdGuard DNS</li>
+    <li>Created separate guest network for smart devices</li>
+    <li>Enabled WPA2 or WPA3 encryption</li>
+    <li>Installed DNS-level ad blocker (AdGuard Home or Pi-hole)</li>
+  </ul>
+
+  <h3>💻 Browser & Search</h3>
+  <ul class="checklist">
+    <li>Switched to Firefox or Brave</li>
+    <li>Installed uBlock Origin extension</li>
+    <li>Using DuckDuckGo for searches</li>
+    <li>Not signing in to sites with Google/Facebook</li>
+    <li>Clearing cookies monthly</li>
+  </ul>
+
+  <h3>☁️ Cloud Storage</h3>
+  <ul class="checklist">
+    <li>Know what's stored where (Google, iCloud, Dropbox)</li>
+    <li>Deleted old files from cloud services you no longer use</li>
+    <li>Considered or set up local storage (Nextcloud)</li>
+    <li>Enabled encryption on any cloud storage you use</li>
+  </ul>
+
+  <h3>📱 Phone</h3>
+  <ul class="checklist">
+    <li>Audited app permissions (location, camera, microphone, contacts)</li>
+    <li>Disabled ad tracking in system settings</li>
+    <li>Enabled two-factor authentication on email and social accounts</li>
+    <li>Using a password manager</li>
+    <li>Installed Signal for private messaging</li>
+  </ul>
+
+  <h3>📺 Smart Home</h3>
+  <ul class="checklist">
+    <li>Disabled ACR / Viewing Data on Smart TV</li>
+    <li>Disabled interest-based advertising on Smart TV</li>
+    <li>Configured Alexa/Google Home to delete recordings</li>
+    <li>Smart devices on separate network from computers/phones</li>
+    <li>Reviewed Ring/camera sharing settings</li>
+  </ul>
+
+  <h3>👨‍👩‍👧 Family</h3>
+  <ul class="checklist">
+    <li>Set up network-level content filtering for kids</li>
+    <li>Configured screen time limits</li>
+    <li>Had privacy conversation with kids</li>
+    <li>Audited kids' apps for permissions</li>
+    <li>Reviewed school platform privacy policies</li>
+  </ul>
+
+  <h3>🔐 Accounts & Passwords</h3>
+  <ul class="checklist">
+    <li>Using unique passwords for every account</li>
+    <li>Using a password manager</li>
+    <li>2FA enabled on email accounts</li>
+    <li>2FA enabled on financial accounts</li>
+    <li>Checked haveibeenpwned.com for breaches</li>
+    <li>Opted out of major data brokers</li>
+  </ul>
+
+  <div class="action-box" style="margin-top: 40px;">
+    <div class="title">Want Help Implementing This?</div>
+    <p style="color: white; margin-bottom: 12px;">Get Notified LLC installs privacy and home monitoring systems in the Salisbury, NC area — and ships pre-configured devices nationwide.</p>
+    <p style="color: #aaa; font-size: 14px;">📞 704-239-7532 · getnotifiedllc.com · gettompoai@gmail.com</p>
+  </div>
+</div>
+
+<!-- BACK COVER -->
+<div style="margin-top: 60px; padding-top: 40px; border-top: 3px solid #111; text-align: center;">
+  <h2 style="margin-bottom: 16px;">About Get Notified LLC</h2>
+  <p style="max-width: 500px; margin: 0 auto 20px; color: #555;">We're a small business based in Salisbury, NC. We built our first privacy and safety system for our own aging parents — because we wanted them safe and private, without putting cameras in their home.</p>
+  <p style="color: #888; font-size: 14px;">getnotifiedllc.com · 704-239-7532 · gettompoai@gmail.com</p>
+  <p style="color: #888; font-size: 14px; margin-top: 8px;">© 2026 Get Notified LLC · All rights reserved</p>
+</div>
+
+</body>
+</html>

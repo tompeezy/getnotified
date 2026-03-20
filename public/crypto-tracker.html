@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crypto Portfolio Tracker</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --green: #3fb950;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --gold: #e3b341;
+    --accent: #1f6feb;
+    --accent2: #388bfd;
+    --shadow: rgba(0,0,0,0.4);
+  }
+  .light {
+    --bg: #f6f8fa;
+    --surface: #ffffff;
+    --surface2: #f0f4f8;
+    --border: #d0d7de;
+    --text: #1f2328;
+    --text2: #656d76;
+    --shadow: rgba(0,0,0,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+  }
+  a { color: var(--blue); text-decoration: none; }
+
+  /* LOCKED STATE */
+  #lock-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 20px;
+  }
+  #lock-screen.hidden { display: none; }
+  .lock-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 48px 40px;
+    text-align: center;
+    width: 340px;
+    box-shadow: 0 8px 32px var(--shadow);
+  }
+  .lock-icon { font-size: 56px; margin-bottom: 16px; }
+  .lock-card h2 { font-size: 22px; margin-bottom: 8px; }
+  .lock-card p { color: var(--text2); font-size: 14px; margin-bottom: 24px; }
+  .lock-input {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 16px;
+    margin-bottom: 12px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .lock-input:focus { border-color: var(--accent2); }
+  .lock-error { color: var(--red); font-size: 13px; min-height: 18px; }
+
+  /* HEADER */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-brand .logo { font-size: 28px; }
+  .header-brand h1 { font-size: 18px; font-weight: 700; }
+  .header-brand .tagline { font-size: 12px; color: var(--text2); }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .badge-private {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--text2);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .badge-private::before { content: '🔒'; font-size: 10px; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--border); border-color: var(--text2); }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); }
+  .btn-danger { background: transparent; border-color: transparent; color: var(--red); padding: 4px 8px; }
+  .btn-danger:hover { background: rgba(248,81,73,0.1); border-color: var(--red); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-icon { padding: 8px; border-radius: 8px; }
+
+  /* MAIN LAYOUT */
+  .main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+  /* OVERVIEW CARDS */
+  .overview-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 900px) {
+    .overview-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 560px) {
+    .overview-grid { grid-template-columns: 1fr; }
+    header { flex-wrap: wrap; gap: 8px; }
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .card:hover { transform: translateY(-1px); box-shadow: 0 4px 16px var(--shadow); }
+  .card-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .card-value { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .card-sub { font-size: 13px; color: var(--text2); margin-top: 4px; }
+  .card-main .card-value { font-size: 40px; }
+  .green { color: var(--green); }
+  .red { color: var(--red); }
+  .gold { color: var(--gold); }
+  .flash-green { animation: flashG 0.6s ease; }
+  .flash-red { animation: flashR 0.6s ease; }
+  @keyframes flashG {
+    0%,100% { color: var(--text); }
+    50% { color: var(--green); }
+  }
+  @keyframes flashR {
+    0%,100% { color: var(--text); }
+    50% { color: var(--red); }
+  }
+  @keyframes countUp {
+    from { transform: translateY(6px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .animating { animation: countUp 0.3s ease; }
+
+  /* TABS */
+  .tabs {
+    display: flex; gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .tab {
+    padding: 10px 18px;
+    border-radius: 8px 8px 0 0;
+    border: 1px solid transparent;
+    border-bottom: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text2);
+    transition: all 0.15s;
+    background: transparent;
+    margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--text); background: var(--surface2); }
+  .tab.active {
+    color: var(--text);
+    background: var(--surface);
+    border-color: var(--border);
+    border-bottom-color: var(--surface);
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* HOLDINGS TABLE */
+  .toolbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 380px; }
+  .search-input {
+    width: 100%;
+    padding: 10px 16px 10px 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent2); }
+  .search-icon {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 16px; pointer-events: none; opacity: 0.5;
+  }
+  .search-dropdown {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px var(--shadow);
+    z-index: 200;
+    max-height: 240px;
+    overflow-y: auto;
+    display: none;
+  }
+  .search-dropdown.open { display: block; }
+  .search-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.1s;
+    font-size: 14px;
+  }
+  .search-item:hover { background: var(--surface2); }
+  .search-item .coin-thumb { width: 24px; height: 24px; border-radius: 50%; }
+  .search-item .coin-sym { font-size: 11px; color: var(--text2); }
+  .search-loading { padding: 14px; text-align: center; color: var(--text2); font-size: 13px; }
+
+  /* ADD FORM */
+  .add-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .add-form.open { display: block; }
+  .add-form h3 { font-size: 15px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .form-group { flex: 1; min-width: 140px; }
+  .form-group label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus { border-color: var(--accent2); }
+  .selected-coin {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .selected-coin img { width: 24px; height: 24px; border-radius: 50%; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--surface2);
+    padding: 12px 16px;
+    text-align: right;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+  th:first-child { text-align: left; }
+  td {
+    padding: 14px 16px;
+    text-align: right;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    vertical-align: middle;
+    transition: background 0.15s;
+  }
+  td:first-child { text-align: left; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .coin-name-cell { display: flex; align-items: center; gap: 10px; }
+  .coin-logo { width: 32px; height: 32px; border-radius: 50%; background: var(--surface2); }
+  .coin-name { font-weight: 600; font-size: 14px; }
+  .coin-symbol { font-size: 11px; color: var(--text2); text-transform: uppercase; }
+  .sparkline-cell canvas { display: block; }
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text2);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state h3 { font-size: 18px; color: var(--text); margin-bottom: 8px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ALERTS */
+  .alerts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .alert-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .alert-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .alert-coin-info { display: flex; align-items: center; gap: 8px; }
+  .alert-coin-info img { width: 28px; height: 28px; border-radius: 50%; }
+  .alert-inputs { display: flex; flex-direction: column; gap: 8px; }
+  .alert-row { display: flex; align-items: center; gap: 8px; }
+  .alert-row label { font-size: 12px; color: var(--text2); width: 60px; flex-shrink: 0; }
+  .alert-row input {
+    flex: 1;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+  .alert-row input:focus { border-color: var(--accent2); }
+  .alert-triggered-high { border-color: var(--green); box-shadow: 0 0 12px rgba(63,185,80,0.3); }
+  .alert-triggered-low { border-color: var(--red); box-shadow: 0 0 12px rgba(248,81,73,0.3); }
+  @keyframes alertPulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .alert-triggered-high, .alert-triggered-low { animation: alertPulse 1s ease infinite; }
+
+  .alert-log {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .alert-log h3 { font-size: 15px; margin-bottom: 14px; }
+  .alert-log-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .alert-log-item:last-child { border-bottom: none; }
+  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .alert-log-time { color: var(--text2); font-size: 11px; margin-left: auto; }
+  .log-empty { color: var(--text2); font-size: 13px; text-align: center; padding: 20px; }
+
+  /* CHARTS */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 700px) {
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .chart-card h3 { font-size: 15px; margin-bottom: 16px; }
+  #pie-canvas { display: block; margin: 0 auto; }
+  .pie-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .legend-pct { margin-left: auto; color: var(--text2); }
+
+  /* SETTINGS */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .settings-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .settings-card h3 { font-size: 15px; margin-bottom: 16px; color: var(--text); }
+  .setting-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label { color: var(--text2); font-size: 13px; }
+  select {
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+  }
+  /* Toggle switch */
+  .toggle { position: relative; width: 44px; height: 24px; cursor: pointer; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    transition: 0.2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 18px; height: 18px;
+    left: 2px; bottom: 2px;
+    background: var(--text2);
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  input:checked + .toggle-slider { background: var(--accent); border-color: var(--accent); }
+  input:checked + .toggle-slider::before { transform: translateX(20px); background: #fff; }
+
+  .import-export-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .password-section { display: flex; flex-direction: column; gap: 8px; }
+  .password-section input {
+    padding: 9px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+  .password-status { font-size: 12px; color: var(--text2); }
+
+  /* REFRESH INDICATOR */
+  .refresh-bar {
+    position: fixed;
+    bottom: 20px; right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: var(--text2);
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 16px var(--shadow);
+    z-index: 50;
+    transition: opacity 0.3s;
+  }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .refresh-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+  .refresh-dot.loading { background: var(--gold); animation: pulse 1s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* EASTER EGG */
+  #nice-overlay {
+    position: fixed; inset: 0; z-index: 9998;
+    background: rgba(0,0,0,0.85);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+    display: none;
+  }
+  #nice-overlay.show { display: flex; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .nice-text {
+    font-size: clamp(60px, 15vw, 160px);
+    font-weight: 900;
+    background: linear-gradient(135deg, #f9ca24, #f0932b, #eb4d4b, #6ab04c, #4834d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: niceAnim 0.5s ease;
+    text-align: center;
+  }
+  @keyframes niceAnim {
+    0%{transform:scale(0) rotate(-10deg)} 70%{transform:scale(1.1) rotate(3deg)} 100%{transform:scale(1) rotate(0)}
+  }
+  .nice-sub { font-size: 24px; color: #fff; margin-top: 16px; opacity: 0.9; }
+  .nice-value { font-size: 36px; font-weight: 700; color: var(--gold); margin-top: 8px; }
+  .confetti-container { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 9997; }
+  .confetti-piece {
+    position: absolute;
+    width: 10px; height: 10px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* STATUS */
+  .error-banner {
+    background: rgba(248,81,73,0.1);
+    border: 1px solid var(--red);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--red);
+    margin-bottom: 16px;
+    display: none;
+  }
+  .error-banner.show { display: block; }
+
+  /* Tooltip */
+  [data-tooltip] { position: relative; }
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 4px 8px; font-size: 11px;
+    white-space: nowrap; pointer-events: none; z-index: 300;
+  }
+
+  .pnl-bar {
+    height: 4px; border-radius: 2px; margin-top: 8px;
+    background: var(--surface2); overflow: hidden;
+  }
+  .pnl-bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+</style>
+</head>
+<body>
+
+<!-- LOCK SCREEN -->
+<div id="lock-screen" class="hidden">
+  <div class="lock-card">
+    <div class="lock-icon">🔐</div>
+    <h2>Portfolio Locked</h2>
+    <p>Enter your password to view your crypto portfolio</p>
+    <input type="password" id="unlock-input" class="lock-input" placeholder="Enter password" autocomplete="current-password">
+    <div id="lock-error" class="lock-error"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="tryUnlock()">Unlock</button>
+  </div>
+</div>
+
+<!-- EASTER EGG -->
+<div id="nice-overlay" onclick="this.classList.remove('show')">
+  <div class="nice-text">NICE 🚀</div>
+  <div class="nice-sub">Portfolio value hit the magic number!</div>
+  <div class="nice-value" id="nice-value-display">$69,420.00</div>
+  <div style="color:var(--text2);font-size:13px;margin-top:20px">Click anywhere to close</div>
+</div>
+<div class="confetti-container" id="confetti-container"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-brand">
+    <span class="logo">₿</span>
+    <div>
+      <h1>CryptoFolio</h1>
+      <div class="tagline">Private Portfolio Tracker</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="badge-private">Your data never leaves this device</div>
+    <button class="btn btn-icon" id="theme-btn" title="Toggle theme" onclick="toggleTheme()">🌙</button>
+    <button class="btn btn-icon" id="refresh-btn" title="Refresh prices" onclick="refreshPrices(true)">🔄</button>
+    <button class="btn btn-icon" id="lock-btn" title="Lock portfolio" onclick="lockPortfolio()" style="display:none">🔒</button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- ERROR BANNER -->
+  <div class="error-banner" id="error-banner"></div>
+
+  <!-- OVERVIEW CARDS -->
+  <div class="overview-grid">
+    <div class="card card-main">
+      <div class="card-label">Total Portfolio Value</div>
+      <div class="card-value" id="total-value">$0.00</div>
+      <div class="card-sub" id="total-change-display">--</div>
+      <div class="pnl-bar"><div class="pnl-bar-fill" id="pnl-bar" style="width:0%;background:var(--green)"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-label">24h Change</div>
+      <div class="card-value" id="change-24h">--</div>
+      <div class="card-sub" id="change-24h-pct">--</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Total Invested</div>
+      <div class="card-value" id="total-invested">$0.00</div>
+      <div class="card-sub" id="invested-sub">Cost basis</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Total Profit / Loss</div>
+      <div class="card-value" id="total-pnl">$0.00</div>
+      <div class="card-sub" id="total-pnl-pct">0.00%</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('holdings',this)">📊 Holdings</button>
+    <button class="tab" onclick="switchTab('alerts',this)">🔔 Alerts</button>
+    <button class="tab" onclick="switchTab('charts',this)">📈 Charts</button>
+    <button class="tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
+  </div>
+
+  <!-- HOLDINGS TAB -->
+  <div class="tab-panel active" id="tab-holdings">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" class="search-input" id="search-input" placeholder="Search coin to add..." oninput="onSearch(this.value)" autocomplete="off">
+        <div class="search-dropdown" id="search-dropdown"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="refreshPrices(true)">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <div class="add-form" id="add-form">
+      <h3 id="add-form-title">➕ Add Holding</h3>
+      <div class="selected-coin" id="selected-coin-display"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Quantity Owned</label>
+          <input type="number" id="qty-input" placeholder="e.g. 0.5" step="any" min="0">
+        </div>
+        <div class="form-group">
+          <label>Avg Buy Price (<span id="currency-label">USD</span>)</label>
+          <input type="number" id="buy-price-input" placeholder="e.g. 42000" step="any" min="0">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="addHolding()">Add to Portfolio</button>
+        <button class="btn" onclick="closeAddForm()">Cancel</button>
+      </div>
+    </div>
+
+    <div class="table-wrap" id="holdings-table-wrap">
+      <div class="empty-state">
+        <div class="empty-icon">💼</div>
+        <h3>Portfolio is empty</h3>
+        <p>Search for a coin above to add your first holding</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALERTS TAB -->
+  <div class="tab-panel" id="tab-alerts">
+    <div style="margin-bottom:20px">
+      <h3 style="font-size:15px;margin-bottom:4px">Price Alerts</h3>
+      <p style="font-size:13px;color:var(--text2)">Set high/low target prices for each coin in your portfolio. Alerts fire when the live price crosses your target.</p>
+    </div>
+    <div class="alerts-grid" id="alerts-grid">
+      <div class="log-empty">Add coins to your portfolio to set price alerts.</div>
+    </div>
+    <div class="alert-log">
+      <h3>🔔 Alert History</h3>
+      <div id="alert-log-list"><div class="log-empty">No alerts triggered yet.</div></div>
+    </div>
+  </div>
+
+  <!-- CHARTS TAB -->
+  <div class="tab-panel" id="tab-charts">
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Portfolio Allocation</h3>
+        <canvas id="pie-canvas" width="240" height="240"></canvas>
+        <div class="pie-legend" id="pie-legend"></div>
+      </div>
+      <div class="chart-card">
+        <h3>7-Day Sparklines</h3>
+        <div id="sparklines-container" style="display:flex;flex-direction:column;gap:20px">
+          <div class="log-empty">Add coins to see sparklines.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="settings-grid">
+      <div class="settings-card">
+        <h3>💱 Display</h3>
+        <div class="setting-row">
+          <span class="setting-label">Currency</span>
+          <select id="currency-select" onchange="onCurrencyChange(this.value)">
+            <option value="usd">USD ($)</option>
+            <option value="eur">EUR (€)</option>
+            <option value="gbp">GBP (£)</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Theme</span>
+          <label class="toggle">
+            <input type="checkbox" id="theme-toggle" onchange="toggleTheme()">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>🔄 Auto-Refresh</h3>
+        <div class="setting-row">
+          <span class="setting-label">Refresh Interval</span>
+          <select id="interval-select" onchange="onIntervalChange(this.value)">
+            <option value="60">1 minute</option>
+            <option value="300" selected>5 minutes</option>
+            <option value="900">15 minutes</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">Last updated</span>
+          <span id="last-updated" style="font-size:12px;color:var(--text2)">Never</span>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>🔒 Privacy Lock</h3>
+        <div class="password-section">
+          <input type="password" id="new-password" placeholder="Set password..." autocomplete="new-password">
+          <input type="password" id="confirm-password" placeholder="Confirm password..." autocomplete="new-password">
+          <div class="password-status" id="pw-status"></div>
+          <button class="btn btn-primary btn-sm" onclick="setPassword()">Set Password</button>
+          <button class="btn btn-sm" onclick="clearPassword()" id="clear-pw-btn" style="display:none">Remove Password</button>
+        </div>
+      </div>
+      <div class="settings-card">
+        <h3>💾 Backup & Restore</h3>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:14px">Export your portfolio data as JSON. Import on any device to restore.</p>
+        <div class="import-export-btns">
+          <button class="btn" onclick="exportData()">📤 Export JSON</button>
+          <button class="btn" onclick="document.getElementById('import-file').click()">📥 Import JSON</button>
+          <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <button class="btn btn-danger btn-sm" onclick="clearAll()" style="color:var(--red)">🗑️ Clear All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REFRESH BAR -->
+<div class="refresh-bar" id="refresh-bar">
+  <div class="refresh-dot" id="refresh-dot"></div>
+  <span id="refresh-status">Live prices active</span>
+</div>
+
+<script>
+// ============================================================
+// STATE & CONSTANTS
+// ============================================================
+const COINGECKO = 'https://api.coingecko.com/api/v3';
+const PIE_COLORS = ['#58a6ff','#3fb950','#f85149','#e3b341','#bc8cff','#f78166','#56d364','#79c0ff','#ffa657','#d2a8ff'];
+const CURRENCY_SYMBOLS = { usd: '$', eur: '€', gbp: '£' };
+
+let state = {
+  holdings: [],      // { id, name, symbol, image, qty, buyPrice }
+  alerts: {},        // { coinId: { high, low } }
+  alertLog: [],      // { coinId, type, price, time }
+  prices: {},        // { coinId: { price, change24h } }
+  sparklines: {},    // { coinId: [prices] }
+  currency: 'usd',
+  refreshInterval: 300,
+  lightMode: false,
+  passwordHash: null,
+  locked: false,
+};
+
+let refreshTimer = null;
+let searchTimer = null;
+let prevTotal = 0;
+let niceShown = false;
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  loadState();
+  applyTheme();
+  applySettings();
+  renderHoldings();
+  renderAlerts();
+  renderPie();
+  renderSparklines();
+  if (state.passwordHash) {
+    lockPortfolio();
+  } else {
+    startRefresh();
+  }
+}
+
+// ============================================================
+// STORAGE
+// ============================================================
+function saveState() {
+  try {
+    localStorage.setItem('cryptofolio', JSON.stringify(state));
+  } catch(e) { console.warn('Save failed', e); }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('cryptofolio');
+    if (raw) {
+      const loaded = JSON.parse(raw);
+      Object.assign(state, loaded);
+    }
+  } catch(e) { console.warn('Load failed', e); }
+}
+
+// ============================================================
+// LOCK / UNLOCK
+// ============================================================
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function setPassword() {
+  const pw = document.getElementById('new-password').value;
+  const confirm = document.getElementById('confirm-password').value;
+  const status = document.getElementById('pw-status');
+  if (!pw) { status.textContent = 'Please enter a password.'; return; }
+  if (pw !== confirm) { status.textContent = 'Passwords do not match.'; return; }
+  state.passwordHash = await hashPassword(pw);
+  saveState();
+  status.textContent = '✅ Password set!';
+  document.getElementById('new-password').value = '';
+  document.getElementById('confirm-password').value = '';
+  document.getElementById('clear-pw-btn').style.display = '';
+  document.getElementById('lock-btn').style.display = '';
+}
+
+function clearPassword() {
+  if (!confirm('Remove password protection?')) return;
+  state.passwordHash = null;
+  saveState();
+  document.getElementById('pw-status').textContent = 'Password removed.';
+  document.getElementById('clear-pw-btn').style.display = 'none';
+  document.getElementById('lock-btn').style.display = 'none';
+}
+
+function lockPortfolio() {
+  if (!state.passwordHash) return;
+  state.locked = true;
+  document.getElementById('lock-screen').classList.remove('hidden');
+  clearInterval(refreshTimer);
+}
+
+async function tryUnlock() {
+  const pw = document.getElementById('unlock-input').value;
+  const hash = await hashPassword(pw);
+  if (hash === state.passwordHash) {
+    state.locked = false;
+    document.getElementById('lock-screen').classList.add('hidden');
+    document.getElementById('lock-error').textContent = '';
+    document.getElementById('unlock-input').value = '';
+    startRefresh();
+    refreshPrices(true);
+  } else {
+    document.getElementById('lock-error').textContent = '❌ Incorrect password';
+    document.getElementById('unlock-input').value = '';
+    document.getElementById('unlock-input').focus();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('lock-screen').classList.contains('hidden')) {
+    tryUnlock();
+  }
+});
+
+// ============================================================
+// THEME
+// ============================================================
+function applyTheme() {
+  document.body.classList.toggle('light', state.lightMode);
+  const btn = document.getElementById('theme-btn');
+  const toggle = document.getElementById('theme-toggle');
+  btn.textContent = state.lightMode ? '☀️' : '🌙';
+  toggle.checked = state.lightMode;
+}
+
+function toggleTheme() {
+  state.lightMode = !state.lightMode;
+  applyTheme();
+  saveState();
+  renderPie(); // redraw charts with new theme colors
+  renderSparklines();
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function applySettings() {
+  document.getElementById('currency-select').value = state.currency;
+  document.getElementById('interval-select').value = String(state.refreshInterval);
+  document.getElementById('currency-label').textContent = state.currency.toUpperCase();
+  if (state.passwordHash) {
+    document.getElementById('clear-pw-btn').style.display = '';
+    document.getElementById('lock-btn').style.display = '';
+  }
+}
+
+function onCurrencyChange(val) {
+  state.currency = val;
+  document.getElementById('currency-label').textContent = val.toUpperCase();
+  saveState();
+  refreshPrices(true);
+}
+
+function onIntervalChange(val) {
+  state.refreshInterval = parseInt(val);
+  saveState();
+  startRefresh();
+}
+
+// ============================================================
+// REFRESH / PRICES
+// ============================================================
+function startRefresh() {
+  clearInterval(refreshTimer);
+  refreshPrices(false);
+  refreshTimer = setInterval(() => refreshPrices(false), state.refreshInterval * 1000);
+}
+
+function setRefreshStatus(loading) {
+  const dot = document.getElementById('refresh-dot');
+  const status = document.getElementById('refresh-status');
+  if (loading) {
+    dot.className = 'refresh-dot loading';
+    status.textContent = 'Updating prices...';
+  } else {
+    dot.className = 'refresh-dot';
+    const t = new Date().toLocaleTimeString();
+    status.textContent = `Updated ${t}`;
+    document.getElementById('last-updated').textContent = t;
+  }
+}
+
+async function refreshPrices(force) {
+  if (state.holdings.length === 0) return;
+  const ids = [...new Set(state.holdings.map(h => h.id))].join(',');
+  setRefreshStatus(true);
+  showError(null);
+  try {
+    const url = `${COINGECKO}/simple/price?ids=${ids}&vs_currencies=${state.currency}&include_24hr_change=true`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const data = await res.json();
+    Object.keys(data).forEach(id => {
+      state.prices[id] = {
+        price: data[id][state.currency],
+        change24h: data[id][`${state.currency}_24h_change`] || 0,
+      };
+    });
+    saveState();
+    renderHoldings();
+    renderOverview();
+    renderAlerts();
+    checkAlerts();
+    renderPie();
+    // Fetch sparklines if on charts tab or after first load
+    fetchSparklines();
+    setRefreshStatus(false);
+  } catch(e) {
+    setRefreshStatus(false);
+    showError('⚠️ Could not fetch prices from CoinGecko. Rate limits may apply — try again in a moment.');
+  }
+}
+
+async function fetchSparklines() {
+  for (const h of state.holdings) {
+    if (state.sparklines[h.id]) continue; // cached
+    try {
+      const url = `${COINGECKO}/coins/${h.id}/market_chart?vs_currency=${state.currency}&days=7`;
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data.prices) {
+        state.sparklines[h.id] = data.prices.map(p => p[1]);
+      }
+    } catch(e) { /* skip */ }
+  }
+  renderSparklines();
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  if (msg) { el.textContent = msg; el.classList.add('show'); }
+  else { el.classList.remove('show'); }
+}
+
+// ============================================================
+// OVERVIEW
+// ============================================================
+const sym = () => CURRENCY_SYMBOLS[state.currency] || '$';
+
+function fmt(n, decimals=2) {
+  if (n === undefined || n === null || isNaN(n)) return '--';
+  return sym() + Math.abs(n).toLocaleString('en-US', {minimumFractionDigits:decimals, maximumFractionDigits:decimals});
+}
+
+function fmtPct(n) {
+  if (n === undefined || isNaN(n)) return '--';
+  return (n >= 0 ? '+' : '') + n.toFixed(2) + '%';
+}
+
+function renderOverview() {
+  let total = 0, invested = 0, change24hDollar = 0;
+  for (const h of state.holdings) {
+    const p = state.prices[h.id];
+    if (!p) continue;
+    const val = p.price * h.qty;
+    const prev = (p.price / (1 + p.change24h / 100)) * h.qty;
+    total += val;
+    invested += h.buyPrice * h.qty;
+    change24hDollar += val - prev;
+  }
+  const pnl = total - invested;
+  const pnlPct = invested > 0 ? (pnl / invested) * 100 : 0;
+  const totalChange24hPct = total > 0 ? (change24hDollar / (total - change24hDollar)) * 100 : 0;
+
+  animateValue('total-value', prevTotal, total);
+  prevTotal = total;
+
+  // 24h change
+  const c24 = document.getElementById('change-24h');
+  c24.textContent = (change24hDollar >= 0 ? '+' : '-') + fmt(Math.abs(change24hDollar));
+  c24.className = 'card-value ' + (change24hDollar >= 0 ? 'green' : 'red');
+  document.getElementById('change-24h-pct').textContent = fmtPct(totalChange24hPct);
+
+  document.getElementById('total-invested').textContent = fmt(invested);
+  const pnlEl = document.getElementById('total-pnl');
+  pnlEl.textContent = (pnl >= 0 ? '+' : '-') + fmt(Math.abs(pnl));
+  pnlEl.className = 'card-value ' + (pnl >= 0 ? 'green' : 'red');
+  document.getElementById('total-pnl-pct').textContent = fmtPct(pnlPct);
+
+  const pnlBar = document.getElementById('pnl-bar');
+  const pct = Math.min(100, Math.abs(pnlPct));
+  pnlBar.style.width = pct + '%';
+  pnlBar.style.background = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+
+  const changeDisplay = document.getElementById('total-change-display');
+  changeDisplay.textContent = `24h: ${(change24hDollar >= 0 ? '+' : '')}${fmt(change24hDollar)} (${fmtPct(totalChange24hPct)})`;
+  changeDisplay.style.color = change24hDollar >= 0 ? 'var(--green)' : 'var(--red)';
+
+  // Easter egg — $69,420
+  checkEasterEgg(total);
+}
+
+function animateValue(elId, from, to) {
+  const el = document.getElementById(elId);
+  const duration = 600;
+  const start = performance.now();
+  function step(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const val = from + (to - from) * ease;
+    el.textContent = fmt(val);
+    el.classList.add('animating');
+    if (progress < 1) requestAnimationFrame(step);
+    else { el.textContent = fmt(to); el.classList.remove('animating'); }
+  }
+  requestAnimationFrame(step);
+}
+
+// ============================================================
+// EASTER EGG
+// ============================================================
+function checkEasterEgg(total) {
+  if (niceShown) return;
+  if (Math.abs(total - 69420) < 1) {
+    niceShown = true;
+    launchNice(total);
+  }
+}
+
+function launchNice(val) {
+  document.getElementById('nice-value-display').textContent = fmt(val);
+  document.getElementById('nice-overlay').classList.add('show');
+  launchConfetti();
+  setTimeout(() => { niceShown = false; }, 30000);
+}
+
+function launchConfetti() {
+  const container = document.getElementById('confetti-container');
+  container.innerHTML = '';
+  const colors = ['#f9ca24','#f0932b','#eb4d4b','#6ab04c','#4834d4','#be2edd','#00cec9'];
+  for (let i = 0; i < 80; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.cssText = `
+      left: ${Math.random()*100}%;
+      width: ${6+Math.random()*8}px;
+      height: ${6+Math.random()*8}px;
+      background: ${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius: ${Math.random()>0.5?'50%':'2px'};
+      animation-duration: ${2+Math.random()*3}s;
+      animation-delay: ${Math.random()*0.5}s;
+    `;
+    container.appendChild(piece);
+  }
+  setTimeout(() => container.innerHTML = '', 6000);
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+function onSearch(query) {
+  clearTimeout(searchTimer);
+  const dropdown = document.getElementById('search-dropdown');
+  if (!query.trim()) { dropdown.classList.remove('open'); return; }
+  dropdown.innerHTML = '<div class="search-loading">Searching...</div>';
+  dropdown.classList.add('open');
+  searchTimer = setTimeout(() => searchCoins(query), 400);
+}
+
+async function searchCoins(query) {
+  const dropdown = document.getElementById('search-dropdown');
+  try {
+    const res = await fetch(`${COINGECKO}/search?query=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    const coins = (data.coins || []).slice(0, 10);
+    if (coins.length === 0) {
+      dropdown.innerHTML = '<div class="search-loading">No results found</div>';
+      return;
+    }
+    dropdown.innerHTML = coins.map(c => `
+      <div class="search-item" onclick="selectCoin('${c.id}','${escHtml(c.name)}','${c.symbol}','${c.large||c.thumb||''}')">
+        <img class="coin-thumb" src="${c.large||c.thumb||''}" onerror="this.style.display='none'" loading="lazy">
+        <div>
+          <div>${escHtml(c.name)}</div>
+          <div class="coin-sym">${c.symbol.toUpperCase()} · Rank #${c.market_cap_rank||'?'}</div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    dropdown.innerHTML = '<div class="search-loading">Search failed. Check connection.</div>';
+  }
+}
+
+function selectCoin(id, name, symbol, image) {
+  document.getElementById('search-dropdown').classList.remove('open');
+  document.getElementById('search-input').value = '';
+
+  // Store selected coin info
+  const addForm = document.getElementById('add-form');
+  addForm.classList.add('open');
+  const display = document.getElementById('selected-coin-display');
+  display.innerHTML = `<img src="${image}" width="24" height="24" style="border-radius:50%" onerror="this.style.display='none'"> <strong>${escHtml(name)}</strong> <span style="color:var(--text2);font-size:12px">${symbol.toUpperCase()}</span>`;
+  display.dataset.id = id;
+  display.dataset.name = name;
+  display.dataset.symbol = symbol;
+  display.dataset.image = image;
+  document.getElementById('qty-input').value = '';
+  document.getElementById('buy-price-input').value = '';
+  document.getElementById('qty-input').focus();
+}
+
+function closeAddForm() {
+  document.getElementById('add-form').classList.remove('open');
+}
+
+// Close dropdown on outside click
+document.addEventListener('click', e => {
+  const wrap = document.querySelector('.search-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('search-dropdown').classList.remove('open');
+  }
+});
+
+// ============================================================
+// ADD / REMOVE HOLDINGS
+// ============================================================
+function addHolding() {
+  const display = document.getElementById('selected-coin-display');
+  const id = display.dataset.id;
+  const name = display.dataset.name;
+  const symbol = display.dataset.symbol;
+  const image = display.dataset.image;
+  const qty = parseFloat(document.getElementById('qty-input').value);
+  const buyPrice = parseFloat(document.getElementById('buy-price-input').value);
+
+  if (!id) { alert('Please select a coin first.'); return; }
+  if (!qty || qty <= 0) { alert('Please enter a valid quantity.'); return; }
+  if (!buyPrice || buyPrice < 0) { alert('Please enter a valid buy price.'); return; }
+
+  // Check if coin already in portfolio
+  const existing = state.holdings.find(h => h.id === id);
+  if (existing) {
+    if (!confirm(`${name} is already in your portfolio. Add more?`)) return;
+    // Weighted average
+    const totalQty = existing.qty + qty;
+    existing.buyPrice = (existing.qty * existing.buyPrice + qty * buyPrice) / totalQty;
+    existing.qty = totalQty;
+  } else {
+    state.holdings.push({ id, name, symbol, image, qty, buyPrice });
+  }
+
+  saveState();
+  closeAddForm();
+  renderHoldings();
+  renderAlerts();
+  refreshPrices(true);
+}
+
+function removeHolding(id) {
+  if (!confirm('Remove this coin from your portfolio?')) return;
+  state.holdings = state.holdings.filter(h => h.id !== id);
+  delete state.prices[id];
+  delete state.sparklines[id];
+  delete state.alerts[id];
+  saveState();
+  renderHoldings();
+  renderOverview();
+  renderAlerts();
+  renderPie();
+  renderSparklines();
+}
+
+// ============================================================
+// RENDER HOLDINGS TABLE
+// ============================================================
+function renderHoldings() {
+  const wrap = document.getElementById('holdings-table-wrap');
+  if (state.holdings.length === 0) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-icon">💼</div><h3>Portfolio is empty</h3><p>Search for a coin above to add your first holding</p></div>`;
+    document.getElementById('total-value').textContent = '$0.00';
+    document.getElementById('change-24h').textContent = '--';
+    document.getElementById('change-24h-pct').textContent = '--';
+    document.getElementById('total-invested').textContent = '$0.00';
+    document.getElementById('total-pnl').textContent = '$0.00';
+    document.getElementById('total-pnl-pct').textContent = '0.00%';
+    return;
+  }
+
+  const rows = state.holdings.map(h => {
+    const p = state.prices[h.id];
+    const price = p ? p.price : null;
+    const change = p ? p.change24h : null;
+    const value = price !== null ? price * h.qty : null;
+    const cost = h.buyPrice * h.qty;
+    const pnl = value !== null ? value - cost : null;
+    const pnlPct = cost > 0 && pnl !== null ? (pnl / cost) * 100 : null;
+    const spark = state.sparklines[h.id];
+
+    const priceStr = price !== null ? fmt(price) : '<span style="color:var(--text2)">--</span>';
+    const changeStr = change !== null ? `<span class="${change>=0?'green':'red'}">${fmtPct(change)}</span>` : '--';
+    const valueStr = value !== null ? fmt(value) : '--';
+    const pnlStr = pnl !== null
+      ? `<span class="${pnl>=0?'green':'red'}">${pnl>=0?'+':'-'}${fmt(Math.abs(pnl))}<br><small>${fmtPct(pnlPct)}</small></span>`
+      : '--';
+
+    const sparkCanvas = spark
+      ? `<canvas class="sparkline-cell" id="sp-${h.id}" width="80" height="32"></canvas>`
+      : '<span style="color:var(--text2);font-size:11px">Loading...</span>';
+
+    return `
+      <tr>
+        <td>
+          <div class="coin-name-cell">
+            <img class="coin-logo" src="${h.image}" onerror="this.style.display='none'" loading="lazy">
+            <div>
+              <div class="coin-name">${escHtml(h.name)}</div>
+              <div class="coin-symbol">${h.symbol.toUpperCase()}</div>
+            </div>
+          </div>
+        </td>
+        <td>${h.qty.toLocaleString('en-US', {maximumFractionDigits:8})}</td>
+        <td>${fmt(h.buyPrice)}</td>
+        <td id="price-${h.id}">${priceStr}</td>
+        <td>${changeStr}</td>
+        <td>${valueStr}</td>
+        <td>${pnlStr}</td>
+        <td>${sparkCanvas}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="removeHolding('${h.id}')" title="Remove">✕</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Coin</th>
+          <th>Quantity</th>
+          <th>Avg Buy</th>
+          <th>Price</th>
+          <th>24h</th>
+          <th>Value</th>
+          <th>P&L</th>
+          <th>7d</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+
+  // Draw sparklines inline
+  state.holdings.forEach(h => {
+    const spark = state.sparklines[h.id];
+    if (spark) drawSparkline(`sp-${h.id}`, spark, 80, 32);
+  });
+
+  renderOverview();
+}
+
+// ============================================================
+// SPARKLINES
+// ============================================================
+function drawSparkline(canvasId, prices, w, h, color) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = w; canvas.height = h;
+  ctx.clearRect(0, 0, w, h);
+  if (!prices || prices.length < 2) return;
+
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  const range = max - min || 1;
+  const isUp = prices[prices.length-1] >= prices[0];
+  const lineColor = color || (isUp ? '#3fb950' : '#f85149');
+
+  const pts = prices.map((p, i) => ({
+    x: (i / (prices.length - 1)) * w,
+    y: h - ((p - min) / range) * (h - 4) - 2,
+  }));
+
+  // Fill
+  const gradient = ctx.createLinearGradient(0, 0, 0, h);
+  gradient.addColorStop(0, lineColor + '33');
+  gradient.addColorStop(1, lineColor + '00');
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, h);
+  pts.forEach(pt => ctx.lineTo(pt.x, pt.y));
+  ctx.lineTo(pts[pts.length-1].x, h);
+  ctx.closePath();
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  pts.forEach((pt, i) => i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y));
+  ctx.strokeStyle = lineColor;
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+}
+
+function renderSparklines() {
+  const container = document.getElementById('sparklines-container');
+  if (state.holdings.length === 0) {
+    container.innerHTML = '<div class="log-empty">Add coins to see sparklines.</div>';
+    return;
+  }
+  container.innerHTML = state.holdings.map(h => {
+    const spark = state.sparklines[h.id];
+    const p = state.prices[h.id];
+    const change = p ? p.change24h : null;
+    return `
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <img src="${h.image}" width="20" height="20" style="border-radius:50%" onerror="this.style.display='none'">
+          <span style="font-size:13px;font-weight:600">${escHtml(h.name)}</span>
+          ${change !== null ? `<span class="badge-${change>=0?'g':'r'} ${change>=0?'green':'red'}" style="font-size:11px">${fmtPct(change)}</span>` : ''}
+        </div>
+        ${spark ? `<canvas id="spark-big-${h.id}" width="280" height="60"></canvas>` : '<div style="font-size:12px;color:var(--text2)">Loading chart data...</div>'}
+      </div>
+    `;
+  }).join('');
+
+  state.holdings.forEach(h => {
+    const spark = state.sparklines[h.id];
+    if (spark) drawSparkline(`spark-big-${h.id}`, spark, 280, 60);
+  });
+}
+
+// ============================================================
+// PIE CHART
+// ============================================================
+function renderPie() {
+  const canvas = document.getElementById('pie-canvas');
+  const legend = document.getElementById('pie-legend');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 240, 240);
+
+  const slices = [];
+  let total = 0;
+  state.holdings.forEach(h => {
+    const p = state.prices[h.id];
+    if (p) {
+      const val = p.price * h.qty;
+      slices.push({ name: h.name, symbol: h.symbol, val });
+      total += val;
+    }
+  });
+
+  if (total === 0) {
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--surface2').trim() || '#21262d';
+    ctx.beginPath();
+    ctx.arc(120, 120, 100, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#8b949e';
+    ctx.textAlign = 'center';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('No data', 120, 125);
+    legend.innerHTML = '';
+    return;
+  }
+
+  let startAngle = -Math.PI / 2;
+  const cx = 120, cy = 120, r = 100, inner = 55;
+
+  slices.forEach((s, i) => {
+    const angle = (s.val / total) * Math.PI * 2;
+    const color = PIE_COLORS[i % PIE_COLORS.length];
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, startAngle, startAngle + angle);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = state.lightMode ? '#f6f8fa' : '#0d1117';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    s.color = color;
+    s.pct = (s.val / total) * 100;
+    startAngle += angle;
+  });
+
+  // Donut hole
+  ctx.beginPath();
+  ctx.arc(cx, cy, inner, 0, Math.PI * 2);
+  ctx.fillStyle = state.lightMode ? '#ffffff' : '#161b22';
+  ctx.fill();
+
+  // Center text
+  ctx.fillStyle = state.lightMode ? '#1f2328' : '#e6edf3';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText(fmt(total), cx, cy + 5);
+
+  legend.innerHTML = slices.map(s => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${s.color}"></div>
+      <span>${escHtml(s.name)} <span style="color:var(--text2);font-size:11px">${s.symbol.toUpperCase()}</span></span>
+      <span class="legend-pct">${s.pct.toFixed(1)}%</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// ALERTS
+// ============================================================
+function renderAlerts() {
+  const grid = document.getElementById('alerts-grid');
+  if (state.holdings.length === 0) {
+    grid.innerHTML = '<div class="log-empty">Add coins to your portfolio to set price alerts.</div>';
+    return;
+  }
+  grid.innerHTML = state.holdings.map(h => {
+    const alert = state.alerts[h.id] || {};
+    const p = state.prices[h.id];
+    const triggered_high = alert.high && p && p.price >= parseFloat(alert.high);
+    const triggered_low = alert.low && p && p.price <= parseFloat(alert.low);
+    const cls = triggered_high ? 'alert-card alert-triggered-high' : triggered_low ? 'alert-card alert-triggered-low' : 'alert-card';
+    return `
+      <div class="${cls}" id="alert-card-${h.id}">
+        <div class="alert-card-header">
+          <div class="alert-coin-info">
+            <img src="${h.image}" onerror="this.style.display='none'" width="28" height="28" style="border-radius:50%">
+            <div>
+              <div style="font-weight:600;font-size:14px">${escHtml(h.name)}</div>
+              <div style="font-size:11px;color:var(--text2)">${p ? fmt(p.price) : 'Loading...'}</div>
+            </div>
+          </div>
+          ${triggered_high ? '<span style="font-size:12px;color:var(--green);font-weight:600">🔺 HIGH HIT</span>' : ''}
+          ${triggered_low ? '<span style="font-size:12px;color:var(--red);font-weight:600">🔻 LOW HIT</span>' : ''}
+        </div>
+        <div class="alert-inputs">
+          <div class="alert-row">
+            <label>🔺 High</label>
+            <input type="number" value="${alert.high||''}" placeholder="Target high..." step="any" min="0"
+              onchange="saveAlert('${h.id}','high',this.value)">
+          </div>
+          <div class="alert-row">
+            <label>🔻 Low</label>
+            <input type="number" value="${alert.low||''}" placeholder="Target low..." step="any" min="0"
+              onchange="saveAlert('${h.id}','low',this.value)">
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  renderAlertLog();
+}
+
+function saveAlert(coinId, type, value) {
+  if (!state.alerts[coinId]) state.alerts[coinId] = {};
+  state.alerts[coinId][type] = value ? parseFloat(value) : null;
+  saveState();
+}
+
+function checkAlerts() {
+  state.holdings.forEach(h => {
+    const alert = state.alerts[h.id];
+    const p = state.prices[h.id];
+    if (!alert || !p) return;
+
+    if (alert.high && p.price >= alert.high) {
+      logAlert(h, 'high', p.price);
+    }
+    if (alert.low && p.price <= alert.low) {
+      logAlert(h, 'low', p.price);
+    }
+  });
+}
+
+const recentAlerts = new Set();
+function logAlert(holding, type, price) {
+  const key = `${holding.id}-${type}-${Math.floor(price/10)}`;
+  if (recentAlerts.has(key)) return;
+  recentAlerts.add(key);
+  setTimeout(() => recentAlerts.delete(key), 60000);
+
+  state.alertLog.unshift({
+    coinId: holding.id,
+    coinName: holding.name,
+    symbol: holding.symbol,
+    type,
+    price,
+    time: new Date().toISOString(),
+  });
+  if (state.alertLog.length > 50) state.alertLog.pop();
+  saveState();
+  renderAlertLog();
+}
+
+function renderAlertLog() {
+  const list = document.getElementById('alert-log-list');
+  if (state.alertLog.length === 0) {
+    list.innerHTML = '<div class="log-empty">No alerts triggered yet.</div>';
+    return;
+  }
+  list.innerHTML = state.alertLog.slice(0, 20).map(a => `
+    <div class="alert-log-item">
+      <div class="alert-dot" style="background:${a.type==='high'?'var(--green)':'var(--red)'}"></div>
+      <span><strong>${escHtml(a.coinName)}</strong> ${a.type === 'high' ? '🔺 hit high target' : '🔻 hit low target'} at ${fmt(a.price)}</span>
+      <span class="alert-log-time">${new Date(a.time).toLocaleTimeString()}</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'charts') { renderPie(); renderSparklines(); }
+  if (name === 'alerts') renderAlerts();
+}
+
+// ============================================================
+// EXPORT / IMPORT
+// ============================================================
+function exportData() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `cryptofolio-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+function importData(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.holdings) throw new Error('Invalid file');
+      if (!confirm('This will replace your current portfolio. Continue?')) return;
+      Object.assign(state, imported);
+      saveState();
+      applyTheme();
+      applySettings();
+      renderHoldings();
+      renderAlerts();
+      renderPie();
+      renderSparklines();
+      refreshPrices(true);
+      alert('✅ Portfolio imported successfully!');
+    } catch(err) {
+      alert('❌ Invalid backup file.');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function clearAll() {
+  if (!confirm('⚠️ This will delete ALL your portfolio data. This cannot be undone. Continue?')) return;
+  localStorage.removeItem('cryptofolio');
+  location.reload();
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+init();
+</script>
+</body>
+</html>

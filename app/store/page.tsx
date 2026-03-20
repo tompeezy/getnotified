@@ -4,6 +4,18 @@ import { useState } from "react";
 
 const PRODUCTS = [
   {
+    id: "tcpa-tracker",
+    name: "TCPA Violation Tracker",
+    desc: "That spam text you just got? Worth $500. This tool logs violations, calculates your damages, and generates a demand letter in one click.",
+    price: 12,
+    priceId: "price_tcpa_tracker",
+    emoji: "⚖️",
+    color: "#dc2626",
+    badge: "🔥 New",
+    features: ["Log every spam text violation", "Auto-calculates damages ($500-$1,500)", "Generates demand letter instantly", "Tracks settlement status", "Small claims filing guide (NC)", "Works on any device"],
+    file: "TCPA-Violation-Tracker.html"
+  },
+  {
     id: "home-security-dashboard",
     name: "Home Security Dashboard",
     desc: "Interactive security command center. Track threats, audit your network, protect every device. Saves progress between sessions.",

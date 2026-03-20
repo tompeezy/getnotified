@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCPA Violation Tracker 💰</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --green: #16a34a; --red: #dc2626; --blue: #1e40af; --border: #e5e7eb; --bg: #f9fafb; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: #111; }
+
+  .header { background: #111; color: white; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+  .header h1 { font-size: 20px; font-weight: 900; }
+  .header p { font-size: 13px; opacity: 0.6; margin-top: 2px; }
+  .header .total { text-align: right; }
+  .header .total .num { font-size: 32px; font-weight: 900; color: #f59e0b; }
+  .header .total .lbl { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 20px 24px; background: white; border-bottom: 1px solid var(--border); }
+  .stat { text-align: center; }
+  .stat .num { font-size: 28px; font-weight: 900; }
+  .stat .lbl { font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+  .card { background: white; border-radius: 12px; border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; }
+  .card h3 { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select, .form-group textarea { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; }
+  .form-group input:focus, .form-group select:focus { border-color: #111; }
+  .btn { padding: 9px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: 700; font-size: 13px; }
+  .btn-black { background: #111; color: white; }
+  .btn-green { background: #16a34a; color: white; }
+  .btn-red { background: #fee2e2; color: #dc2626; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; background: #f9fafb; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:hover td { background: #fafafa; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 700; }
+  .badge-red { background: #fee2e2; color: #dc2626; }
+  .badge-green { background: #dcfce7; color: #16a34a; }
+  .badge-yellow { background: #fef9c3; color: #ca8a04; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+
+  .demand-box { background: #f0fdf4; border: 2px solid #16a34a; border-radius: 10px; padding: 16px; margin-top: 12px; }
+  .demand-box h4 { color: #16a34a; margin-bottom: 8px; font-size: 14px; }
+  .demand-box pre { font-size: 12px; white-space: pre-wrap; line-height: 1.6; color: #333; }
+
+  .law-box { background: #eff6ff; border-left: 4px solid #1e40af; padding: 14px 16px; border-radius: 0 8px 8px 0; margin-bottom: 16px; }
+  .law-box h4 { color: #1e40af; font-size: 14px; margin-bottom: 6px; }
+  .law-box ul { padding-left: 16px; }
+  .law-box li { font-size: 13px; color: #374151; margin-bottom: 4px; line-height: 1.5; }
+
+  .payout { color: #16a34a; font-weight: 900; font-size: 14px; }
+
+  #demand-letter { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>⚖️ TCPA Violation Tracker</h1>
+    <p>Document violations. Send demand letters. Get paid.</p>
+  </div>
+  <div class="total">
+    <div class="num" id="total-value">$0</div>
+    <div class="lbl">Potential Recovery</div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="num" id="s-total">0</div><div class="lbl">Total Violations</div></div>
+  <div class="stat"><div class="num" id="s-after-stop">0</div><div class="lbl">After STOP Request</div></div>
+  <div class="stat"><div class="num" id="s-companies">0</div><div class="lbl">Companies</div></div>
+  <div class="stat"><div class="num" id="s-actionable">0</div><div class="lbl">Actionable</div></div>
+</div>
+
+<div class="main">
+
+  <!-- LAW BOX -->
+  <div class="law-box">
+    <h4>📋 TCPA Quick Reference — Know Your Rights</h4>
+    <ul>
+      <li><strong>$500/text</strong> for unsolicited marketing texts. <strong>$1,500/text</strong> if willful.</li>
+      <li>After replying STOP: company has <strong>10 business days</strong> to honor it. Any text after = violation.</li>
+      <li>You can sue in <strong>small claims court</strong> — no lawyer needed for cases under $10k.</li>
+      <li>Take screenshots with timestamps. Save everything. That's your evidence.</li>
+      <li>Most companies <strong>settle immediately</strong> when you send a demand letter.</li>
+    </ul>
+  </div>
+
+  <!-- LOG VIOLATION -->
+  <div class="card">
+    <h3>📱 Log a Violation</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Company Name</label><input id="v-company" placeholder="ABC Marketing LLC"></div>
+      <div class="form-group"><label>Phone Number</label><input id="v-phone" placeholder="+1 800-555-0100"></div>
+      <div class="form-group"><label>Date of Text</label><input id="v-date" type="date"></div>
+      <div class="form-group"><label>Time</label><input id="v-time" type="time"></div>
+      <div class="form-group"><label>Type</label>
+        <select id="v-type">
+          <option value="unsolicited">Unsolicited (no consent)</option>
+          <option value="after-stop">After STOP Request ⚠️</option>
+          <option value="dnc">Do Not Call Violation</option>
+          <option value="robocall">Robocall/Autodialer</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Did You Reply STOP?</label>
+        <select id="v-stop-sent">
+          <option value="yes">Yes</option>
+          <option value="no">Not Yet</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Stop Reply Date</label><input id="v-stop-date" type="date"></div>
+      <div class="form-group"><label>Est. Value</label>
+        <select id="v-value">
+          <option value="500">$500 (standard)</option>
+          <option value="1500">$1,500 (willful/repeat)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px"><label>Message Content (copy/paste the text)</label>
+      <textarea id="v-message" rows="2" style="resize:vertical;width:100%" placeholder="Paste the text message here..."></textarea>
+    </div>
+    <div class="form-group" style="margin-bottom:12px"><label>Screenshot Saved?</label>
+      <select id="v-screenshot">
+        <option value="yes">✅ Yes — saved</option>
+        <option value="no">❌ Not yet</option>
+      </select>
+    </div>
+    <button class="btn btn-black" onclick="addViolation()">+ Log Violation</button>
+  </div>
+
+  <!-- VIOLATIONS TABLE -->
+  <div class="card">
+    <h3>📋 Violation Log</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Company</th>
+          <th>Phone</th>
+          <th>Date</th>
+          <th>Type</th>
+          <th>STOP Sent</th>
+          <th>Screenshot</th>
+          <th>Value</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="violation-tbody">
+        <tr><td colspan="10" style="text-align:center;color:#6b7280;padding:24px">No violations logged yet. Start documenting!</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DEMAND LETTER GENERATOR -->
+  <div class="card" id="demand-letter">
+    <h3>📨 Demand Letter Generator</h3>
+    <p style="font-size:13px;color:#6b7280;margin-bottom:12px">Select a company to generate a demand letter. Most companies settle for $500-$1,500 when they receive this.</p>
+    <div class="form-grid">
+      <div class="form-group"><label>Select Company</label><select id="dl-company"><option value="">Choose...</option></select></div>
+      <div class="form-group"><label>Your Name</label><input id="dl-name" value="Thomas Whitlock" placeholder="Your Name"></div>
+      <div class="form-group"><label>Your Address</label><input id="dl-address" value="Salisbury, NC" placeholder="City, State"></div>
+      <div class="form-group"><label>Demand Amount</label>
+        <select id="dl-amount">
+          <option value="500">$500 per violation</option>
+          <option value="1500">$1,500 per violation (willful)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-green" onclick="generateDemand()" style="margin-bottom:12px">Generate Demand Letter</button>
+    <div class="demand-box" id="demand-output" style="display:none">
+      <h4>📄 Demand Letter — Copy and Send Certified Mail or Email</h4>
+      <pre id="demand-text"></pre>
+      <button class="btn btn-black" onclick="copyDemand()" style="margin-top:12px">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+
+  <!-- SMALL CLAIMS GUIDE -->
+  <div class="card">
+    <h3>🏛️ Small Claims Filing Guide (NC)</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px">
+      <div style="background:#f9fafb;border-radius:8px;padding:14px">
+        <div style="font-weight:700;margin-bottom:6px">Step 1 — Send Demand Letter</div>
+        <div style="font-size:13px;color:#6b7280">Give them 14 days to settle. Most do. Use the generator above.</div>
+      </div>
+      <div style="background:#f9fafb;border-radius:8px;padding:14px">
+        <div style="font-weight:700;margin-bottom:6px">Step 2 — File in Small Claims</div>
+        <div style="font-size:13px;color:#6b7280">NC Small Claims: up to $10,000. File at your county courthouse. $96 filing fee.</div>
+      </div>
+      <div style="background:#f9fafb;border-radius:8px;padding:14px">
+        <div style="font-weight:700;margin-bottom:6px">Step 3 — Serve the Defendant</div>
+        <div style="font-size:13px;color:#6b7280">Look up company's registered agent on NC Secretary of State website. Serve them.</div>
+      </div>
+      <div style="background:#f9fafb;border-radius:8px;padding:14px">
+        <div style="font-weight:700;margin-bottom:6px">Step 4 — Show Up & Win</div>
+        <div style="font-size:13px;color:#6b7280">Bring screenshots, timestamps, STOP confirmation. Judges love TCPA cases. You usually win.</div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:12px;background:#fef9c3;border-radius:8px;font-size:13px;color:#92400e">
+      <strong>💡 Pro tip:</strong> Companies often settle before court when they receive a demand letter. $500 is cheaper than their legal fees.
+    </div>
+  </div>
+
+</div>
+
+<script>
+let violations = JSON.parse(localStorage.getItem('tcpa-violations') || '[]');
+
+function save() { localStorage.setItem('tcpa-violations', JSON.stringify(violations)); }
+
+function addViolation() {
+  const v = {
+    id: Date.now(),
+    company: document.getElementById('v-company').value || 'Unknown',
+    phone: document.getElementById('v-phone').value,
+    date: document.getElementById('v-date').value,
+    time: document.getElementById('v-time').value,
+    type: document.getElementById('v-type').value,
+    stopSent: document.getElementById('v-stop-sent').value,
+    stopDate: document.getElementById('v-stop-date').value,
+    value: parseInt(document.getElementById('v-value').value),
+    message: document.getElementById('v-message').value,
+    screenshot: document.getElementById('v-screenshot').value,
+    status: 'new'
+  };
+  violations.push(v);
+  save();
+  render();
+  // Clear form
+  ['v-company','v-phone','v-message'].forEach(id => document.getElementById(id).value = '');
+}
+
+function updateStatus(id, status) {
+  const v = violations.find(x => x.id === id);
+  if (v) { v.status = status; save(); render(); }
+}
+
+function deleteViolation(id) {
+  if (!confirm('Delete this violation?')) return;
+  violations = violations.filter(x => x.id !== id);
+  save(); render();
+}
+
+function render() {
+  const tbody = document.getElementById('violation-tbody');
+  const typeLabels = {
+    'unsolicited': '<span class="badge badge-yellow">Unsolicited</span>',
+    'after-stop': '<span class="badge badge-red">After STOP ⚠️</span>',
+    'dnc': '<span class="badge badge-blue">DNC</span>',
+    'robocall': '<span class="badge badge-red">Robocall</span>'
+  };
+  const statusLabels = {
+    'new': '<span class="badge badge-yellow">New</span>',
+    'stop-sent': '<span class="badge badge-blue">STOP Sent</span>',
+    'demand-sent': '<span class="badge badge-blue">Demand Sent</span>',
+    'settled': '<span class="badge badge-green">Settled 💰</span>',
+    'filed': '<span class="badge badge-red">Filed</span>'
+  };
+
+  if (!violations.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:#6b7280;padding:24px">No violations logged yet. Start documenting!</td></tr>';
+  } else {
+    tbody.innerHTML = violations.map((v, i) => `
+      <tr>
+        <td style="font-weight:700">#${i+1}</td>
+        <td><strong>${v.company}</strong></td>
+        <td style="font-size:12px">${v.phone}</td>
+        <td style="font-size:12px">${v.date} ${v.time}</td>
+        <td>${typeLabels[v.type] || v.type}</td>
+        <td>${v.stopSent === 'yes' ? '✅ Yes' : '❌ No'}</td>
+        <td>${v.screenshot === 'yes' ? '✅' : '❌'}</td>
+        <td class="payout">$${v.value.toLocaleString()}</td>
+        <td>
+          <select onchange="updateStatus(${v.id},this.value)" style="font-size:12px;padding:3px;border:1px solid #ddd;border-radius:4px">
+            ${['new','stop-sent','demand-sent','settled','filed'].map(s => `<option value="${s}" ${v.status===s?'selected':''}>${s.replace('-',' ')}</option>`).join('')}
+          </select>
+        </td>
+        <td><button class="btn btn-red" style="padding:4px 8px;font-size:11px" onclick="deleteViolation(${v.id})">✕</button></td>
+      </tr>`).join('');
+  }
+
+  // Update stats
+  const total = violations.length;
+  const afterStop = violations.filter(v => v.type === 'after-stop').length;
+  const companies = [...new Set(violations.map(v => v.company))].length;
+  const actionable = violations.filter(v => v.screenshot === 'yes').length;
+  const totalValue = violations.filter(v => v.status !== 'settled').reduce((s,v) => s + v.value, 0);
+
+  document.getElementById('s-total').textContent = total;
+  document.getElementById('s-after-stop').textContent = afterStop;
+  document.getElementById('s-companies').textContent = companies;
+  document.getElementById('s-actionable').textContent = actionable;
+  document.getElementById('total-value').textContent = '$' + totalValue.toLocaleString();
+
+  // Update demand letter company dropdown
+  const sel = document.getElementById('dl-company');
+  const companies_list = [...new Set(violations.map(v => v.company))];
+  sel.innerHTML = '<option value="">Choose...</option>' + companies_list.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  // Show demand letter section if violations exist
+  if (violations.length > 0) {
+    document.getElementById('demand-letter').style.display = 'block';
+  }
+}
+
+function generateDemand() {
+  const company = document.getElementById('dl-company').value;
+  const name = document.getElementById('dl-name').value;
+  const address = document.getElementById('dl-address').value;
+  const amount = document.getElementById('dl-amount').value;
+  if (!company) { alert('Select a company first'); return; }
+
+  const companyViolations = violations.filter(v => v.company === company);
+  const total = companyViolations.length * parseInt(amount);
+  const dates = companyViolations.map(v => v.date).join(', ');
+
+  const letter = `${new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'})}
+
+TO: ${company} (Legal Department / Registered Agent)
+FROM: ${name}, ${address}
+RE: TCPA Violation — Demand for Settlement
+
+Dear Sir or Madam,
+
+I am writing to formally notify you of violations of the Telephone Consumer Protection Act (TCPA), 47 U.S.C. § 227, committed by your company or its agents.
+
+VIOLATION SUMMARY:
+- Company: ${company}
+- Number of violations: ${companyViolations.length}
+- Dates of violations: ${dates}
+- Nature: Unsolicited commercial text messages and/or texts received after opt-out request
+
+Under the TCPA, I am entitled to $500 per violation for negligent violations and $1,500 per violation for willful violations. I have documented evidence of each violation including screenshots with timestamps.
+
+DEMAND:
+I am demanding payment of $${total.toLocaleString()} to settle this matter without litigation.
+
+Please respond within 14 days of receipt of this letter. If I do not receive a satisfactory response, I will file suit in the appropriate court without further notice.
+
+This letter is sent in good faith and without waiver of any rights or remedies available to me.
+
+Sincerely,
+
+${name}
+${address}
+
+[Attach screenshots of all text messages as exhibits]`;
+
+  document.getElementById('demand-text').textContent = letter;
+  document.getElementById('demand-output').style.display = 'block';
+}
+
+function copyDemand() {
+  navigator.clipboard.writeText(document.getElementById('demand-text').textContent);
+  alert('Copied to clipboard!');
+}
+
+// Set default date to today
+document.getElementById('v-date').value = new Date().toISOString().split('T')[0];
+document.getElementById('v-stop-date').value = new Date().toISOString().split('T')[0];
+
+render();
+</script>
+</body>
+</html>

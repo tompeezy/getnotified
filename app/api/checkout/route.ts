@@ -6,7 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const PRODUCT_PRICES: Record<string, { name: string; price: number }> = {
-  "tcpa-tracker": { name: "TCPA Violation Tracker", price: 1200 },
+  "tcpa-tracker": { name: "TCPA Violation Tracker", price: 800 },
   "home-security-dashboard": { name: "Home Security Dashboard", price: 2900 },
   "home-privacy-guide": { name: "The Home Privacy Guide", price: 1700 },
   "landlord-tracker": { name: "Landlord Property Tracker", price: 2700 },

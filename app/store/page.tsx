@@ -7,7 +7,7 @@ const PRODUCTS = [
     id: "tcpa-tracker",
     name: "TCPA Violation Tracker",
     desc: "That spam text you just got? Worth $500. This tool logs violations, calculates your damages, and generates a demand letter in one click.",
-    price: 12,
+    price: 8,
     priceId: "price_tcpa_tracker",
     emoji: "⚖️",
     color: "#dc2626",

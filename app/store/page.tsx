@@ -4,6 +4,18 @@ import { useState } from "react";
 
 const PRODUCTS = [
   {
+    id: "fairway-hammered",
+    name: "Fairway Hammered",
+    desc: "Golf scorecard + beer tracker app. Track scores, beers, and find out if Jim is still standing. Because someone had to build this. 🍺⛳",
+    price: 8,
+    priceId: "price_fairway_hammered",
+    emoji: "⛳",
+    color: "#16a34a",
+    badge: "🍺 New",
+    features: ["18-hole scorecard", "Beer counter per player", "Auto penalty rules (water, red tees, whiff)", "Beer classifications (Cart Path Only → Legendary)", "Jim fall tracker 😂", "End of round awards & sharing"],
+    file: "Fairway-Hammered.html"
+  },
+  {
     id: "tcpa-tracker",
     name: "TCPA Violation Tracker",
     desc: "That spam text you just got? Worth $500. This tool logs violations, calculates your damages, and generates a demand letter in one click.",

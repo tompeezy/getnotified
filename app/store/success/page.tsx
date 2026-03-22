@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 
 const DOWNLOAD_FILES: Record<string, { name: string; file: string; emoji: string }> = {
+  "fairway-hammered": { name: "Fairway Hammered", file: "/downloads/Fairway-Hammered.html", emoji: "⛳" },
   "tcpa-tracker": { name: "TCPA Violation Tracker", file: "/downloads/TCPA-Violation-Tracker.html", emoji: "⚖️" },
   "home-security-dashboard": { name: "Home Security Dashboard", file: "/downloads/Home-Security-Dashboard.html", emoji: "🔐" },
   "home-privacy-guide": { name: "The Home Privacy Guide", file: "/downloads/Home-Privacy-Guide.html", emoji: "🔒" },

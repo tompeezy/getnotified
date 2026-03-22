@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fairway Hammered">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1a4731">
+<meta name="description" content="Golf scorecard + beer tracker. Because someone had to build this.">
+<link rel="manifest" href="/fairway-hammered-manifest.json">
+<link rel="apple-touch-icon" href="/fairway-icon-192.png">
+<link rel="apple-touch-startup-image" href="/fairway-icon-512.png">
+<title>Fairway Hammered 🍺⛳</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-dark: #1B4332;
+    --green-mid: #2D6A4F;
+    --green-light: #52B788;
+    --green-pale: #D8F3DC;
+    --orange: #FF6B00;
+    --orange-dark: #CC5500;
+    --gold: #FFD700;
+    --white: #FFFFFF;
+    --gray-light: #F4F4F4;
+    --gray: #888;
+    --red: #D62828;
+    --text: #1a1a1a;
+    --radius: 12px;
+    --shadow: 0 4px 15px rgba(0,0,0,0.15);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--green-pale);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: block; }
+
+  /* ====== HEADER ====== */
+  .app-header {
+    background: var(--green-dark);
+    color: white;
+    padding: 20px 16px 16px;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  .app-header h1 {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+  }
+  .app-header .tagline {
+    font-size: 13px;
+    opacity: 0.8;
+    margin-top: 2px;
+    font-style: italic;
+  }
+  .header-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .btn-header {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-header:hover, .btn-header.active-toggle {
+    background: rgba(255,255,255,0.3);
+  }
+
+  /* ====== SETUP SCREEN ====== */
+  #screen-setup {
+    background: var(--green-dark);
+    display: none;
+  }
+  #screen-setup.active { display: block; }
+
+  .setup-hero {
+    background: linear-gradient(160deg, var(--green-dark) 0%, var(--green-mid) 100%);
+    color: white;
+    text-align: center;
+    padding: 40px 20px 30px;
+  }
+  .setup-hero h1 {
+    font-size: 42px;
+    font-weight: 900;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+    line-height: 1.1;
+  }
+  .setup-hero .tagline {
+    font-size: 16px;
+    margin-top: 8px;
+    opacity: 0.85;
+    font-style: italic;
+  }
+  .setup-hero .subtitle {
+    font-size: 13px;
+    margin-top: 6px;
+    opacity: 0.6;
+  }
+
+  .setup-body {
+    background: white;
+    border-radius: 24px 24px 0 0;
+    margin-top: -10px;
+    padding: 24px 16px 40px;
+    min-height: calc(100vh - 200px);
+  }
+
+  .form-section {
+    margin-bottom: 24px;
+  }
+  .form-section label {
+    display: block;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--green-dark);
+    margin-bottom: 8px;
+  }
+  .form-section input[type="text"],
+  .form-section input[type="number"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: var(--radius);
+    font-size: 16px;
+    transition: border-color 0.2s;
+    background: var(--gray-light);
+  }
+  .form-section input:focus {
+    outline: none;
+    border-color: var(--green-light);
+    background: white;
+  }
+
+  .holes-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .holes-btn {
+    padding: 18px;
+    border-radius: var(--radius);
+    border: 3px solid #e0e0e0;
+    background: var(--gray-light);
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+  .holes-btn.selected {
+    border-color: var(--green-dark);
+    background: var(--green-pale);
+    color: var(--green-dark);
+  }
+  .holes-btn span {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    margin-top: 4px;
+    opacity: 0.7;
+  }
+
+  .player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .player-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .player-row input[type="text"] {
+    flex: 2;
+    padding: 12px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: var(--radius);
+    font-size: 15px;
+    background: var(--gray-light);
+  }
+  .player-row input[type="text"]:focus {
+    outline: none;
+    border-color: var(--green-light);
+    background: white;
+  }
+  .player-row input[type="number"] {
+    flex: 1;
+    padding: 12px 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: var(--radius);
+    font-size: 15px;
+    background: var(--gray-light);
+    text-align: center;
+  }
+  .player-row input[type="number"]:focus {
+    outline: none;
+    border-color: var(--green-light);
+    background: white;
+  }
+  .remove-player {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 4px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .remove-player:hover { opacity: 1; }
+
+  .player-labels {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .player-labels span {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--gray);
+    letter-spacing: 0.5px;
+  }
+  .player-labels span:first-child { flex: 2; }
+  .player-labels span:nth-child(2) { flex: 1; text-align: center; }
+
+  .btn-add-player {
+    background: none;
+    border: 2px dashed var(--green-light);
+    color: var(--green-mid);
+    padding: 12px;
+    border-radius: var(--radius);
+    width: 100%;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 6px;
+  }
+  .btn-add-player:hover {
+    background: var(--green-pale);
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: var(--radius);
+    width: 100%;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    margin-top: 16px;
+    box-shadow: 0 6px 20px rgba(255,107,0,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .btn-start:active {
+    transform: scale(0.97);
+    box-shadow: 0 3px 10px rgba(255,107,0,0.3);
+  }
+
+  /* ====== GAME SCREEN ====== */
+  .game-header-info {
+    background: var(--green-dark);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .course-info {
+    font-size: 13px;
+    opacity: 0.8;
+  }
+  .course-name {
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  /* Jim Tracker */
+  .jim-bar {
+    background: #2C1654;
+    color: #FFD700;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .jim-bar.hidden { display: none; }
+  .jim-count {
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .btn-jim-fell {
+    background: #FFD700;
+    color: #2C1654;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* Hole Navigation */
+  .hole-nav {
+    background: var(--green-mid);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+  }
+  .hole-nav-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .hole-nav-btn:hover { background: rgba(255,255,255,0.3); }
+  .hole-nav-btn:disabled { opacity: 0.3; cursor: default; }
+  .hole-info {
+    flex: 1;
+    text-align: center;
+    color: white;
+  }
+  .hole-number {
+    font-size: 26px;
+    font-weight: 900;
+  }
+  .hole-progress {
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+  .par-selector {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 6px;
+  }
+  .par-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.4);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .par-btn.active {
+    background: white;
+    color: var(--green-dark);
+    border-color: white;
+  }
+
+  /* Player Score Cards */
+  .players-container {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .player-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .player-card-header {
+    background: var(--green-pale);
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  .player-name-display {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--green-dark);
+  }
+  .player-total-display {
+    font-size: 13px;
+    color: var(--gray);
+  }
+  .score-over { color: var(--red); font-weight: 700; }
+  .score-under { color: var(--green-mid); font-weight: 700; }
+  .score-even { color: var(--gray); font-weight: 700; }
+
+  .player-card-body {
+    padding: 12px 14px;
+  }
+
+  .score-beer-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .score-input-group {
+    flex: 1;
+  }
+  .score-input-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--gray);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .score-input {
+    width: 100%;
+    padding: 12px;
+    border: 3px solid #e0e0e0;
+    border-radius: var(--radius);
+    font-size: 24px;
+    font-weight: 800;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+  .score-input:focus {
+    outline: none;
+    border-color: var(--green-light);
+  }
+  .score-input.birdie { border-color: var(--green-light); background: #e8f8ee; }
+  .score-input.eagle { border-color: var(--gold); background: #fff8e1; }
+  .score-input.bogey { border-color: #FFA07A; background: #fff5f0; }
+  .score-input.double-bogey { border-color: var(--red); background: #ffeaea; }
+
+  .beer-counter-group {
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .beer-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--gray);
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .beer-btn {
+    background: var(--orange);
+    color: white;
+    border: none;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255,107,0,0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    line-height: 1;
+  }
+  .beer-btn:active {
+    transform: scale(0.92);
+    box-shadow: 0 2px 6px rgba(255,107,0,0.3);
+  }
+  .beer-btn .beer-count {
+    font-size: 13px;
+    font-weight: 900;
+    margin-top: 2px;
+  }
+
+  /* Penalty Buttons */
+  .penalty-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .penalty-btn {
+    background: var(--gray-light);
+    border: 2px solid #e0e0e0;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .penalty-btn:active {
+    transform: scale(0.95);
+    background: #e0e0e0;
+  }
+
+  /* Wild Card */
+  .wildcard-section {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed #e0e0e0;
+  }
+  .btn-wildcard {
+    background: linear-gradient(135deg, #7B2FBE, #5A0070);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    transition: opacity 0.2s;
+  }
+  .btn-wildcard:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  /* Score Summary Strip */
+  .score-strip {
+    background: var(--green-dark);
+    padding: 12px 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .score-strip-table {
+    min-width: 100%;
+    color: white;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .score-strip-table th {
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    opacity: 0.7;
+    padding: 4px 8px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .score-strip-table td {
+    padding: 6px 8px;
+    text-align: center;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+  .score-strip-table td:first-child {
+    text-align: left;
+    font-weight: 700;
+  }
+
+  /* End Round Button */
+  .end-round-section {
+    padding: 16px;
+    text-align: center;
+  }
+  .btn-end-round {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    color: white;
+    border: none;
+    padding: 18px 40px;
+    border-radius: var(--radius);
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    width: 100%;
+    transition: transform 0.15s;
+  }
+  .btn-end-round:active { transform: scale(0.97); }
+
+  /* Wild Card Log */
+  .wildcard-log {
+    margin: 0 16px 16px;
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .wildcard-log-header {
+    background: #7B2FBE;
+    color: white;
+    padding: 10px 14px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .wildcard-log-body {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .wildcard-entry {
+    padding: 4px 0;
+    border-bottom: 1px solid #f0f0f0;
+    color: var(--gray);
+  }
+  .wildcard-entry:last-child { border-bottom: none; }
+
+  /* ====== POPUP MODAL ====== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    display: none;
+  }
+  .modal-overlay.show { display: flex; }
+
+  .modal-card {
+    background: white;
+    border-radius: 20px;
+    padding: 32px 24px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: popIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-emoji { font-size: 64px; margin-bottom: 16px; display: block; }
+  .modal-title {
+    font-size: 24px;
+    font-weight: 900;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+  .modal-msg {
+    font-size: 16px;
+    color: var(--gray);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  .modal-btn {
+    background: var(--green-dark);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: var(--radius);
+    font-size: 17px;
+    font-weight: 800;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.15s;
+  }
+  .modal-btn:active { transform: scale(0.97); }
+
+  /* Wild Card Modal — target picker */
+  .target-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .target-option {
+    background: var(--gray-light);
+    border: 2px solid #e0e0e0;
+    padding: 14px;
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .target-option:hover {
+    border-color: #7B2FBE;
+    background: #f3e8ff;
+  }
+
+  /* ====== LEGENDARY EASTER EGG ====== */
+  #legendary-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #1a0033, #4a0080, #000020);
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 24px;
+    overflow: hidden;
+  }
+  #legendary-screen.show { display: flex; }
+  .legendary-title {
+    font-size: 52px;
+    font-weight: 900;
+    color: var(--gold);
+    text-shadow: 0 0 30px rgba(255,215,0,0.8);
+    margin-bottom: 16px;
+    animation: pulse 1.5s infinite;
+    line-height: 1.1;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+  .legendary-msg {
+    color: white;
+    font-size: 20px;
+    line-height: 1.6;
+    max-width: 320px;
+    margin-bottom: 32px;
+    font-weight: 600;
+  }
+  .legendary-msg em {
+    color: var(--orange);
+    font-style: normal;
+    font-weight: 900;
+  }
+  .btn-legendary-close {
+    background: var(--gold);
+    color: #1a0033;
+    border: none;
+    padding: 18px 40px;
+    border-radius: var(--radius);
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 0 30px rgba(255,215,0,0.5);
+  }
+  #confetti-canvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  /* ====== SUMMARY SCREEN ====== */
+  #screen-summary { background: var(--green-pale); }
+  .summary-header {
+    background: var(--green-dark);
+    color: white;
+    padding: 30px 20px;
+    text-align: center;
+  }
+  .summary-header h2 {
+    font-size: 28px;
+    font-weight: 900;
+  }
+  .summary-header .summary-sub {
+    opacity: 0.7;
+    margin-top: 4px;
+    font-size: 14px;
+  }
+
+  .summary-body {
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .summary-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .summary-card-header {
+    padding: 12px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: var(--green-pale);
+    color: var(--green-dark);
+    border-bottom: 1px solid #ddd;
+  }
+  .summary-card-body {
+    padding: 16px;
+  }
+
+  .scores-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .scores-table th {
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--gray);
+    padding: 4px 8px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  .scores-table th:not(:first-child) { text-align: center; }
+  .scores-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 15px;
+  }
+  .scores-table td:not(:first-child) { text-align: center; }
+  .scores-table td:first-child { font-weight: 700; }
+  .scores-table tr:last-child td { border-bottom: none; }
+
+  .award-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .award-item:last-child { border-bottom: none; }
+  .award-emoji { font-size: 36px; flex-shrink: 0; }
+  .award-text { flex: 1; }
+  .award-title {
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--green-dark);
+  }
+  .award-winner {
+    font-size: 14px;
+    color: var(--gray);
+    margin-top: 2px;
+  }
+
+  .jim-summary {
+    padding: 16px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2C1654;
+    background: #f3e8ff;
+    border-radius: var(--radius);
+  }
+
+  .share-card {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    color: white;
+    border-radius: var(--radius);
+    padding: 24px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.8;
+  }
+  .share-card h3 {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .btn-play-again {
+    background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+    color: white;
+    border: none;
+    padding: 20px;
+    border-radius: var(--radius);
+    width: 100%;
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,107,0,0.4);
+    margin-bottom: 16px;
+    transition: transform 0.15s;
+  }
+  .btn-play-again:active { transform: scale(0.97); }
+
+  /* ====== RULES SCREEN ====== */
+  #screen-rules {
+    background: var(--gray-light);
+  }
+  .rules-header {
+    background: var(--green-dark);
+    color: white;
+    padding: 20px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .btn-back {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+  }
+  .rules-header h2 {
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .rules-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .rules-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .rules-card-header {
+    background: var(--green-dark);
+    color: white;
+    padding: 12px 16px;
+    font-weight: 800;
+    font-size: 16px;
+  }
+  .rules-card-body {
+    padding: 16px;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .rule-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    gap: 10px;
+  }
+  .rule-item:last-child { border-bottom: none; }
+  .rule-icon { font-size: 22px; flex-shrink: 0; width: 32px; }
+  .rule-text { flex: 1; }
+  .rule-penalty {
+    font-weight: 700;
+    color: var(--orange);
+    margin-top: 2px;
+    font-size: 14px;
+  }
+
+  .disclaimer {
+    background: var(--green-pale);
+    border: 2px solid var(--green-light);
+    border-radius: var(--radius);
+    padding: 16px;
+    font-size: 13px;
+    color: var(--green-dark);
+    line-height: 1.6;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  /* ====== UTILS ====== */
+  .hidden { display: none !important; }
+  .divider {
+    border: none;
+    border-top: 1px solid #e0e0e0;
+    margin: 12px 0;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge-green { background: var(--green-pale); color: var(--green-dark); }
+  .badge-orange { background: #fff0e0; color: var(--orange-dark); }
+  .badge-red { background: #ffe8e8; color: var(--red); }
+
+  /* Score coloring */
+  .hole-in-one { color: #FFD700; font-weight: 900; }
+  .eagle-score { color: #FF6B00; font-weight: 900; }
+  .birdie-score { color: var(--green-mid); font-weight: 700; }
+  .par-score { color: var(--gray); }
+  .bogey-score { color: #D4622A; }
+  .double-plus-score { color: var(--red); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- ============================
+     SETUP SCREEN
+============================= -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-hero">
+    <h1>Fairway Hammered 🍺⛳</h1>
+    <p class="tagline">"Because someone has to keep track of Jim."</p>
+    <p class="subtitle">teeemhigh.shop</p>
+  </div>
+  <div class="setup-body">
+
+    <div class="form-section">
+      <label>🏌️ Course Name (optional)</label>
+      <input type="text" id="course-name" placeholder="e.g. Pebble Beach (lol)" maxlength="40">
+    </div>
+
+    <div class="form-section">
+      <label>⛳ Number of Holes</label>
+      <div class="holes-selector">
+        <button class="holes-btn selected" onclick="selectHoles(9)">
+          9
+          <span>The "I have obligations" round</span>
+        </button>
+        <button class="holes-btn" onclick="selectHoles(18)">
+          18
+          <span>Full send. Let's go.</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <label>👥 Players (2–8)</label>
+      <div class="player-labels">
+        <span style="flex:2">Name</span>
+        <span style="flex:1; text-align:center">HCP (opt)</span>
+        <span style="width:30px"></span>
+      </div>
+      <div class="player-list" id="player-list">
+        <!-- Players injected by JS -->
+      </div>
+      <button class="btn-add-player" onclick="addPlayer()" id="add-player-btn">+ Add Player</button>
+    </div>
+
+    <div class="form-section">
+      <label>🍺 Bonus Options</label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:14px;background:var(--gray-light);border-radius:var(--radius);font-weight:600;font-size:15px;text-transform:none;letter-spacing:0">
+        <input type="checkbox" id="track-jim" style="width:20px;height:20px;accent-color:var(--green-dark)">
+        😂 Track Jim's Falls
+      </label>
+    </div>
+
+    <button class="btn-start" onclick="startGame()">LET'S DRINK — I MEAN PLAY ⛳🍺</button>
+  </div>
+</div>
+
+<!-- ============================
+     GAME SCREEN
+============================= -->
+<div id="screen-game" class="screen">
+  <div class="app-header">
+    <h1>Fairway Hammered 🍺⛳</h1>
+    <p class="tagline" id="game-course-header"></p>
+    <div class="header-actions">
+      <button class="btn-header" onclick="showRules()">📋 Rules</button>
+      <button class="btn-header" id="btn-toggle-jim" onclick="toggleJimBar()" style="display:none">😂 Jim</button>
+    </div>
+  </div>
+
+  <!-- Jim Bar -->
+  <div class="jim-bar hidden" id="jim-bar">
+    <div>
+      <div style="font-size:12px;opacity:0.8">JIM FALL COUNT</div>
+      <div class="jim-count" id="jim-count">0 falls 😴</div>
+    </div>
+    <button class="btn-jim-fell" onclick="jimFell()">💥 Jim Fell Down</button>
+  </div>
+
+  <!-- Hole Navigation -->
+  <div class="hole-nav">
+    <button class="hole-nav-btn" id="btn-prev-hole" onclick="changeHole(-1)">◀</button>
+    <div class="hole-info">
+      <div class="hole-number" id="hole-display">Hole 1</div>
+      <div class="hole-progress" id="hole-progress">1 of 18</div>
+      <div class="par-selector" id="par-selector">
+        <button class="par-btn" onclick="setPar(3)">Par 3</button>
+        <button class="par-btn active" onclick="setPar(4)">Par 4</button>
+        <button class="par-btn" onclick="setPar(5)">Par 5</button>
+      </div>
+    </div>
+    <button class="hole-nav-btn" id="btn-next-hole" onclick="changeHole(1)">▶</button>
+  </div>
+
+  <!-- Players -->
+  <div class="players-container" id="players-container"></div>
+
+  <!-- Score Strip -->
+  <div class="score-strip">
+    <div style="color:white;font-size:12px;opacity:0.7;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">📊 Running Totals</div>
+    <div style="overflow-x:auto">
+      <table class="score-strip-table" id="score-strip"></table>
+    </div>
+  </div>
+
+  <!-- Wild Card Log -->
+  <div class="wildcard-log" id="wildcard-log" style="display:none">
+    <div class="wildcard-log-header">🃏 Wild Card Log</div>
+    <div class="wildcard-log-body" id="wildcard-log-body"></div>
+  </div>
+
+  <!-- End Round -->
+  <div class="end-round-section">
+    <button class="btn-end-round" onclick="endRound()">🏁 End Round & See Results</button>
+  </div>
+</div>
+
+<!-- ============================
+     SUMMARY SCREEN
+============================= -->
+<div id="screen-summary" class="screen">
+  <div class="summary-header">
+    <h2>🏁 Round Complete!</h2>
+    <p class="summary-sub" id="summary-course-sub"></p>
+  </div>
+  <div class="summary-body" id="summary-body"></div>
+</div>
+
+<!-- ============================
+     RULES SCREEN
+============================= -->
+<div id="screen-rules" class="screen">
+  <div class="rules-header">
+    <button class="btn-back" onclick="hideRules()">←</button>
+    <h2>📋 The Official Rules</h2>
+  </div>
+  <div class="rules-body">
+    <div class="rules-card">
+      <div class="rules-card-header">⛳ Score Penalties</div>
+      <div class="rules-card-body">
+        <div class="rule-item">
+          <div class="rule-icon">👑</div>
+          <div class="rule-text">
+            <strong>Hole in One</strong>
+            <div class="rule-penalty">You drink free all day. Everyone else FINISHES their beer. Bow down.</div>
+          </div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">🦅</div>
+          <div class="rule-text">
+            <strong>Eagle (2 under par)</strong>
+            <div class="rule-penalty">Finish your beer. Immediately. No questions. You earned it AND you owe it.</div>
+          </div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">🎉</div>
+          <div class="rule-text">
+            <strong>Birdie (1 under par)</strong>
+            <div class="rule-penalty">Celebrate! Everyone ELSE drinks. You did the thing. They didn't.</div>
+          </div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">😐</div>
+          <div class="rule-text">
+            <strong>Bogey (1 over par)</strong>
+            <div class="rule-penalty">Take a sip. You know what you did.</div>
+          </div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">🤦</div>
+          <div class="rule-text">
+            <strong>Double Bogey+ (2+ over par)</strong>
+            <div class="rule-penalty">DRINK. Full drink. This isn't complicated.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rules-card">
+      <div class="rules-card-header">💀 Penalty Situations</div>
+      <div class="rules-card-body">
+        <div class="rule-item">
+          <div class="rule-icon">💧</div>
+          <div class="rule-text">
+            <strong>Ball in Water</strong>
+            <div class="rule-penalty">Goes in the drink? You guessed it... DRINK! 🍺</div>
+          </div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">🚩</div>
+          <div class="rule-text">
+            <strong>Didn't Pass the Red Tees</strong>
+            <div class="rule-penalty">SHOTGUN. No debate. No appeal. No discussion. 🚩</div>
+          </div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">🌲</div>
+          <div class="rule-text">
+            <strong>Lost Ball</strong>
+            <div class="rule-penalty">DRINK and take the walk of shame back to the cart. 🌲</div>
+          </div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">💨</div>
+          <div class="rule-text">
+            <strong>Complete Whiff</strong>
+            <div class="rule-penalty">Take your medicine. DRINK. The ball is right there, buddy. 💨</div>
+          </div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">🐠</div>
+          <div class="rule-text">
+            <strong>3-Putt</strong>
+            <div class="rule-penalty">DRINK. Even Jim can 2-putt. Even Jim. Let that sink in. 🐠</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rules-card">
+      <div class="rules-card-header">🃏 Wild Card Rules</div>
+      <div class="rules-card-body">
+        <p>Each player gets <strong>ONE wild card</strong> per round. Use it wisely.</p>
+        <br>
+        <p>Hit "Play Wild Card" to force <strong>any other player</strong> to drink. No reason required. No explanation owed. Just vibes.</p>
+        <br>
+        <p><strong>Once it's gone, it's gone.</strong> Don't waste it on someone who's already drinking. Save it for when they're feeling smug about that par.</p>
+      </div>
+    </div>
+
+    <div class="rules-card">
+      <div class="rules-card-header">😂 Jim Rules</div>
+      <div class="rules-card-body">
+        <p>If someone named Jim is in your group (and there's always a Jim), enable <strong>Jim Tracker</strong> at setup.</p>
+        <br>
+        <p>Whenever Jim falls — in the cart, on the green, anywhere — tap <strong>"Jim Fell Down."</strong> All falls are logged.</p>
+        <br>
+        <p>At the end of the round, Jim's fall count is immortalized in the summary. As it should be.</p>
+        <br>
+        <p><em>"Jim fell X times today. Respect." — Fairway Hammered, every time</em></p>
+      </div>
+    </div>
+
+    <div class="rules-card">
+      <div class="rules-card-header">🏆 End of Round Awards</div>
+      <div class="rules-card-body">
+        <div class="rule-item">
+          <div class="rule-icon">🏆</div>
+          <div class="rule-text"><strong>Low Score</strong> — Winner. Obviously. Well done.</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">🍺</div>
+          <div class="rule-text"><strong>Fairway Hammered Champion</strong> — Most beers. Also buys the 19th hole round. Sorry, king.</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">😤</div>
+          <div class="rule-text"><strong>No Excuse Trophy</strong> — Highest score AND fewest beers. You were sober. You have no excuse.</div>
+        </div>
+        <div class="rule-item">
+          <div class="rule-icon">🚩</div>
+          <div class="rule-text"><strong>Red Tee King/Queen</strong> — Most failed-to-pass-red-tees penalties. Champion of short game. Shotgun count: impressive.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      ⚠️ <strong>Official Disclaimer</strong><br><br>
+      This app is for entertainment purposes only. We are not responsible for Jim. We are not responsible for your score, your marriage, or your Tuesday morning meeting. Please drink responsibly. Or don't. We're a scorekeeping app, not your mom. 🍺⛳<br><br>
+      <em>— Fairway Hammered, a teeemhigh.shop joint</em>
+    </div>
+  </div>
+</div>
+
+<!-- ============================
+     POPUP MODAL
+============================= -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-card" id="modal-card">
+    <span class="modal-emoji" id="modal-emoji">🍺</span>
+    <div class="modal-title" id="modal-title">DRINK.</div>
+    <div class="modal-msg" id="modal-msg">You know what you did.</div>
+    <div id="modal-extra"></div>
+    <button class="modal-btn" id="modal-btn" onclick="dismissModal()">Got it 👊</button>
+  </div>
+</div>
+
+<!-- ============================
+     LEGENDARY EASTER EGG
+============================= -->
+<div id="legendary-screen">
+  <canvas id="confetti-canvas"></canvas>
+  <div class="legendary-title">🍺👑 LEGENDARY 👑🍺</div>
+  <div class="legendary-msg">
+    18 holes. 18 beers.<br>
+    You <em>absolute legend.</em><br><br>
+    We salute you.<br>
+    Please don't drive home.
+  </div>
+  <button class="btn-legendary-close" onclick="closeLegendary()">I am legend. Continue. 👑</button>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  players: [],
+  pars: [],
+  holes: 9,
+  course: '',
+  currentHole: 0,
+  jimEnabled: false,
+  jimFalls: 0,
+  wildCardLog: [],
+  legendaryShown: new Set(),
+  rulesFrom: 'setup'
+};
+
+// Setup: default 2 players
+window.onload = () => {
+  addPlayer('', '');
+  addPlayer('', '');
+};
+
+// ============================================================
+// SETUP
+// ============================================================
+let selectedHoles = 9;
+let playerCount = 0;
+
+function selectHoles(n) {
+  selectedHoles = n;
+  document.querySelectorAll('.holes-btn').forEach(b => b.classList.remove('selected'));
+  event.target.closest('.holes-btn').classList.add('selected');
+}
+
+function addPlayer(name = '', hcp = '') {
+  const list = document.getElementById('player-list');
+  const max = 8;
+  if (list.children.length >= max) return;
+
+  const idx = playerCount++;
+  const row = document.createElement('div');
+  row.className = 'player-row';
+  row.dataset.idx = idx;
+  row.innerHTML = `
+    <input type="text" placeholder="Player ${list.children.length + 1}" value="${name}" maxlength="20" class="player-name-input">
+    <input type="number" placeholder="HCP" min="0" max="54" value="${hcp}" class="player-hcp-input">
+    <button class="remove-player" onclick="removePlayer(this)" ${list.children.length < 2 ? 'style="visibility:hidden"' : ''}>✕</button>
+  `;
+  list.appendChild(row);
+
+  updateRemoveButtons();
+  const addBtn = document.getElementById('add-player-btn');
+  if (list.children.length >= max) addBtn.style.display = 'none';
+}
+
+function removePlayer(btn) {
+  const row = btn.closest('.player-row');
+  const list = document.getElementById('player-list');
+  if (list.children.length <= 2) return;
+  list.removeChild(row);
+  updateRemoveButtons();
+  document.getElementById('add-player-btn').style.display = 'block';
+  // Renumber placeholders
+  [...list.querySelectorAll('.player-name-input')].forEach((inp, i) => {
+    if (!inp.value) inp.placeholder = `Player ${i + 1}`;
+  });
+}
+
+function updateRemoveButtons() {
+  const list = document.getElementById('player-list');
+  const rows = list.querySelectorAll('.player-row');
+  rows.forEach(row => {
+    const btn = row.querySelector('.remove-player');
+    btn.style.visibility = rows.length <= 2 ? 'hidden' : 'visible';
+  });
+}
+
+function startGame() {
+  const list = document.getElementById('player-list');
+  const rows = [...list.querySelectorAll('.player-row')];
+
+  const players = rows.map((row, i) => {
+    const nameInput = row.querySelector('.player-name-input');
+    const hcpInput = row.querySelector('.player-hcp-input');
+    return {
+      name: nameInput.value.trim() || `Player ${i + 1}`,
+      handicap: parseInt(hcpInput.value) || 0,
+      scores: new Array(selectedHoles).fill(null),
+      beers: 0,
+      wildCardUsed: false,
+      redTeeViolations: 0,
+      holeInOnes: [],
+      totalPenalties: {}
+    };
+  });
+
+  if (players.length < 2) {
+    alert('Need at least 2 players. Go find a friend. Or Jim.');
+    return;
+  }
+
+  // Default pars (4 for all)
+  const pars = new Array(selectedHoles).fill(4);
+
+  state = {
+    players,
+    pars,
+    holes: selectedHoles,
+    course: document.getElementById('course-name').value.trim(),
+    currentHole: 0,
+    jimEnabled: document.getElementById('track-jim').checked,
+    jimFalls: 0,
+    wildCardLog: [],
+    legendaryShown: new Set()
+  };
+
+  buildGameScreen();
+  showScreen('screen-game');
+}
+
+// ============================================================
+// GAME SCREEN BUILD
+// ============================================================
+function buildGameScreen() {
+  const header = document.getElementById('game-course-header');
+  header.textContent = state.course ? `📍 ${state.course}` : '⛳ On the course';
+
+  // Jim
+  const jimBtn = document.getElementById('btn-toggle-jim');
+  const jimBar = document.getElementById('jim-bar');
+  if (state.jimEnabled) {
+    jimBtn.style.display = 'block';
+    jimBar.classList.remove('hidden');
+  } else {
+    jimBtn.style.display = 'none';
+    jimBar.classList.add('hidden');
+  }
+
+  renderHole();
+}
+
+function renderHole() {
+  const h = state.currentHole;
+  const par = state.pars[h];
+  const totalHoles = state.holes;
+
+  // Hole display
+  document.getElementById('hole-display').textContent = `Hole ${h + 1}`;
+  document.getElementById('hole-progress').textContent = `${h + 1} of ${totalHoles}`;
+
+  // Nav buttons
+  document.getElementById('btn-prev-hole').disabled = h === 0;
+  document.getElementById('btn-next-hole').disabled = h === totalHoles - 1;
+
+  // Par selector
+  const parBtns = document.querySelectorAll('.par-btn');
+  parBtns.forEach(btn => {
+    const btnPar = parseInt(btn.textContent.replace('Par ', ''));
+    btn.classList.toggle('active', btnPar === par);
+  });
+
+  // Players
+  renderPlayers();
+
+  // Score strip
+  renderScoreStrip();
+}
+
+function renderPlayers() {
+  const container = document.getElementById('players-container');
+  container.innerHTML = '';
+
+  const h = state.currentHole;
+  const par = state.pars[h];
+
+  state.players.forEach((player, pi) => {
+    const score = player.scores[h];
+    const scoreClass = getScoreClass(score, par);
+    const overUnder = getTotalOverUnder(pi);
+    const overUnderStr = overUnder === 0 ? 'E' : (overUnder > 0 ? `+${overUnder}` : `${overUnder}`);
+    const overUnderClass = overUnder < 0 ? 'score-under' : overUnder > 0 ? 'score-over' : 'score-even';
+
+    const card = document.createElement('div');
+    card.className = 'player-card';
+    card.innerHTML = `
+      <div class="player-card-header">
+        <div class="player-name-display">${escHtml(player.name)}</div>
+        <div class="player-total-display">
+          Total: <span class="${overUnderClass}">${overUnderStr}</span>
+          &nbsp;|&nbsp; HCP: ${player.handicap || '—'}
+        </div>
+      </div>
+      <div class="player-card-body">
+        <div class="score-beer-row">
+          <div class="score-input-group">
+            <div class="score-input-label">Score for Hole ${h + 1}</div>
+            <input type="number" class="score-input ${scoreClass}"
+              id="score-${pi}-${h}"
+              min="1" max="20"
+              value="${score !== null ? score : ''}"
+              placeholder="${par}"
+              oninput="handleScoreInput(${pi}, ${h}, this.value)"
+              onblur="handleScoreBlur(${pi}, ${h}, this.value)"
+              inputmode="numeric">
+          </div>
+          <div class="beer-counter-group">
+            <div class="beer-label">🍺 Beers</div>
+            <button class="beer-btn" onclick="addBeer(${pi})">
+              🍺
+              <span class="beer-count">${player.beers}</span>
+            </button>
+          </div>
+        </div>
+        <div class="penalty-btns">
+          <button class="penalty-btn" onclick="triggerPenalty(${pi}, 'water')">💧 Water</button>
+          <button class="penalty-btn" onclick="triggerPenalty(${pi}, 'redtee')">🚩 Red Tees</button>
+          <button class="penalty-btn" onclick="triggerPenalty(${pi}, 'lost')">🌲 Lost Ball</button>
+          <button class="penalty-btn" onclick="triggerPenalty(${pi}, 'whiff')">💨 Whiff</button>
+          <button class="penalty-btn" onclick="triggerPenalty(${pi}, 'threeputt')">🐠 3-Putt</button>
+        </div>
+        <div class="wildcard-section">
+          <button class="btn-wildcard" ${player.wildCardUsed ? 'disabled' : ''} onclick="playWildCard(${pi})">
+            🃏 ${player.wildCardUsed ? 'Wild Card Used' : 'Play Wild Card'}
+          </button>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function renderScoreStrip() {
+  const table = document.getElementById('score-strip');
+  const totalHoles = state.holes;
+
+  let headers = '<tr><th>Player</th>';
+  for (let i = 1; i <= totalHoles; i++) headers += `<th>${i}</th>`;
+  headers += '<th>TOT</th><th>🍺</th></tr>';
+
+  let rows = '';
+  state.players.forEach(player => {
+    rows += `<tr><td>${escHtml(player.name)}</td>`;
+    player.scores.forEach((sc, i) => {
+      const par = state.pars[i];
+      const rel = sc !== null ? (sc - par) : null;
+      let cls = '';
+      let display = sc !== null ? sc : '—';
+      if (sc !== null) {
+        if (sc === 1) cls = 'style="color:#FFD700;font-weight:900"';
+        else if (rel <= -2) cls = 'style="color:#FF6B00;font-weight:800"';
+        else if (rel === -1) cls = 'style="color:#52B788;font-weight:700"';
+        else if (rel === 1) cls = 'style="color:#FFA07A"';
+        else if (rel >= 2) cls = 'style="color:#FF4444;font-weight:700"';
+      }
+      rows += `<td ${cls}>${display}</td>`;
+    });
+    const overUnder = getTotalOverUnder(state.players.indexOf(player));
+    const ouStr = overUnder === 0 ? 'E' : (overUnder > 0 ? `+${overUnder}` : `${overUnder}`);
+    rows += `<td style="font-weight:800">${ouStr}</td>`;
+    rows += `<td style="color:var(--orange);font-weight:800">${player.beers}</td>`;
+    rows += '</tr>';
+  });
+
+  table.innerHTML = headers + rows;
+}
+
+// ============================================================
+// SCORE HANDLING
+// ============================================================
+function handleScoreInput(pi, hi, val) {
+  const score = parseInt(val);
+  if (!isNaN(score) && score > 0) {
+    state.players[pi].scores[hi] = score;
+    const input = document.getElementById(`score-${pi}-${hi}`);
+    const par = state.pars[hi];
+    input.className = 'score-input ' + getScoreClass(score, par);
+    renderScoreStrip();
+  }
+}
+
+let pendingPopup = null;
+function handleScoreBlur(pi, hi, val) {
+  const score = parseInt(val);
+  if (isNaN(score) || score <= 0) return;
+  state.players[pi].scores[hi] = score;
+
+  const par = state.pars[hi];
+  const diff = score - par;
+  const playerName = state.players[pi].name;
+
+  // Hole in one
+  if (score === 1) {
+    state.players[pi].holeInOnes.push(hi + 1);
+    showModal('👑', 'HOLE IN ONE!!!', `${playerName} goes down in HISTORY. You drink free all day. Everyone else — FINISH IT. 👑🍺`);
+    addBeerToAll(pi);
+    return;
+  }
+  if (diff <= -2) {
+    showModal('🦅', 'EAGLE!', `${playerName} just hit an EAGLE. Finish your beer. RIGHT NOW. No sipping. 🦅🍺`);
+    addBeer(pi);
+    return;
+  }
+  if (diff === -1) {
+    showModal('🎉', 'BIRDIE!', `${playerName} birdied! Everyone ELSE drinks. That's the rule. Deal with it. 🎉🍺`);
+    addBeerToOthers(pi);
+    return;
+  }
+  if (diff === 1) {
+    showModal('😬', 'Bogey.', `Take a sip, ${playerName}. You know what you did. 🍺`, false);
+    return;
+  }
+  if (diff >= 2) {
+    showModal('🤦', 'Double Bogey+', `${playerName}... DRINK. We don't make the rules. Wait, actually we do. DRINK. 🍺`);
+    return;
+  }
+  // Par — no penalty, feel free
+  renderPlayers();
+}
+
+function getScoreClass(score, par) {
+  if (score === null) return '';
+  const diff = score - par;
+  if (score === 1) return 'eagle'; // gold for HIO
+  if (diff <= -2) return 'eagle';
+  if (diff === -1) return 'birdie';
+  if (diff === 1) return 'bogey';
+  if (diff >= 2) return 'double-bogey';
+  return '';
+}
+
+function getTotalOverUnder(pi) {
+  let total = 0;
+  state.players[pi].scores.forEach((sc, i) => {
+    if (sc !== null) total += sc - state.pars[i];
+  });
+  return total;
+}
+
+// ============================================================
+// BEER
+// ============================================================
+function addBeer(pi) {
+  state.players[pi].beers++;
+  checkLegendary(pi);
+  renderPlayers();
+  renderScoreStrip();
+}
+
+function addBeerToAll(exceptPi) {
+  state.players.forEach((p, i) => {
+    if (i !== exceptPi) {
+      p.beers++;
+      checkLegendary(i);
+    }
+  });
+  renderPlayers();
+  renderScoreStrip();
+}
+
+function addBeerToOthers(exceptPi) {
+  addBeerToAll(exceptPi);
+}
+
+function checkLegendary(pi) {
+  if (state.players[pi].beers >= 18 && !state.legendaryShown.has(pi)) {
+    state.legendaryShown.add(pi);
+    setTimeout(() => showLegendary(), 300);
+  }
+}
+
+// ============================================================
+// PENALTIES
+// ============================================================
+function triggerPenalty(pi, type) {
+  const player = state.players[pi];
+  const messages = {
+    water: { emoji: '💧', title: 'Splash!', msg: `${player.name} goes in the drink? You guessed it... DRINK! 🍺` },
+    redtee: { emoji: '🚩', title: 'Didn\'t Pass Red Tees!', msg: `${player.name} didn't pass the ladies tees. SHOTGUN. No debate. No discussion. We don't make exceptions. 🚩` },
+    lost: { emoji: '🌲', title: 'Lost Ball!', msg: `${player.name} loses a ball AND a drink. DRINK and take the walk of shame back. 🌲` },
+    whiff: { emoji: '💨', title: 'Complete Whiff!', msg: `${player.name} whiffed. The ball is RIGHT THERE. Take your medicine. DRINK. 💨` },
+    threeputt: { emoji: '🐠', title: '3-Putt!', msg: `Three putts?! DRINK, ${player.name}. Even Jim can 2-putt. Allegedly. 🐠` }
+  };
+  const m = messages[type];
+  if (type === 'redtee') player.redTeeViolations++;
+  showModal(m.emoji, m.title, m.msg);
+  addBeer(pi);
+}
+
+// ============================================================
+// WILD CARD
+// ============================================================
+function playWildCard(pi) {
+  if (state.players[pi].wildCardUsed) return;
+  const player = state.players[pi];
+
+  const others = state.players.filter((_, i) => i !== pi);
+  if (others.length === 0) return;
+
+  // Show target picker in modal
+  const modal = document.getElementById('modal-overlay');
+  document.getElementById('modal-emoji').textContent = '🃏';
+  document.getElementById('modal-title').textContent = `${player.name}'s Wild Card!`;
+  document.getElementById('modal-msg').textContent = 'Who suffers? Choose your victim.';
+  document.getElementById('modal-btn').style.display = 'none';
+
+  const extra = document.getElementById('modal-extra');
+  extra.innerHTML = '<div class="target-picker">' +
+    state.players.map((p, i) => {
+      if (i === pi) return '';
+      return `<button class="target-option" onclick="executeWildCard(${pi}, ${i})">${escHtml(p.name)} 🍺</button>`;
+    }).join('') +
+    '</div>';
+
+  modal.classList.add('show');
+}
+
+function executeWildCard(fromPi, targetPi) {
+  state.players[fromPi].wildCardUsed = true;
+  const fromName = state.players[fromPi].name;
+  const targetName = state.players[targetPi].name;
+
+  const entry = `${fromName} 🃏 → ${targetName} DRINKS`;
+  state.wildCardLog.push(entry);
+
+  document.getElementById('modal-extra').innerHTML = '';
+  document.getElementById('modal-btn').style.display = 'block';
+  document.getElementById('modal-emoji').textContent = '🃏';
+  document.getElementById('modal-title').textContent = 'WILD CARD PLAYED!';
+  document.getElementById('modal-msg').textContent = `${fromName} says ${targetName} drinks. Wild card is GONE. Use it wisely next round. 🃏🍺`;
+
+  addBeer(targetPi);
+  updateWildCardLog();
+  renderPlayers();
+}
+
+function updateWildCardLog() {
+  const log = document.getElementById('wildcard-log');
+  const body = document.getElementById('wildcard-log-body');
+  if (state.wildCardLog.length === 0) {
+    log.style.display = 'none';
+    return;
+  }
+  log.style.display = 'block';
+  body.innerHTML = state.wildCardLog.map(e => `<div class="wildcard-entry">🃏 ${escHtml(e)}</div>`).join('');
+}
+
+// ============================================================
+// JIM TRACKER
+// ============================================================
+function jimFell() {
+  state.jimFalls++;
+  const count = document.getElementById('jim-count');
+  count.textContent = `${state.jimFalls} fall${state.jimFalls !== 1 ? 's' : ''} 😵`;
+}
+
+function toggleJimBar() {
+  const bar = document.getElementById('jim-bar');
+  bar.classList.toggle('hidden');
+}
+
+// ============================================================
+// HOLE NAVIGATION
+// ============================================================
+function changeHole(delta) {
+  const newHole = state.currentHole + delta;
+  if (newHole < 0 || newHole >= state.holes) return;
+  state.currentHole = newHole;
+  renderHole();
+  window.scrollTo(0, 0);
+}
+
+function setPar(par) {
+  state.pars[state.currentHole] = par;
+  renderHole();
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function showModal(emoji, title, msg, addBeerAuto) {
+  document.getElementById('modal-emoji').textContent = emoji;
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-msg').textContent = msg;
+  document.getElementById('modal-btn').style.display = 'block';
+  document.getElementById('modal-btn').textContent = 'Got it 👊';
+  document.getElementById('modal-extra').innerHTML = '';
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function dismissModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+  renderPlayers();
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) dismissModal();
+}
+
+// ============================================================
+// LEGENDARY EASTER EGG
+// ============================================================
+function showLegendary() {
+  const screen = document.getElementById('legendary-screen');
+  screen.classList.add('show');
+  startConfetti();
+}
+
+function closeLegendary() {
+  document.getElementById('legendary-screen').classList.remove('show');
+  stopConfetti();
+}
+
+let confettiAnimFrame;
+let confettiPieces = [];
+
+function startConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colors = ['#FFD700', '#FF6B00', '#FF4444', '#52B788', '#fff', '#7B2FBE'];
+  confettiPieces = [];
+  for (let i = 0; i < 150; i++) {
+    confettiPieces.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 14 + 6,
+      h: Math.random() * 6 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: Math.random() * 4 + 2,
+      vx: (Math.random() - 0.5) * 2,
+      rot: Math.random() * 360,
+      rotV: (Math.random() - 0.5) * 5
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiPieces.forEach(p => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+      p.y += p.vy;
+      p.x += p.vx;
+      p.rot += p.rotV;
+      if (p.y > canvas.height) {
+        p.y = -20;
+        p.x = Math.random() * canvas.width;
+      }
+    });
+    confettiAnimFrame = requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function stopConfetti() {
+  if (confettiAnimFrame) cancelAnimationFrame(confettiAnimFrame);
+}
+
+// ============================================================
+// END ROUND / SUMMARY
+// ============================================================
+function endRound() {
+  buildSummary();
+  showScreen('screen-summary');
+  window.scrollTo(0, 0);
+}
+
+function buildSummary() {
+  const body = document.getElementById('summary-body');
+  const sub = document.getElementById('summary-course-sub');
+  sub.textContent = state.course ? `📍 ${state.course}` : '⛳ Full send complete.';
+  body.innerHTML = '';
+
+  // Scores table
+  const scoresCard = document.createElement('div');
+  scoresCard.className = 'summary-card';
+  scoresCard.innerHTML = `
+    <div class="summary-card-header">📊 Final Scores</div>
+    <div class="summary-card-body">
+      <table class="scores-table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Gross</th>
+            <th>+/- Par</th>
+            <th>🍺</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${state.players.map(p => {
+            const gross = p.scores.reduce((a, b) => a + (b || 0), 0);
+            const totalPar = state.pars.reduce((a, b) => a + b, 0);
+            const overUnder = p.scores.reduce((sum, sc, i) => sc !== null ? sum + (sc - state.pars[i]) : sum, 0);
+            const ouStr = overUnder === 0 ? 'E' : (overUnder > 0 ? `+${overUnder}` : `${overUnder}`);
+            const ouClass = overUnder < 0 ? 'score-under' : overUnder > 0 ? 'score-over' : 'score-even';
+            return `<tr>
+              <td>${escHtml(p.name)}</td>
+              <td>${gross}</td>
+              <td class="${ouClass}">${ouStr}</td>
+              <td style="color:var(--orange);font-weight:800">${p.beers}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  body.appendChild(scoresCard);
+
+  // Awards
+  const awardsCard = document.createElement('div');
+  awardsCard.className = 'summary-card';
+  awardsCard.innerHTML = `<div class="summary-card-header">🏆 Awards</div><div class="summary-card-body" id="awards-body"></div>`;
+  body.appendChild(awardsCard);
+
+  const awardsBody = awardsCard.querySelector('#awards-body');
+
+  // Low score winner
+  const scores = state.players.map((p, i) => ({
+    player: p,
+    pi: i,
+    gross: p.scores.reduce((a, b) => a + (b || 0), 0),
+    overUnder: p.scores.reduce((sum, sc, idx) => sc !== null ? sum + (sc - state.pars[idx]) : sum, 0)
+  })).sort((a, b) => a.overUnder - b.overUnder);
+
+  const winner = scores[0];
+  const losers = scores[scores.length - 1];
+
+  addAward(awardsBody, '🏆', 'Winner Winner Chicken Dinner', `${winner.player.name} — low score, high street cred.`);
+
+  // Beer Classifications — the main event
+  function getBeerClassification(beers) {
+    if (beers === 0) return { emoji: '🚗', title: 'Designated Driver', desc: "Zero beers. You're either the DD or you took a wrong turn to the chess club." };
+    if (beers <= 3) return { emoji: '⛳', title: 'Cart Path Only', desc: "1-3 beers. Did you even come to have fun? The cart girl is disappointed in you." };
+    if (beers <= 6) return { emoji: '🤝', title: 'Social Drinker', desc: "4-6 beers. Respectable. You're here for the game AND the vibes." };
+    if (beers <= 9) return { emoji: '🎉', title: 'Good Time Charlie', desc: "7-9 beers. NOW we're talking. Par for the course. You ARE the course." };
+    if (beers <= 12) return { emoji: '🏅', title: 'Functional Alcoholic', desc: "10-12 beers. Still hitting fairways somehow. A medical mystery. A legend." };
+    if (beers <= 15) return { emoji: '📱', title: 'Check His Pulse', desc: "13-15 beers. Somebody text his wife. We'll handle the clubs." };
+    if (beers <= 17) return { emoji: '🏥', title: 'Banana Bag & Popsicle', desc: "16-17 beers. Straight to the IV drip. Do not pass go. Do not collect birdie." };
+    return { emoji: '👑', title: 'LEGENDARY STATUS', desc: "18+ beers. One per hole. You absolute unit. We are not worthy. Please don't drive home." };
+  }
+
+  const classCard = document.createElement('div');
+  classCard.className = 'summary-card';
+  classCard.innerHTML = `
+    <div class="summary-card-header">🍺 Official Beer Classifications</div>
+    <div class="summary-card-body">
+      ${state.players.map(p => {
+        const c = getBeerClassification(p.beers);
+        return `<div style="padding:12px 0;border-bottom:1px solid #f0f0f0;display:flex;align-items:flex-start;gap:12px">
+          <div style="font-size:32px;flex-shrink:0">${c.emoji}</div>
+          <div>
+            <div style="font-weight:800;font-size:16px;color:#1a472a">${p.name}</div>
+            <div style="font-size:13px;color:#f97316;font-weight:700;margin:2px 0">${c.title} — ${p.beers} 🍺</div>
+            <div style="font-size:13px;color:#666;font-style:italic">${c.desc}</div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  body.appendChild(classCard);
+
+  // Most beers
+  const beerSorted = [...state.players].sort((a, b) => b.beers - a.beers);
+  const beerChamp = beerSorted[0];
+  addAward(awardsBody, '🍺', 'Fairway Hammered Champion', `${beerChamp.name} with ${beerChamp.beers} beers. Congrats. You're buying the 19th hole round. 😤`);
+
+  // No excuse trophy
+  const noExcuse = state.players.reduce((worst, p) => {
+    const ou = p.scores.reduce((sum, sc, i) => sc !== null ? sum + (sc - state.pars[i]) : sum, 0);
+    if (!worst) return { player: p, ou, beers: p.beers };
+    if (ou > worst.ou && p.beers < worst.beers) return { player: p, ou, beers: p.beers };
+    return worst;
+  }, null);
+  if (noExcuse) {
+    addAward(awardsBody, '😤', 'The No Excuse Trophy', `${noExcuse.player.name} — worst score, fewest beers. You were sober. You have no excuse whatsoever.`);
+  }
+
+  // Hole in one
+  const hioPlayers = state.players.filter(p => p.holeInOnes && p.holeInOnes.length > 0);
+  if (hioPlayers.length > 0) {
+    hioPlayers.forEach(p => {
+      addAward(awardsBody, '👑', 'HOLE IN ONE!', `${p.name} — Hole ${p.holeInOnes.join(', ')}. A legend walks among us. Buy this person a beer.`);
+    });
+  }
+
+  // Red tee king
+  const redTeeMax = Math.max(...state.players.map(p => p.redTeeViolations || 0));
+  if (redTeeMax > 0) {
+    const redTeeKing = state.players.filter(p => (p.redTeeViolations || 0) === redTeeMax);
+    addAward(awardsBody, '🚩', 'Red Tee King/Queen', `${redTeeKing.map(p => p.name).join(' & ')} — ${redTeeMax} shotgun${redTeeMax !== 1 ? 's' : ''} earned. Respect the process.`);
+  }
+
+  // Jim
+  if (state.jimEnabled && state.jimFalls > 0) {
+    const jimDiv = document.createElement('div');
+    jimDiv.className = 'jim-summary';
+    jimDiv.innerHTML = `😂 Jim fell down <strong>${state.jimFalls} time${state.jimFalls !== 1 ? 's' : ''}</strong> today. Respect.`;
+    body.appendChild(jimDiv);
+  }
+
+  // Wild Card log
+  if (state.wildCardLog.length > 0) {
+    const wcCard = document.createElement('div');
+    wcCard.className = 'summary-card';
+    wcCard.innerHTML = `
+      <div class="summary-card-header">🃏 Wild Card History</div>
+      <div class="summary-card-body">
+        ${state.wildCardLog.map(e => `<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:14px">🃏 ${escHtml(e)}</div>`).join('')}
+      </div>
+    `;
+    body.appendChild(wcCard);
+  }
+
+  // Share card
+  const shareCard = document.createElement('div');
+  shareCard.className = 'share-card';
+  shareCard.innerHTML = `
+    <h3>🍺⛳ Fairway Hammered</h3>
+    <div style="font-size:12px;opacity:0.7;margin-bottom:12px">${state.course || 'On the course'} · ${state.holes} holes</div>
+    ${state.players.map(p => {
+      const ou = p.scores.reduce((sum, sc, i) => sc !== null ? sum + (sc - state.pars[i]) : sum, 0);
+      const ouStr = ou === 0 ? 'E' : (ou > 0 ? `+${ou}` : `${ou}`);
+      return `<div>${escHtml(p.name)}: ${ouStr} · 🍺 ${p.beers}</div>`;
+    }).join('')}
+    <div style="margin-top:16px;font-size:12px;opacity:0.6">Built by teeemhigh.shop 🏌️</div>
+  `;
+  body.appendChild(shareCard);
+
+  // Play again
+  const playAgain = document.createElement('button');
+  playAgain.className = 'btn-play-again';
+  playAgain.textContent = '🔄 Play Again (New Round)';
+  playAgain.onclick = playAgain_fn;
+  body.appendChild(playAgain);
+}
+
+function addAward(container, emoji, title, desc) {
+  const item = document.createElement('div');
+  item.className = 'award-item';
+  item.innerHTML = `
+    <div class="award-emoji">${emoji}</div>
+    <div class="award-text">
+      <div class="award-title">${title}</div>
+      <div class="award-winner">${escHtml(desc)}</div>
+    </div>
+  `;
+  container.appendChild(item);
+}
+
+function playAgain_fn() {
+  playerCount = 0;
+  document.getElementById('player-list').innerHTML = '';
+  document.getElementById('add-player-btn').style.display = 'block';
+  addPlayer('', '');
+  addPlayer('', '');
+  document.getElementById('course-name').value = '';
+  document.getElementById('track-jim').checked = false;
+  selectHolesQuiet(9);
+  showScreen('screen-setup');
+  window.scrollTo(0, 0);
+}
+
+function selectHolesQuiet(n) {
+  selectedHoles = n;
+  document.querySelectorAll('.holes-btn').forEach((b, i) => {
+    b.classList.toggle('selected', (i === 0 && n === 9) || (i === 1 && n === 18));
+  });
+}
+
+// ============================================================
+// RULES
+// ============================================================
+function showRules() {
+  state.rulesFrom = document.querySelector('.screen.active').id;
+  showScreen('screen-rules');
+}
+
+function hideRules() {
+  showScreen(state.rulesFrom || 'screen-game');
+}
+
+// ============================================================
+// SCREEN NAV
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+</script>
+<script>
+// PWA Service Worker Registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/fairway-sw.js')
+      .then(() => console.log('Fairway Hammered: Ready to play offline 🍺⛳'))
+      .catch(() => console.log('Running without service worker'));
+  });
+}
+</script>
+</body>
+</html>

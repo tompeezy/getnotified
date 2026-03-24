@@ -6,1183 +6,1029 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#000010">
+<meta name="theme-color" content="#000308">
 <title>J.A.R.V.I.S.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue: #00d4ff;
+  --blue-dim: #0066aa;
+  --blue-bright: #80eeff;
+  --cyan: #00ffff;
+  --white-blue: #c0f0ff;
+  --glow: rgba(0, 212, 255, 0.6);
+  --bg: #000308;
+}
 
-  :root {
-    --blue: #00d4ff;
-    --blue-dim: #0066aa;
-    --blue-bright: #80eeff;
-    --cyan: #00ffff;
-    --white-blue: #c0f0ff;
-    --glow: rgba(0, 212, 255, 0.6);
-    --bg: #000308;
-  }
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  font-family: 'Rajdhani', sans-serif;
+  color: var(--blue);
+  touch-action: none;
+  user-select: none;
+}
 
-  html, body {
-    width: 100%; height: 100%;
-    overflow: hidden;
-    background: var(--bg);
-    font-family: 'Rajdhani', sans-serif;
-    color: var(--blue);
-    touch-action: none;
-    user-select: none;
-  }
+#three-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+}
 
-  /* ── CANVAS LAYER ── */
-  #canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 1;
-  }
+#ui {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
 
-  /* ── MAIN UI ── */
-  #ui {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-  }
+/* HUD corner decorations */
+.hud-corner {
+  position: fixed;
+  width: 60px; height: 60px;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0.5;
+}
+.hud-corner svg { width: 100%; height: 100%; }
+.hud-tl { top: 16px; left: 16px; }
+.hud-tr { top: 16px; right: 16px; transform: scaleX(-1); }
+.hud-bl { bottom: 16px; left: 16px; transform: scaleY(-1); }
+.hud-br { bottom: 16px; right: 16px; transform: scale(-1,-1); }
 
-  /* ── ORB CONTAINER ── */
-  #orb-wrap {
-    position: relative;
-    width: min(60vw, 60vh, 280px);
-    height: min(60vw, 60vh, 280px);
-    pointer-events: all;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
+/* Response text */
+#response-text {
+  position: fixed;
+  top: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(600px, 88vw);
+  text-align: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(14px, 2.5vw, 20px);
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  color: var(--white-blue);
+  text-shadow: 0 0 20px rgba(0,212,255,0.8);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+  z-index: 15;
+  line-height: 1.6;
+}
+#response-text.visible { opacity: 1; }
 
-  #orb-canvas {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-  }
+/* Orb click area */
+#orb-tap {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(340px, 70vw);
+  height: min(340px, 70vw);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 20;
+  pointer-events: all;
+  background: transparent;
+}
 
-  /* Click ripple */
-  #orb-wrap::after {
-    content: '';
-    position: absolute;
-    inset: -20px;
-    border-radius: 50%;
-    border: 1px solid transparent;
-    transition: border-color 0.2s, transform 0.2s;
-  }
-  #orb-wrap:active::after {
-    border-color: var(--blue);
-    transform: scale(1.05);
-  }
+/* Label below orb */
+#orb-label {
+  position: fixed;
+  bottom: calc(50% - min(210px, 42vw));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 15;
+}
 
-  /* ── TITLE ── */
-  #title {
-    margin-top: 32px;
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(18px, 5vw, 28px);
-    font-weight: 900;
-    letter-spacing: 0.4em;
-    color: var(--blue);
-    text-shadow: 0 0 20px var(--blue), 0 0 40px rgba(0,212,255,0.4);
-    animation: titlePulse 4s ease-in-out infinite;
-  }
-  @keyframes titlePulse {
-    0%, 100% { opacity: 0.9; text-shadow: 0 0 20px var(--blue), 0 0 40px rgba(0,212,255,0.4); }
-    50% { opacity: 1; text-shadow: 0 0 30px var(--blue), 0 0 60px rgba(0,212,255,0.6); }
-  }
+#cool-text {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(14px, 3vw, 22px);
+  font-weight: 700;
+  letter-spacing: 0.6em;
+  color: var(--blue);
+  text-shadow: 0 0 15px rgba(0,212,255,0.7), 0 0 40px rgba(0,212,255,0.3);
+  padding-right: 0.6em;
+}
 
-  /* ── STATUS ── */
-  #status {
-    margin-top: 16px;
-    font-size: clamp(11px, 3vw, 14px);
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--blue-dim);
-    transition: color 0.4s, text-shadow 0.4s;
-    min-height: 20px;
-  }
-  #status.listening { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
-  #status.processing { color: var(--white-blue); text-shadow: 0 0 10px var(--white-blue); }
-  #status.speaking { color: var(--blue-bright); text-shadow: 0 0 10px var(--blue-bright); }
-  #status.error { color: #ff4466; text-shadow: 0 0 10px #ff4466; }
+#status-text {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(9px, 1.5vw, 13px);
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  color: rgba(0, 212, 255, 0.6);
+  text-transform: uppercase;
+  transition: color 0.5s ease, text-shadow 0.5s ease;
+}
+#status-text.active {
+  color: var(--cyan);
+  text-shadow: 0 0 10px rgba(0,255,255,0.8);
+}
 
-  /* ── TRANSCRIPT / RESPONSE ── */
-  #text-area {
-    position: absolute;
-    bottom: 140px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(90vw, 500px);
-    text-align: center;
-    pointer-events: none;
-  }
+/* Settings panel */
+#gear-btn {
+  position: fixed;
+  top: 20px; right: 20px;
+  width: 40px; height: 40px;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50;
+  pointer-events: all;
+  transition: background 0.2s, border-color 0.2s;
+}
+#gear-btn:hover { background: rgba(0,212,255,0.18); border-color: rgba(0,212,255,0.5); }
+#gear-btn svg { width: 20px; height: 20px; fill: var(--blue); }
 
-  #transcript {
-    font-size: clamp(12px, 3.5vw, 16px);
-    color: rgba(0, 212, 255, 0.6);
-    letter-spacing: 0.05em;
-    min-height: 20px;
-    margin-bottom: 8px;
-    font-style: italic;
-  }
+#settings-panel {
+  position: fixed;
+  top: 0; right: -340px;
+  width: 320px; height: 100%;
+  background: rgba(0, 8, 20, 0.92);
+  border-left: 1px solid rgba(0,212,255,0.2);
+  backdrop-filter: blur(20px);
+  z-index: 100;
+  transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 20px;
+  pointer-events: all;
+  overflow-y: auto;
+}
+#settings-panel.open { right: 0; }
 
-  #response {
-    font-size: clamp(13px, 3.8vw, 17px);
-    color: var(--white-blue);
-    letter-spacing: 0.05em;
-    line-height: 1.5;
-    min-height: 24px;
-    text-shadow: 0 0 10px rgba(0,212,255,0.3);
-    max-height: 80px;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-  }
+.settings-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 14px;
+  letter-spacing: 0.3em;
+  color: var(--blue);
+  border-bottom: 1px solid rgba(0,212,255,0.2);
+  padding-bottom: 12px;
+  margin-top: 8px;
+}
 
-  /* ── HOLD TO TALK BUTTON ── */
-  #hold-btn {
-    position: absolute;
-    bottom: 60px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    border: 2px solid var(--blue-dim);
-    background: rgba(0, 100, 180, 0.1);
-    color: var(--blue);
-    font-size: 24px;
-    cursor: pointer;
-    pointer-events: all;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-    backdrop-filter: blur(4px);
-  }
-  #hold-btn:active, #hold-btn.active {
-    border-color: var(--cyan);
-    background: rgba(0, 200, 255, 0.2);
-    box-shadow: 0 0 20px var(--cyan), inset 0 0 20px rgba(0,200,255,0.1);
-    transform: translateX(-50%) scale(0.95);
-  }
-  #hold-btn svg { width: 28px; height: 28px; fill: currentColor; }
+.settings-row {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.settings-label {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(0,212,255,0.6);
+  text-transform: uppercase;
+}
+.settings-control {
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 4px;
+  padding: 8px 12px;
+  color: var(--blue);
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  width: 100%;
+  cursor: pointer;
+}
+.settings-control:focus { outline: none; border-color: var(--blue); }
+select.settings-control option { background: #000a18; }
 
-  /* ── SETTINGS BUTTON ── */
-  #settings-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 1px solid var(--blue-dim);
-    background: rgba(0,20,40,0.5);
-    color: var(--blue-dim);
-    font-size: 20px;
-    cursor: pointer;
-    pointer-events: all;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    backdrop-filter: blur(4px);
-    -webkit-tap-highlight-color: transparent;
-  }
-  #settings-btn:hover, #settings-btn:active {
-    border-color: var(--blue);
-    color: var(--blue);
-    box-shadow: 0 0 12px var(--blue);
-  }
-  #settings-btn svg { width: 22px; height: 22px; fill: currentColor; }
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.toggle {
+  position: relative;
+  width: 44px; height: 24px;
+  cursor: pointer;
+}
+.toggle input { display: none; }
+.toggle-slider {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.3);
+  border-radius: 24px;
+  transition: 0.3s;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  left: 3px; top: 3px;
+  width: 16px; height: 16px;
+  background: rgba(0,212,255,0.4);
+  border-radius: 50%;
+  transition: 0.3s;
+}
+.toggle input:checked + .toggle-slider { background: rgba(0,212,255,0.2); border-color: var(--blue); }
+.toggle input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+  background: var(--blue);
+  box-shadow: 0 0 8px rgba(0,212,255,0.8);
+}
 
-  /* ── HISTORY BUTTON ── */
-  #history-btn {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 1px solid var(--blue-dim);
-    background: rgba(0,20,40,0.5);
-    color: var(--blue-dim);
-    font-size: 20px;
-    cursor: pointer;
-    pointer-events: all;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s;
-    backdrop-filter: blur(4px);
-    -webkit-tap-highlight-color: transparent;
-  }
-  #history-btn:hover, #history-btn:active {
-    border-color: var(--blue);
-    color: var(--blue);
-    box-shadow: 0 0 12px var(--blue);
-  }
-  #history-btn svg { width: 22px; height: 22px; fill: currentColor; stroke: currentColor; stroke-width: 0; }
+#close-settings {
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 4px;
+  color: var(--blue);
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  padding: 10px;
+  cursor: pointer;
+  width: 100%;
+  text-transform: uppercase;
+  margin-top: auto;
+}
+#close-settings:hover { background: rgba(0,212,255,0.1); }
 
-  /* ── PANELS ── */
-  .panel {
-    position: fixed;
-    left: 0; right: 0;
-    bottom: -100%;
-    z-index: 100;
-    background: rgba(0, 8, 20, 0.95);
-    border-top: 1px solid var(--blue-dim);
-    border-radius: 16px 16px 0 0;
-    padding: 24px 20px;
-    transition: bottom 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    backdrop-filter: blur(20px);
-    pointer-events: all;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-  .panel.open { bottom: 0; }
-  .panel-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 14px;
-    letter-spacing: 0.3em;
-    color: var(--blue);
-    margin-bottom: 20px;
-    text-align: center;
-    text-transform: uppercase;
-  }
-  .panel-close {
-    position: absolute;
-    top: 16px; right: 16px;
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--blue-dim);
-    background: none;
-    color: var(--blue-dim);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-    transition: all 0.2s;
-  }
-  .panel-close:hover { color: var(--blue); border-color: var(--blue); }
-
-  /* Settings items */
-  .setting-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(0,100,150,0.2);
-  }
-  .setting-label {
-    font-size: 14px;
-    letter-spacing: 0.1em;
-    color: var(--white-blue);
-  }
-  .setting-label small {
-    display: block;
-    font-size: 11px;
-    color: var(--blue-dim);
-    margin-top: 2px;
-  }
-
-  /* Toggle switch */
-  .toggle {
-    position: relative;
-    width: 48px;
-    height: 26px;
-    cursor: pointer;
-  }
-  .toggle input { display: none; }
-  .toggle-track {
-    position: absolute;
-    inset: 0;
-    border-radius: 13px;
-    background: rgba(0,50,80,0.5);
-    border: 1px solid var(--blue-dim);
-    transition: all 0.3s;
-  }
-  .toggle input:checked ~ .toggle-track {
-    background: rgba(0,150,200,0.4);
-    border-color: var(--blue);
-    box-shadow: 0 0 8px var(--blue);
-  }
-  .toggle-thumb {
-    position: absolute;
-    top: 3px; left: 3px;
-    width: 18px; height: 18px;
-    border-radius: 50%;
-    background: var(--blue-dim);
-    transition: all 0.3s;
-  }
-  .toggle input:checked ~ .toggle-track ~ .toggle-thumb,
-  .toggle input:checked + .toggle-track + .toggle-thumb {
-    left: 25px;
-    background: var(--blue);
-    box-shadow: 0 0 6px var(--blue);
-  }
-
-  /* Range input */
-  .range-input {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 120px;
-    height: 3px;
-    background: linear-gradient(to right, var(--blue) 0%, var(--blue) var(--val, 50%), rgba(0,80,100,0.4) var(--val, 50%));
-    border-radius: 2px;
-    outline: none;
-  }
-  .range-input::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--blue);
-    box-shadow: 0 0 6px var(--blue);
-    cursor: pointer;
-  }
-
-  /* Voice select */
-  .voice-select {
-    background: rgba(0,20,40,0.8);
-    border: 1px solid var(--blue-dim);
-    color: var(--blue);
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    max-width: 160px;
-  }
-  .voice-select option { background: #000820; }
-  .voice-select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 6px var(--blue); }
-
-  /* History items */
-  .history-item {
-    padding: 12px 0;
-    border-bottom: 1px solid rgba(0,100,150,0.2);
-  }
-  .history-item:last-child { border-bottom: none; }
-  .history-you {
-    font-size: 13px;
-    color: var(--blue-dim);
-    margin-bottom: 4px;
-    font-style: italic;
-  }
-  .history-you::before { content: '▶ '; }
-  .history-jarvis {
-    font-size: 14px;
-    color: var(--white-blue);
-    line-height: 1.4;
-  }
-  .history-jarvis::before { content: '✦ '; color: var(--blue); }
-  .history-empty {
-    text-align: center;
-    color: var(--blue-dim);
-    font-size: 14px;
-    padding: 20px;
-    letter-spacing: 0.1em;
-  }
-
-  /* Overlay to close panels */
-  #overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 90;
-    display: none;
-    background: rgba(0,0,0,0.4);
-  }
-  #overlay.show { display: block; }
-
-  /* ── SCANLINES EFFECT ── */
-  #scanlines {
-    position: fixed;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.04) 2px,
-      rgba(0,0,0,0.04) 4px
-    );
-    animation: scanMove 8s linear infinite;
-  }
-  @keyframes scanMove {
-    from { background-position: 0 0; }
-    to { background-position: 0 100px; }
-  }
-
-  /* ── CORNER DECORATIONS ── */
-  .corner {
-    position: fixed;
-    width: 50px; height: 50px;
-    z-index: 3;
-    pointer-events: none;
-  }
-  .corner-tl { top: 12px; left: 12px; border-top: 1px solid var(--blue-dim); border-left: 1px solid var(--blue-dim); }
-  .corner-tr { top: 12px; right: 12px; border-top: 1px solid var(--blue-dim); border-right: 1px solid var(--blue-dim); }
-  .corner-bl { bottom: 12px; left: 12px; border-bottom: 1px solid var(--blue-dim); border-left: 1px solid var(--blue-dim); }
-  .corner-br { bottom: 12px; right: 12px; border-bottom: 1px solid var(--blue-dim); border-right: 1px solid var(--blue-dim); }
-
-  /* ── OFFLINE NOTICE ── */
-  #offline-notice {
-    display: none;
-    position: fixed;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(80,0,0,0.6);
-    border: 1px solid #aa0000;
-    color: #ff6666;
-    padding: 6px 16px;
-    border-radius: 4px;
-    font-size: 12px;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    z-index: 20;
-    pointer-events: none;
-  }
-  #offline-notice.show { display: block; }
+/* Listening pulse ring */
+#listen-ring {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(360px, 74vw);
+  height: min(360px, 74vw);
+  border-radius: 50%;
+  border: 2px solid rgba(0,212,255,0);
+  pointer-events: none;
+  z-index: 8;
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+#listen-ring.active {
+  border-color: rgba(0,212,255,0.4);
+  box-shadow: 0 0 40px rgba(0,212,255,0.15), inset 0 0 40px rgba(0,212,255,0.05);
+  animation: ringPulse 1.5s ease-in-out infinite;
+}
+@keyframes ringPulse {
+  0%,100% { transform: translate(-50%,-50%) scale(1); opacity:1; }
+  50% { transform: translate(-50%,-50%) scale(1.05); opacity:0.7; }
+}
 </style>
 </head>
 <body>
 
-<!-- Background Canvas (starfield + grid) -->
-<canvas id="canvas"></canvas>
+<!-- Three.js canvas -->
+<canvas id="three-canvas"></canvas>
 
-<!-- Scanlines -->
-<div id="scanlines"></div>
+<!-- Listen ring -->
+<div id="listen-ring"></div>
 
-<!-- Corner decorations -->
-<div class="corner corner-tl"></div>
-<div class="corner corner-tr"></div>
-<div class="corner corner-bl"></div>
-<div class="corner corner-br"></div>
-
-<!-- Offline notice -->
-<div id="offline-notice">⚠ OFFLINE — RECONNECTING</div>
-
-<!-- Overlay -->
-<div id="overlay"></div>
-
-<!-- Main UI -->
-<div id="ui">
-  <!-- History button -->
-  <button id="history-btn" aria-label="View history">
-    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-  </button>
-
-  <!-- Settings button -->
-  <button id="settings-btn" aria-label="Settings">
-    <svg viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
-  </button>
-
-  <!-- Orb -->
-  <div id="orb-wrap">
-    <canvas id="orb-canvas"></canvas>
-  </div>
-
-  <!-- Title & Status -->
-  <div id="title">J.A.R.V.I.S.</div>
-  <div id="status">STAND BY</div>
-
-  <!-- Text area -->
-  <div id="text-area">
-    <div id="transcript"></div>
-    <div id="response"></div>
-  </div>
-
-  <!-- Hold to talk -->
-  <button id="hold-btn" aria-label="Hold to talk">
-    <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-  </button>
+<!-- HUD Corners -->
+<div class="hud-corner hud-tl">
+  <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 40 L2 2 L40 2" stroke="#00d4ff" stroke-width="1.5" fill="none"/>
+    <path d="M2 20 L2 2 L20 2" stroke="#00d4ff" stroke-width="0.5" fill="none" opacity="0.4"/>
+    <circle cx="2" cy="2" r="3" fill="#00d4ff" opacity="0.6"/>
+  </svg>
 </div>
+<div class="hud-corner hud-tr">
+  <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 40 L2 2 L40 2" stroke="#00d4ff" stroke-width="1.5" fill="none"/>
+    <path d="M2 20 L2 2 L20 2" stroke="#00d4ff" stroke-width="0.5" fill="none" opacity="0.4"/>
+    <circle cx="2" cy="2" r="3" fill="#00d4ff" opacity="0.6"/>
+  </svg>
+</div>
+<div class="hud-corner hud-bl">
+  <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 40 L2 2 L40 2" stroke="#00d4ff" stroke-width="1.5" fill="none"/>
+    <path d="M2 20 L2 2 L20 2" stroke="#00d4ff" stroke-width="0.5" fill="none" opacity="0.4"/>
+    <circle cx="2" cy="2" r="3" fill="#00d4ff" opacity="0.6"/>
+  </svg>
+</div>
+<div class="hud-corner hud-br">
+  <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 40 L2 2 L40 2" stroke="#00d4ff" stroke-width="1.5" fill="none"/>
+    <path d="M2 20 L2 2 L20 2" stroke="#00d4ff" stroke-width="0.5" fill="none" opacity="0.4"/>
+    <circle cx="2" cy="2" r="3" fill="#00d4ff" opacity="0.6"/>
+  </svg>
+</div>
+
+<!-- Response text -->
+<div id="response-text"></div>
+
+<!-- Orb tap zone -->
+<div id="orb-tap" title="Tap to speak"></div>
+
+<!-- Label below orb -->
+<div id="orb-label">
+  <div id="cool-text">C O O L</div>
+  <div id="status-text">STANDBY</div>
+</div>
+
+<!-- Gear button -->
+<button id="gear-btn" title="Settings">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 15.5A3.5 3.5 0 0 1 8.5 12 3.5 3.5 0 0 1 12 8.5a3.5 3.5 0 0 1 3.5 3.5 3.5 3.5 0 0 1-3.5 3.5m7.43-2.92c.04-.33.07-.67.07-1.08s-.03-.76-.07-1.1l2.37-1.86c.22-.17.27-.48.13-.72l-2.24-3.87c-.14-.24-.45-.32-.69-.22l-2.8 1.12c-.58-.44-1.21-.82-1.9-1.09L14.17 3c-.05-.26-.28-.5-.55-.5H9.38c-.27 0-.5.24-.55.5l-.43 2.96a9.3 9.3 0 0 0-1.9 1.09L3.7 6.43c-.24-.1-.55-.02-.69.22L.77 10.52c-.14.24-.1.55.13.72l2.37 1.86c-.05.34-.08.69-.08 1.1s.03.75.08 1.09l-2.37 1.85c-.23.17-.27.48-.13.73l2.24 3.86c.14.25.45.33.69.23l2.8-1.12c.58.44 1.21.82 1.9 1.1l.43 2.95c.05.27.28.5.55.5h4.47c.27 0 .5-.23.55-.5l.43-2.95a9.3 9.3 0 0 0 1.9-1.1l2.8 1.12c.24.1.55.02.69-.22l2.24-3.87c.14-.24.1-.55-.13-.72l-2.38-1.86z"/>
+  </svg>
+</button>
 
 <!-- Settings Panel -->
-<div class="panel" id="settings-panel">
-  <div class="panel-title">SYSTEM SETTINGS</div>
-  <button class="panel-close" id="settings-close">✕</button>
+<div id="settings-panel">
+  <div class="settings-title">⚙ SYSTEM CONFIG</div>
 
-  <div class="setting-row">
-    <div class="setting-label">
-      Auto-Listen
-      <small>Listen again after response</small>
-    </div>
-    <label class="toggle">
-      <input type="checkbox" id="auto-listen-toggle">
-      <div class="toggle-track"></div>
-      <div class="toggle-thumb"></div>
-    </label>
+  <div class="settings-row">
+    <div class="settings-label">Voice Output</div>
+    <select id="voice-select" class="settings-control"></select>
   </div>
 
-  <div class="setting-row">
-    <div class="setting-label">
-      Voice Speed
-      <small id="speed-val">1.0×</small>
+  <div class="settings-row">
+    <div class="toggle-row">
+      <div class="settings-label">Auto-Listen After Response</div>
+      <label class="toggle">
+        <input type="checkbox" id="auto-listen-toggle">
+        <span class="toggle-slider"></span>
+      </label>
     </div>
-    <input type="range" class="range-input" id="speed-range" min="0.5" max="2" step="0.1" value="1.0">
   </div>
 
-  <div class="setting-row">
-    <div class="setting-label">
-      Voice
-      <small>Text-to-speech voice</small>
+  <div class="settings-row">
+    <div class="toggle-row">
+      <div class="settings-label">Wake Word "Cool"</div>
+      <label class="toggle">
+        <input type="checkbox" id="wake-word-toggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
     </div>
-    <select class="voice-select" id="voice-select">
-      <option value="">Default</option>
-    </select>
   </div>
 
-  <div class="setting-row">
-    <div class="setting-label">
-      Wake Word
-      <small>"Jarvis" triggers listening</small>
-    </div>
-    <label class="toggle">
-      <input type="checkbox" id="wake-word-toggle" checked>
-      <div class="toggle-track"></div>
-      <div class="toggle-thumb"></div>
-    </label>
-  </div>
-</div>
-
-<!-- History Panel -->
-<div class="panel" id="history-panel">
-  <div class="panel-title">CONVERSATION LOG</div>
-  <button class="panel-close" id="history-close">✕</button>
-  <div id="history-list"><div class="history-empty">No conversations yet</div></div>
+  <button id="close-settings">CLOSE</button>
 </div>
 
 <script>
-// ══════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════
-const STATE = {
-  mode: 'idle', // idle | listening | processing | speaking
-  autoListen: false,
-  voiceSpeed: 1.0,
-  selectedVoice: null,
-  wakeWordEnabled: true,
-  history: [],
-  isOnline: navigator.onLine,
-  recognition: null,
-  synthesis: window.speechSynthesis,
-  voices: [],
-  wakeRecognition: null,
-  audioCtx: null,
-  analyser: null,
-  speechVolume: 0,
+// ─────────────────────────────────────────────
+//  THREE.JS ORB SETUP
+// ─────────────────────────────────────────────
+const canvas = document.getElementById('three-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setClearColor(0x000308, 1);
+renderer.shadowMap.enabled = false;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 5;
+
+// ── State ──
+const STATE = { IDLE: 'idle', LISTENING: 'listening', PROCESSING: 'processing', SPEAKING: 'speaking' };
+let currentState = STATE.IDLE;
+let speakIntensity = 0;
+let clock = new THREE.Clock();
+
+// ── Animation targets (smooth lerp) ──
+let anim = {
+  ringSpeed: 1.0,
+  coreIntensity: 1.0,
+  glowScale: 1.0,
+  particleSpeed: 1.0,
+  orbScale: 1.0,
+  processingArms: 0.0,
+  colorTemp: 0.0,  // 0=cyan, 1=warm white
 };
+let animTargets = { ...anim };
 
-// ══════════════════════════════════════════════
-// CANVAS BACKGROUND (starfield + grid)
-// ══════════════════════════════════════════════
-const bgCanvas = document.getElementById('canvas');
-const bgCtx = bgCanvas.getContext('2d');
-let stars = [];
-let bgW, bgH;
+// ── Colors ──
+const CYAN = new THREE.Color(0x00d4ff);
+const WHITE_CYAN = new THREE.Color(0xc0f8ff);
+const WARM_WHITE = new THREE.Color(0xe8f4ff);
 
-function initBackground() {
-  bgW = bgCanvas.width = window.innerWidth;
-  bgH = bgCanvas.height = window.innerHeight;
-  stars = Array.from({length: 120}, () => ({
-    x: Math.random() * bgW,
-    y: Math.random() * bgH,
-    r: Math.random() * 1.2 + 0.2,
-    a: Math.random(),
-    da: (Math.random() - 0.5) * 0.005,
-  }));
-}
+// ─────────────────────────────────────────────
+//  ICOSPHERE WIREFRAME
+// ─────────────────────────────────────────────
+const icoGeo = new THREE.IcosahedronGeometry(1.0, 3);
+const icoMat = new THREE.MeshBasicMaterial({
+  color: 0x00d4ff,
+  wireframe: true,
+  transparent: true,
+  opacity: 0.18,
+});
+const icoMesh = new THREE.Mesh(icoGeo, icoMat);
+scene.add(icoMesh);
 
-function drawBackground(t) {
-  bgCtx.clearRect(0, 0, bgW, bgH);
+// Second icosphere at slightly different subdivision for panel effect
+const icoGeo2 = new THREE.IcosahedronGeometry(1.02, 2);
+const icoMat2 = new THREE.MeshBasicMaterial({
+  color: 0x0099cc,
+  wireframe: true,
+  transparent: true,
+  opacity: 0.08,
+});
+const icoMesh2 = new THREE.Mesh(icoGeo2, icoMat2);
+scene.add(icoMesh2);
 
-  // Deep space gradient
-  const grad = bgCtx.createRadialGradient(bgW/2, bgH/2, 0, bgW/2, bgH/2, bgW * 0.7);
-  grad.addColorStop(0, '#000820');
-  grad.addColorStop(1, '#000308');
-  bgCtx.fillStyle = grad;
-  bgCtx.fillRect(0, 0, bgW, bgH);
-
-  // Grid
-  bgCtx.strokeStyle = 'rgba(0,80,120,0.08)';
-  bgCtx.lineWidth = 0.5;
-  const gs = 50;
-  for (let x = 0; x < bgW; x += gs) { bgCtx.beginPath(); bgCtx.moveTo(x,0); bgCtx.lineTo(x,bgH); bgCtx.stroke(); }
-  for (let y = 0; y < bgH; y += gs) { bgCtx.beginPath(); bgCtx.moveTo(0,y); bgCtx.lineTo(bgW,y); bgCtx.stroke(); }
-
-  // Stars
-  stars.forEach(s => {
-    s.a += s.da;
-    if (s.a < 0.1 || s.a > 1) s.da *= -1;
-    bgCtx.beginPath();
-    bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    bgCtx.fillStyle = `rgba(150,220,255,${s.a * 0.6})`;
-    bgCtx.fill();
+// ─────────────────────────────────────────────
+//  ROTATING RINGS (armillary sphere style)
+// ─────────────────────────────────────────────
+function makeRing(radiusOuter, tube, color, opacity) {
+  const geo = new THREE.TorusGeometry(radiusOuter, tube, 6, 80);
+  const mat = new THREE.MeshBasicMaterial({
+    color,
+    transparent: true,
+    opacity,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
   });
+  return new THREE.Mesh(geo, mat);
 }
 
-// ══════════════════════════════════════════════
-// ORB CANVAS
-// ══════════════════════════════════════════════
-const orbCanvas = document.getElementById('orb-canvas');
-const orbCtx = orbCanvas.getContext('2d');
-let orbSize;
+// Ring 1 — XY plane (equatorial)
+const ring1 = makeRing(1.38, 0.008, 0x00d4ff, 0.9);
+ring1.rotation.x = 0;
+scene.add(ring1);
 
-function initOrb() {
-  const wrap = document.getElementById('orb-wrap');
-  orbSize = wrap.offsetWidth;
-  orbCanvas.width = orbSize * window.devicePixelRatio;
-  orbCanvas.height = orbSize * window.devicePixelRatio;
-  orbCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+// Ring 2 — tilted ~70 degrees
+const ring2 = makeRing(1.32, 0.006, 0x00aadd, 0.75);
+ring2.rotation.x = Math.PI * 0.35;
+ring2.rotation.y = Math.PI * 0.15;
+scene.add(ring2);
+
+// Ring 3 — near-polar
+const ring3 = makeRing(1.35, 0.007, 0x0088cc, 0.65);
+ring3.rotation.x = Math.PI * 0.45;
+ring3.rotation.z = Math.PI * 0.3;
+scene.add(ring3);
+
+// Ring glow halos (wider, very transparent)
+const ringHalo1 = makeRing(1.38, 0.025, 0x00d4ff, 0.12);
+ringHalo1.rotation.x = 0;
+scene.add(ringHalo1);
+
+const ringHalo2 = makeRing(1.32, 0.022, 0x00aadd, 0.10);
+ringHalo2.rotation.x = Math.PI * 0.35;
+ringHalo2.rotation.y = Math.PI * 0.15;
+scene.add(ringHalo2);
+
+// ─────────────────────────────────────────────
+//  INNER GLOW CORE
+// ─────────────────────────────────────────────
+// Innermost bright core
+const coreGeo = new THREE.SphereGeometry(0.28, 32, 32);
+const coreMat = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0.95,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+const coreMesh = new THREE.Mesh(coreGeo, coreMat);
+scene.add(coreMesh);
+
+// Mid glow
+const midGlowGeo = new THREE.SphereGeometry(0.55, 32, 32);
+const midGlowMat = new THREE.MeshBasicMaterial({
+  color: 0x40e0ff,
+  transparent: true,
+  opacity: 0.45,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+const midGlowMesh = new THREE.Mesh(midGlowGeo, midGlowMat);
+scene.add(midGlowMesh);
+
+// Outer glow sphere (fills interior)
+const innerGlowGeo = new THREE.SphereGeometry(0.85, 32, 32);
+const innerGlowMat = new THREE.MeshBasicMaterial({
+  color: 0x00d4ff,
+  transparent: true,
+  opacity: 0.18,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+const innerGlowMesh = new THREE.Mesh(innerGlowGeo, innerGlowMat);
+scene.add(innerGlowMesh);
+
+// ─────────────────────────────────────────────
+//  OUTER ATMOSPHERE (Fresnel-like edge glow)
+// ─────────────────────────────────────────────
+// Simulate Fresnel with multiple shells
+const shells = [];
+const shellConfigs = [
+  { r: 1.12, op: 0.08, col: 0x00d4ff },
+  { r: 1.22, op: 0.055, col: 0x0088cc },
+  { r: 1.42, op: 0.03, col: 0x004488 },
+  { r: 1.65, op: 0.015, col: 0x002244 },
+];
+for (const cfg of shellConfigs) {
+  const g = new THREE.SphereGeometry(cfg.r, 32, 32);
+  const m = new THREE.MeshBasicMaterial({
+    color: cfg.col,
+    transparent: true,
+    opacity: cfg.op,
+    blending: THREE.AdditiveBlending,
+    side: THREE.BackSide,
+    depthWrite: false,
+  });
+  const mesh = new THREE.Mesh(g, m);
+  scene.add(mesh);
+  shells.push(mesh);
 }
 
-function drawOrb(t) {
-  const ctx = orbCtx;
-  const s = orbSize;
-  const cx = s / 2, cy = s / 2;
-  const r = s * 0.34;
-  ctx.clearRect(0, 0, s, s);
+// ─────────────────────────────────────────────
+//  PARTICLE SYSTEM (orbiting along ring paths)
+// ─────────────────────────────────────────────
+const PARTICLE_COUNT = 220;
+const particlePositions = new Float32Array(PARTICLE_COUNT * 3);
+const particleSizes = new Float32Array(PARTICLE_COUNT);
+const particlePhases = new Float32Array(PARTICLE_COUNT);
+const particleRings = new Uint8Array(PARTICLE_COUNT); // which ring: 0,1,2
 
-  const mode = STATE.mode;
-  const pulse = Math.sin(t * 0.002) * 0.5 + 0.5;
-  const fastPulse = Math.sin(t * 0.006) * 0.5 + 0.5;
-  const vol = STATE.speechVolume;
+for (let i = 0; i < PARTICLE_COUNT; i++) {
+  const ring = i % 3;
+  particleRings[i] = ring;
+  particlePhases[i] = (i / PARTICLE_COUNT) * Math.PI * 2;
+  particleSizes[i] = 3 + Math.random() * 4;
+}
 
-  // Mode-based colors
-  let coreColor, glowColor, ringSpeed;
-  if (mode === 'idle') {
-    coreColor = `rgba(0,160,220,${0.6 + pulse * 0.15})`;
-    glowColor = `rgba(0,180,240,${0.4 + pulse * 0.1})`;
-    ringSpeed = 0.4;
-  } else if (mode === 'listening') {
-    coreColor = `rgba(0,220,255,${0.7 + fastPulse * 0.25})`;
-    glowColor = `rgba(0,255,255,${0.6 + fastPulse * 0.3})`;
-    ringSpeed = 1.6;
-  } else if (mode === 'processing') {
-    const p = (Math.sin(t * 0.005) * 0.5 + 0.5);
-    coreColor = `rgba(${180 + p * 75},${220 + p * 35},255,${0.7 + p * 0.2})`;
-    glowColor = `rgba(200,240,255,${0.5 + p * 0.3})`;
-    ringSpeed = 2.5;
-  } else { // speaking
-    const v = vol * 0.8;
-    coreColor = `rgba(0,${200 + v * 55},${240 + v * 15},${0.7 + v * 0.3})`;
-    glowColor = `rgba(0,${210 + v * 45},255,${0.5 + v * 0.4})`;
-    ringSpeed = 1.0 + v * 2.0;
+const particleGeo = new THREE.BufferGeometry();
+particleGeo.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+particleGeo.setAttribute('size', new THREE.BufferAttribute(particleSizes, 1));
+
+// Circular particle texture
+const pCanvas = document.createElement('canvas');
+pCanvas.width = pCanvas.height = 32;
+const pCtx = pCanvas.getContext('2d');
+const pGrad = pCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+pGrad.addColorStop(0, 'rgba(255,255,255,1)');
+pGrad.addColorStop(0.3, 'rgba(0,212,255,0.8)');
+pGrad.addColorStop(1, 'rgba(0,100,200,0)');
+pCtx.fillStyle = pGrad;
+pCtx.fillRect(0, 0, 32, 32);
+const pTex = new THREE.CanvasTexture(pCanvas);
+
+const particleMat = new THREE.PointsMaterial({
+  size: 0.045,
+  map: pTex,
+  color: 0x00d4ff,
+  transparent: true,
+  opacity: 0.85,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  sizeAttenuation: true,
+});
+const particles = new THREE.Points(particleGeo, particleMat);
+scene.add(particles);
+
+// ─────────────────────────────────────────────
+//  PROCESSING SCANNER ARMS
+// ─────────────────────────────────────────────
+const scannerArms = [];
+for (let i = 0; i < 4; i++) {
+  const armGeo = new THREE.TorusGeometry(1.5, 0.003, 4, 60, Math.PI * 0.15);
+  const armMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+  });
+  const arm = new THREE.Mesh(armGeo, armMat);
+  arm.rotation.y = (i / 4) * Math.PI * 2;
+  scene.add(arm);
+  scannerArms.push(arm);
+}
+
+// ─────────────────────────────────────────────
+//  ORBITRON GROUP (all geometry)
+// ─────────────────────────────────────────────
+// Group for breathing/scale
+const orbGroup = new THREE.Group();
+orbGroup.add(icoMesh, icoMesh2, coreMesh, midGlowMesh, innerGlowMesh);
+orbGroup.add(ring1, ring2, ring3, ringHalo1, ringHalo2);
+for (const s of shells) orbGroup.add(s);
+orbGroup.add(particles);
+for (const a of scannerArms) orbGroup.add(a);
+scene.add(orbGroup);
+
+// ─────────────────────────────────────────────
+//  ANIMATION STATE FUNCTIONS
+// ─────────────────────────────────────────────
+function setIdle() {
+  currentState = STATE.IDLE;
+  animTargets.ringSpeed = 1.0;
+  animTargets.coreIntensity = 1.0;
+  animTargets.glowScale = 1.0;
+  animTargets.particleSpeed = 1.0;
+  animTargets.processingArms = 0.0;
+  animTargets.colorTemp = 0.0;
+  updateStatus('STANDBY', false);
+}
+
+function setListening() {
+  currentState = STATE.LISTENING;
+  animTargets.ringSpeed = 3.5;
+  animTargets.coreIntensity = 2.2;
+  animTargets.glowScale = 1.18;
+  animTargets.particleSpeed = 2.8;
+  animTargets.processingArms = 0.0;
+  animTargets.colorTemp = 0.1;
+  updateStatus('LISTENING', true);
+}
+
+function setProcessing() {
+  currentState = STATE.PROCESSING;
+  animTargets.ringSpeed = 2.0;
+  animTargets.coreIntensity = 1.8;
+  animTargets.glowScale = 1.08;
+  animTargets.particleSpeed = 1.5;
+  animTargets.processingArms = 1.0;
+  animTargets.colorTemp = 0.6;
+  updateStatus('PROCESSING', true);
+}
+
+function setSpeaking(intensity = 0.5) {
+  currentState = STATE.SPEAKING;
+  speakIntensity = intensity;
+  animTargets.ringSpeed = 1.5 + intensity * 1.5;
+  animTargets.coreIntensity = 1.4 + intensity * 1.2;
+  animTargets.glowScale = 1.0 + intensity * 0.1;
+  animTargets.particleSpeed = 2.0 + intensity;
+  animTargets.processingArms = 0.0;
+  animTargets.colorTemp = 0.2;
+  updateStatus('SPEAKING', true);
+}
+
+function updateStatus(text, active) {
+  const el = document.getElementById('status-text');
+  el.textContent = text;
+  el.classList.toggle('active', active);
+}
+
+// ─────────────────────────────────────────────
+//  MAIN ANIMATION LOOP
+// ─────────────────────────────────────────────
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  const delta = clock.getDelta();
+  t += delta;
+
+  // Lerp anim toward targets
+  const lerpRate = 1 - Math.pow(0.02, delta);
+  for (const key of Object.keys(anim)) {
+    anim[key] += (animTargets[key] - anim[key]) * lerpRate;
   }
 
-  // ── OUTER GLOW ──
-  const glowR = r * (mode === 'listening' ? 1.8 + fastPulse * 0.3 : 1.4 + pulse * 0.15);
-  const grd = ctx.createRadialGradient(cx, cy, r * 0.5, cx, cy, glowR);
-  grd.addColorStop(0, glowColor.replace(/[\d.]+\)$/, '0.25)'));
-  grd.addColorStop(0.5, glowColor.replace(/[\d.]+\)$/, '0.08)'));
-  grd.addColorStop(1, 'transparent');
-  ctx.beginPath();
-  ctx.arc(cx, cy, glowR, 0, Math.PI * 2);
-  ctx.fillStyle = grd;
-  ctx.fill();
+  // Breathing pulse (5-8% size variation)
+  const breathFreq = currentState === STATE.IDLE ? 0.4 : 0.7;
+  const breathAmp = currentState === STATE.SPEAKING ? 0.07 + speakIntensity * 0.06 : 0.05;
+  const breath = 1.0 + Math.sin(t * breathFreq * Math.PI * 2) * breathAmp;
+  orbGroup.scale.setScalar(breath * anim.glowScale);
 
-  // ── RINGS ──
-  const rings = [
-    { radiusMult: 1.6, arc: Math.PI * 1.5, tilt: 0.3, speed: ringSpeed, width: 1.5, opacity: 0.5 },
-    { radiusMult: 1.9, arc: Math.PI * 1.1, tilt: -0.5, speed: -ringSpeed * 0.7, width: 1, opacity: 0.35 },
-    { radiusMult: 2.2, arc: Math.PI * 0.8, tilt: 0.7, speed: ringSpeed * 0.5, width: 0.8, opacity: 0.25 },
+  // Rotate icospheres (slow graceful rotation)
+  const icoSpeed = 0.08 * anim.ringSpeed * 0.3;
+  icoMesh.rotation.y += delta * icoSpeed;
+  icoMesh.rotation.x += delta * icoSpeed * 0.4;
+  icoMesh2.rotation.y -= delta * icoSpeed * 0.7;
+  icoMesh2.rotation.z += delta * icoSpeed * 0.3;
+
+  // Ring rotations (each at different speed/axis)
+  const rs = anim.ringSpeed;
+  ring1.rotation.z += delta * 0.22 * rs;
+  ring1.rotation.y += delta * 0.05 * rs;
+  ring2.rotation.z += delta * -0.17 * rs;
+  ring2.rotation.x += delta * 0.08 * rs;
+  ring3.rotation.y += delta * 0.19 * rs;
+  ring3.rotation.z += delta * 0.06 * rs;
+  ringHalo1.rotation.z = ring1.rotation.z;
+  ringHalo1.rotation.y = ring1.rotation.y;
+  ringHalo2.rotation.z = ring2.rotation.z;
+  ringHalo2.rotation.x = ring2.rotation.x;
+
+  // Core glow pulsing
+  const coreBreath = 0.8 + Math.sin(t * 2.1) * 0.2;
+  coreMat.opacity = Math.min(0.98, 0.75 * anim.coreIntensity * coreBreath);
+  midGlowMat.opacity = 0.35 * anim.coreIntensity * coreBreath;
+  innerGlowMat.opacity = 0.14 * anim.coreIntensity;
+
+  // Color temperature shift
+  const coreColor = new THREE.Color().lerpColors(WHITE_CYAN, WARM_WHITE, anim.colorTemp);
+  coreMat.color.copy(coreColor);
+
+  // Ring color/opacity by state
+  const ringGlow = 0.7 + Math.sin(t * 3) * 0.15 * (rs - 1) / 3;
+  icoMat.opacity = 0.14 + 0.06 * (rs / 4);
+  ring1.material.opacity = Math.min(0.95, 0.85 * ringGlow * anim.coreIntensity * 0.6);
+  ring2.material.opacity = Math.min(0.85, 0.75 * ringGlow * anim.coreIntensity * 0.55);
+  ring3.material.opacity = Math.min(0.75, 0.65 * ringGlow * anim.coreIntensity * 0.5);
+
+  // Outer shells glow
+  const shellBase = anim.glowScale * 0.9;
+  for (let i = 0; i < shells.length; i++) {
+    shells[i].material.opacity = shellConfigs[i].op * shellBase * anim.coreIntensity * 0.7;
+  }
+
+  // Update particles
+  const posArr = particleGeo.attributes.position.array;
+  const pSpeed = anim.particleSpeed;
+
+  const ringDefs = [
+    // ring 0: equatorial (XZ plane)
+    { radius: 1.38, tilt: new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0)) },
+    // ring 1
+    { radius: 1.32, tilt: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI * 0.35, Math.PI * 0.15, 0)) },
+    // ring 2
+    { radius: 1.35, tilt: new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI * 0.45, 0, Math.PI * 0.3)) },
   ];
 
-  rings.forEach((ring, i) => {
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(t * 0.001 * ring.speed + i);
-    ctx.scale(1, Math.sin(ring.tilt));
-    const rr = r * ring.radiusMult;
+  const ringRotSpeeds = [
+    ring1.rotation.z,
+    ring2.rotation.z,
+    ring3.rotation.y,
+  ];
 
-    // Pulsing outer ring for listening
-    let extra = 0;
-    if (mode === 'listening' && i === 2) extra = fastPulse * 0.15;
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const ri = particleRings[i];
+    const def = ringDefs[ri];
+    // Angle based on phase + time + ring rotation
+    const angle = particlePhases[i] + t * pSpeed * (0.6 + ri * 0.15) * (ri === 1 ? -1 : 1);
 
-    ctx.beginPath();
-    ctx.arc(0, 0, rr * (1 + extra), -ring.arc / 2, ring.arc / 2);
-    ctx.strokeStyle = glowColor.replace(/[\d.]+\)$/, `${ring.opacity + fastPulse * 0.1})`);
-    ctx.lineWidth = ring.width;
-    ctx.shadowColor = glowColor;
-    ctx.shadowBlur = 6;
-    ctx.stroke();
-    ctx.restore();
+    // Position on ring in local space
+    const lx = Math.cos(angle) * def.radius;
+    const lz = Math.sin(angle) * def.radius;
+    const ly = 0;
+
+    // Apply tilt
+    const v = new THREE.Vector3(lx, ly, lz).applyQuaternion(def.tilt);
+
+    posArr[i * 3] = v.x;
+    posArr[i * 3 + 1] = v.y;
+    posArr[i * 3 + 2] = v.z;
+  }
+  particleGeo.attributes.position.needsUpdate = true;
+
+  // Particle color by state
+  particleMat.color.lerpColors(CYAN, WARM_WHITE, anim.colorTemp * 0.4);
+  particleMat.opacity = 0.7 + 0.3 * (anim.ringSpeed / 4);
+
+  // Scanner arms (processing state)
+  for (let i = 0; i < 4; i++) {
+    const arm = scannerArms[i];
+    arm.rotation.y = (i / 4) * Math.PI * 2 + t * 1.8;
+    arm.material.opacity = anim.processingArms * 0.7 * (0.8 + 0.2 * Math.sin(t * 3 + i));
+    arm.material.color.lerpColors(CYAN, WARM_WHITE, anim.colorTemp);
+  }
+
+  renderer.render(scene, camera);
+}
+
+// ─────────────────────────────────────────────
+//  RESIZE HANDLER
+// ─────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ─────────────────────────────────────────────
+//  VOICE / SPEECH
+// ─────────────────────────────────────────────
+let recognition = null;
+let isListening = false;
+let synth = window.speechSynthesis;
+let voices = [];
+let selectedVoice = null;
+let autoListen = false;
+let wakeWordEnabled = true;
+let responseTimer = null;
+let isSpeaking = false;
+
+// Load voices
+function loadVoices() {
+  voices = synth.getVoices();
+  const sel = document.getElementById('voice-select');
+  sel.innerHTML = '';
+  voices.forEach((v, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${v.name} (${v.lang})`;
+    sel.appendChild(opt);
   });
-
-  // ── ORB BODY ──
-  const orbGrd = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.05, cx, cy, r);
-  orbGrd.addColorStop(0, 'rgba(180,240,255,0.95)');
-  orbGrd.addColorStop(0.3, coreColor);
-  orbGrd.addColorStop(0.7, 'rgba(0,80,140,0.9)');
-  orbGrd.addColorStop(1, 'rgba(0,20,60,0.8)');
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = orbGrd;
-  ctx.shadowColor = glowColor;
-  ctx.shadowBlur = mode === 'listening' ? 30 + fastPulse * 20 : 15 + pulse * 10;
-  ctx.fill();
-  ctx.shadowBlur = 0;
-
-  // ── GEOMETRIC LINES on orb ──
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.clip();
-
-  ctx.strokeStyle = 'rgba(180,240,255,0.15)';
-  ctx.lineWidth = 0.5;
-
-  // Latitude lines
-  for (let lat = -60; lat <= 60; lat += 30) {
-    const latR = r * Math.cos(lat * Math.PI / 180);
-    const latY = cy + r * Math.sin(lat * Math.PI / 180);
-    if (latR > 1) {
-      ctx.beginPath();
-      ctx.ellipse(cx, latY, latR, latR * 0.2, 0, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  }
-
-  // Longitude lines (animated)
-  for (let lng = 0; lng < 180; lng += 45) {
-    const angle = (lng + t * 0.03) * Math.PI / 180;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, r * Math.abs(Math.cos(angle)), r, angle, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  ctx.restore();
-
-  // ── SPECULAR HIGHLIGHT ──
-  const specGrd = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.35, 0, cx - r * 0.35, cy - r * 0.35, r * 0.6);
-  specGrd.addColorStop(0, 'rgba(255,255,255,0.25)');
-  specGrd.addColorStop(1, 'transparent');
-  ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
-  ctx.fillStyle = specGrd;
-  ctx.fill();
-
-  // ── PROCESSING SPINNER ──
-  if (mode === 'processing') {
-    const spinAngle = t * 0.006;
-    ctx.save();
-    ctx.translate(cx, cy);
-    for (let i = 0; i < 8; i++) {
-      const a = spinAngle + i * Math.PI / 4;
-      const rInner = r * 1.15, rOuter = r * 1.35;
-      ctx.beginPath();
-      ctx.moveTo(Math.cos(a) * rInner, Math.sin(a) * rInner);
-      ctx.lineTo(Math.cos(a) * rOuter, Math.sin(a) * rOuter);
-      ctx.strokeStyle = `rgba(200,240,255,${0.1 + (i / 8) * 0.5})`;
-      ctx.lineWidth = 2;
-      ctx.stroke();
-    }
-    ctx.restore();
+  // Try to pick a good default (English, not too robotic)
+  const preferred = voices.findIndex(v =>
+    (v.name.includes('Samantha') || v.name.includes('Karen') ||
+     v.name.includes('Google US') || v.name.includes('Microsoft')) &&
+    v.lang.startsWith('en')
+  );
+  if (preferred >= 0) {
+    sel.value = preferred;
+    selectedVoice = voices[preferred];
+  } else {
+    const enVoice = voices.findIndex(v => v.lang.startsWith('en'));
+    if (enVoice >= 0) { sel.value = enVoice; selectedVoice = voices[enVoice]; }
   }
 }
 
-// ══════════════════════════════════════════════
-// MAIN ANIMATION LOOP
-// ══════════════════════════════════════════════
-let animFrame;
-function animate(t) {
-  drawBackground(t);
-  drawOrb(t);
-  animFrame = requestAnimationFrame(animate);
+if (synth.onvoiceschanged !== undefined) {
+  synth.onvoiceschanged = loadVoices;
 }
-requestAnimationFrame(animate);
+loadVoices();
 
-// ══════════════════════════════════════════════
-// SPEECH RECOGNITION
-// ══════════════════════════════════════════════
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+document.getElementById('voice-select').addEventListener('change', (e) => {
+  selectedVoice = voices[parseInt(e.target.value)];
+});
 
-function createRecognition(continuous, onResult, onEnd) {
-  if (!SpeechRecognition) return null;
-  const rec = new SpeechRecognition();
-  rec.lang = 'en-US';
-  rec.continuous = continuous;
-  rec.interimResults = true;
-  rec.maxAlternatives = 1;
-  rec.onresult = onResult;
-  rec.onend = onEnd;
-  rec.onerror = (e) => {
-    if (e.error !== 'no-speech' && e.error !== 'aborted') {
-      console.warn('Speech error:', e.error);
+function speak(text) {
+  if (!text) return;
+  synth.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  if (selectedVoice) utt.voice = selectedVoice;
+  utt.rate = 0.92;
+  utt.pitch = 0.95;
+  utt.volume = 1;
+
+  utt.onstart = () => {
+    isSpeaking = true;
+    setSpeaking(0.5);
+    // Simulate intensity variation during speech
+    animateSpeakIntensity();
+  };
+  utt.onend = () => {
+    isSpeaking = false;
+    if (autoListen) {
+      setTimeout(() => startListening(), 600);
+    } else {
+      setIdle();
     }
   };
-  return rec;
+  utt.onerror = () => { isSpeaking = false; setIdle(); };
+
+  synth.speak(utt);
 }
 
-function startListening() {
-  if (!STATE.isOnline) { setStatus('OFFLINE', 'error'); return; }
-  if (STATE.mode === 'listening') return;
-  stopWakeWord();
+let speakAnimFrame = null;
+function animateSpeakIntensity() {
+  if (!isSpeaking) return;
+  const i = 0.3 + Math.random() * 0.7;
+  setSpeaking(i);
+  speakAnimFrame = setTimeout(animateSpeakIntensity, 80 + Math.random() * 120);
+}
 
-  STATE.mode = 'listening';
-  setStatus('LISTENING...', 'listening');
-  document.getElementById('transcript').textContent = '';
+function showResponse(text) {
+  const el = document.getElementById('response-text');
+  el.textContent = text;
+  el.classList.add('visible');
+  if (responseTimer) clearTimeout(responseTimer);
+  responseTimer = setTimeout(() => el.classList.remove('visible'), 8000);
+}
 
-  const rec = createRecognition(false,
-    (e) => {
-      let txt = '';
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        txt += e.results[i][0].transcript;
-      }
-      document.getElementById('transcript').textContent = txt;
-    },
-    () => {
-      const txt = document.getElementById('transcript').textContent.trim();
-      if (txt && STATE.mode === 'listening') {
-        sendToJarvis(txt);
-      } else if (STATE.mode === 'listening') {
-        STATE.mode = 'idle';
-        setStatus('STAND BY', '');
-        startWakeWord();
-      }
+// ─────────────────────────────────────────────
+//  SPEECH RECOGNITION
+// ─────────────────────────────────────────────
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  recognition.maxAlternatives = 1;
+
+  let finalTranscript = '';
+  let listenTimeout = null;
+  let activeSession = false;
+
+  recognition.onresult = (event) => {
+    let interim = '';
+    finalTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const t = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalTranscript += t;
+      else interim += t;
     }
-  );
 
-  if (!rec) {
-    setStatus('SPEECH UNAVAILABLE', 'error');
-    STATE.mode = 'idle';
-    return;
+    // Wake word detection
+    const combined = (finalTranscript + interim).toLowerCase();
+    if (wakeWordEnabled && !activeSession && combined.includes('cool')) {
+      activeSession = true;
+      startListening(true);
+      return;
+    }
+
+    if (activeSession && finalTranscript.trim().length > 2) {
+      clearTimeout(listenTimeout);
+      listenTimeout = setTimeout(() => {
+        const query = finalTranscript.trim();
+        if (query) processQuery(query);
+        activeSession = false;
+      }, 1000);
+    }
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error !== 'no-speech') {
+      isListening = false;
+      activeSession = false;
+      setIdle();
+    }
+  };
+
+  recognition.onend = () => {
+    if (isListening) {
+      // Restart to keep continuous
+      try { recognition.start(); } catch(e) {}
+    }
+  };
+}
+
+function startListening(fromWakeWord = false) {
+  if (!recognition) return;
+  if (isSpeaking) { synth.cancel(); isSpeaking = false; }
+  setListening();
+  document.getElementById('listen-ring').classList.add('active');
+
+  if (!isListening) {
+    isListening = true;
+    try { recognition.start(); } catch(e) {}
   }
 
-  STATE.recognition = rec;
-  try { rec.start(); } catch(e) {}
+  // Auto-timeout after 10s
+  setTimeout(() => {
+    if (currentState === STATE.LISTENING) {
+      stopListening();
+    }
+  }, 10000);
 }
 
 function stopListening() {
-  if (STATE.recognition) {
-    try { STATE.recognition.stop(); } catch(e) {}
-    STATE.recognition = null;
-  }
+  document.getElementById('listen-ring').classList.remove('active');
+  if (currentState === STATE.LISTENING) setIdle();
 }
 
-// ══════════════════════════════════════════════
-// WAKE WORD DETECTION
-// ══════════════════════════════════════════════
-function startWakeWord() {
-  if (!STATE.wakeWordEnabled || !SpeechRecognition) return;
-  if (STATE.wakeRecognition) return;
-  if (STATE.mode !== 'idle') return;
-
-  const rec = createRecognition(true,
-    (e) => {
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) {
-          const txt = e.results[i][0].transcript.toLowerCase().trim();
-          if (txt.includes('jarvis') || txt.includes('j.a.r.v.i.s')) {
-            stopWakeWord();
-            startListening();
-            return;
-          }
-        }
-      }
-    },
-    () => {
-      STATE.wakeRecognition = null;
-      if (STATE.mode === 'idle') {
-        setTimeout(startWakeWord, 500);
-      }
-    }
-  );
-  STATE.wakeRecognition = rec;
-  try { rec.start(); } catch(e) { STATE.wakeRecognition = null; }
-}
-
-function stopWakeWord() {
-  if (STATE.wakeRecognition) {
-    try { STATE.wakeRecognition.stop(); } catch(e) {}
-    STATE.wakeRecognition = null;
-  }
-}
-
-// ══════════════════════════════════════════════
-// API CALL
-// ══════════════════════════════════════════════
-async function sendToJarvis(message) {
-  STATE.mode = 'processing';
-  setStatus('PROCESSING...', 'processing');
+async function processQuery(text) {
   stopListening();
+  setProcessing();
 
   try {
     const res = await fetch('/api/jarvis', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
-      signal: AbortSignal.timeout(35000),
+      body: JSON.stringify({ message: text }),
     });
-
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const reply = data.reply || "I'm sorry, I didn't receive a response.";
-
-    addToHistory(message, reply);
-    document.getElementById('response').textContent = reply;
-    speakResponse(reply);
-  } catch(err) {
-    console.error('API error:', err);
-    const errMsg = navigator.onLine
-      ? "I'm having trouble connecting right now."
-      : "I'm offline. Please check your connection.";
-    document.getElementById('response').textContent = errMsg;
-    speakResponse(errMsg);
+    const reply = data.reply || data.response || data.message || 'Request received.';
+    showResponse(reply);
+    speak(reply);
+  } catch (err) {
+    const fallback = 'Unable to reach JARVIS core systems.';
+    showResponse(fallback);
+    speak(fallback);
   }
 }
 
-// ══════════════════════════════════════════════
-// SPEECH SYNTHESIS
-// ══════════════════════════════════════════════
-function loadVoices() {
-  const voices = STATE.synthesis.getVoices();
-  STATE.voices = voices;
-  const sel = document.getElementById('voice-select');
-  sel.innerHTML = '<option value="">Default</option>';
-  voices.forEach((v, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `${v.name} (${v.lang})`;
-    if (STATE.selectedVoice && STATE.selectedVoice.name === v.name) opt.selected = true;
-    sel.appendChild(opt);
-  });
-}
-
-if ('speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = loadVoices;
-  loadVoices();
-}
-
-function speakResponse(text) {
-  if (!STATE.synthesis) return;
-  STATE.synthesis.cancel();
-
-  STATE.mode = 'speaking';
-  setStatus('SPEAKING...', 'speaking');
-
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.rate = STATE.voiceSpeed;
-  if (STATE.selectedVoice) utter.voice = STATE.selectedVoice;
-
-  // Simulate volume animation for speaking state
-  let vol = 0, volDir = 1;
-  const volInterval = setInterval(() => {
-    vol += volDir * 0.08;
-    if (vol > 1) { vol = 1; volDir = -1; }
-    if (vol < 0) { vol = 0; volDir = 1; }
-    STATE.speechVolume = vol;
-  }, 60);
-
-  utter.onend = () => {
-    clearInterval(volInterval);
-    STATE.speechVolume = 0;
-    STATE.mode = 'idle';
-    setStatus('STAND BY', '');
-    if (STATE.autoListen) {
-      setTimeout(startListening, 400);
-    } else {
-      startWakeWord();
-    }
-  };
-
-  utter.onerror = () => {
-    clearInterval(volInterval);
-    STATE.speechVolume = 0;
-    STATE.mode = 'idle';
-    setStatus('STAND BY', '');
-    startWakeWord();
-  };
-
-  STATE.synthesis.speak(utter);
-}
-
-// ══════════════════════════════════════════════
-// HISTORY
-// ══════════════════════════════════════════════
-function addToHistory(you, jarvis) {
-  STATE.history.unshift({ you, jarvis });
-  if (STATE.history.length > 5) STATE.history.pop();
-  renderHistory();
-}
-
-function renderHistory() {
-  const list = document.getElementById('history-list');
-  if (STATE.history.length === 0) {
-    list.innerHTML = '<div class="history-empty">No conversations yet</div>';
-    return;
-  }
-  list.innerHTML = STATE.history.map(h => `
-    <div class="history-item">
-      <div class="history-you">${escHtml(h.you)}</div>
-      <div class="history-jarvis">${escHtml(h.jarvis)}</div>
-    </div>
-  `).join('');
-}
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ══════════════════════════════════════════════
-// UI HELPERS
-// ══════════════════════════════════════════════
-function setStatus(text, cls) {
-  const el = document.getElementById('status');
-  el.textContent = text;
-  el.className = cls || '';
-}
-
-function openPanel(id) {
-  document.getElementById(id).classList.add('open');
-  document.getElementById('overlay').classList.add('show');
-}
-
-function closeAllPanels() {
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('open'));
-  document.getElementById('overlay').classList.remove('show');
-}
-
-// ══════════════════════════════════════════════
-// EVENT LISTENERS
-// ══════════════════════════════════════════════
-
-// Orb click → start listening
-document.getElementById('orb-wrap').addEventListener('click', () => {
-  if (STATE.mode === 'idle') startListening();
-  else if (STATE.mode === 'listening') {
+// ─────────────────────────────────────────────
+//  ORB CLICK / TAP
+// ─────────────────────────────────────────────
+document.getElementById('orb-tap').addEventListener('click', () => {
+  if (currentState === STATE.LISTENING) {
     stopListening();
-    STATE.mode = 'idle';
-    setStatus('STAND BY', '');
-    startWakeWord();
+  } else if (currentState === STATE.IDLE || currentState === STATE.SPEAKING) {
+    startListening();
   }
 });
 
-// Hold to talk
-const holdBtn = document.getElementById('hold-btn');
-let holdActive = false;
+// ─────────────────────────────────────────────
+//  SETTINGS UI
+// ─────────────────────────────────────────────
+document.getElementById('gear-btn').addEventListener('click', () => {
+  document.getElementById('settings-panel').classList.add('open');
+});
+document.getElementById('close-settings').addEventListener('click', () => {
+  document.getElementById('settings-panel').classList.remove('open');
+});
 
-function holdStart() {
-  holdActive = true;
-  holdBtn.classList.add('active');
-  if (STATE.mode !== 'listening') startListening();
+document.getElementById('auto-listen-toggle').addEventListener('change', (e) => {
+  autoListen = e.target.checked;
+});
+document.getElementById('wake-word-toggle').addEventListener('change', (e) => {
+  wakeWordEnabled = e.target.checked;
+});
+
+// Auto-start continuous recognition for wake word
+if (recognition && wakeWordEnabled) {
+  isListening = true;
+  try { recognition.start(); } catch(e) {}
 }
 
-function holdEnd() {
-  if (!holdActive) return;
-  holdActive = false;
-  holdBtn.classList.remove('active');
-  if (STATE.mode === 'listening' && STATE.recognition) {
-    setTimeout(() => {
-      if (STATE.mode === 'listening') {
-        try { STATE.recognition.stop(); } catch(e) {}
-      }
-    }, 300);
-  }
-}
-
-holdBtn.addEventListener('mousedown', holdStart);
-holdBtn.addEventListener('touchstart', e => { e.preventDefault(); holdStart(); }, { passive: false });
-holdBtn.addEventListener('mouseup', holdEnd);
-holdBtn.addEventListener('mouseleave', holdEnd);
-holdBtn.addEventListener('touchend', e => { e.preventDefault(); holdEnd(); }, { passive: false });
-
-// Settings
-document.getElementById('settings-btn').addEventListener('click', () => openPanel('settings-panel'));
-document.getElementById('settings-close').addEventListener('click', closeAllPanels);
-
-// History
-document.getElementById('history-btn').addEventListener('click', () => {
-  renderHistory();
-  openPanel('history-panel');
-});
-document.getElementById('history-close').addEventListener('click', closeAllPanels);
-
-// Overlay
-document.getElementById('overlay').addEventListener('click', closeAllPanels);
-
-// Auto-listen toggle
-document.getElementById('auto-listen-toggle').addEventListener('change', function() {
-  STATE.autoListen = this.checked;
-});
-
-// Speed range
-const speedRange = document.getElementById('speed-range');
-speedRange.addEventListener('input', function() {
-  STATE.voiceSpeed = parseFloat(this.value);
-  document.getElementById('speed-val').textContent = STATE.voiceSpeed.toFixed(1) + '×';
-  const pct = ((this.value - this.min) / (this.max - this.min) * 100).toFixed(1) + '%';
-  this.style.setProperty('--val', pct);
-});
-
-// Voice select
-document.getElementById('voice-select').addEventListener('change', function() {
-  const idx = parseInt(this.value);
-  STATE.selectedVoice = isNaN(idx) ? null : STATE.voices[idx];
-});
-
-// Wake word toggle
-document.getElementById('wake-word-toggle').addEventListener('change', function() {
-  STATE.wakeWordEnabled = this.checked;
-  if (this.checked) startWakeWord();
-  else stopWakeWord();
-});
-
-// Resize
-window.addEventListener('resize', () => {
-  initBackground();
-  initOrb();
-});
-
-// Online/offline
-window.addEventListener('online', () => {
-  STATE.isOnline = true;
-  document.getElementById('offline-notice').classList.remove('show');
-  if (STATE.mode === 'idle') startWakeWord();
-});
-window.addEventListener('offline', () => {
-  STATE.isOnline = false;
-  document.getElementById('offline-notice').classList.add('show');
-  stopWakeWord();
-  setStatus('OFFLINE', 'error');
-});
-
-if (!navigator.onLine) {
-  document.getElementById('offline-notice').classList.add('show');
-}
-
-// ══════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════
-initBackground();
-initOrb();
-
-// Small delay to let fonts load
-setTimeout(() => {
-  if (!SpeechRecognition) {
-    setStatus('SPEECH UNAVAILABLE', 'error');
-    document.getElementById('response').textContent = 'Web Speech API not supported in this browser. Try Chrome.';
-  } else {
-    setStatus('STAND BY', '');
-    startWakeWord();
-  }
-
-  // Set initial range thumb position
-  const sr = document.getElementById('speed-range');
-  const pct = ((sr.value - sr.min) / (sr.max - sr.min) * 100).toFixed(1) + '%';
-  sr.style.setProperty('--val', pct);
-}, 300);
+// ─────────────────────────────────────────────
+//  START
+// ─────────────────────────────────────────────
+setIdle();
+animate();
 </script>
 </body>
 </html>

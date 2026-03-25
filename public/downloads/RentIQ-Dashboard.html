@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RentIQ — Rental Market Intelligence</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #0d1b2a;
+    --navy-2: #1b2d44;
+    --navy-3: #243650;
+    --gold: #c9a84c;
+    --gold-light: #e8c66a;
+    --gold-dark: #a07830;
+    --text: #e8edf2;
+    --text-muted: #8ba3bd;
+    --success: #2ecc71;
+    --danger: #e74c3c;
+    --warning: #f39c12;
+    --card-bg: #162032;
+    --border: #2a3f58;
+    --input-bg: #1a2d42;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ---- SIDEBAR ---- */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 240px; background: var(--navy-2); flex-shrink: 0;
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--border);
+    position: sticky; top: 0; height: 100vh;
+  }
+  .logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    font-size: 22px; font-weight: 800; color: var(--gold);
+    letter-spacing: -0.5px;
+  }
+  .logo-mark span { color: var(--text); }
+  .logo-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+  .nav { padding: 16px 0; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 20px; cursor: pointer;
+    font-size: 14px; color: var(--text-muted);
+    transition: all 0.2s; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,0.08); }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-bottom {
+    padding: 16px; border-top: 1px solid var(--border);
+  }
+  .usage-card {
+    background: var(--navy-3); border-radius: 10px; padding: 14px;
+  }
+  .usage-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .usage-count { font-size: 20px; font-weight: 700; color: var(--text); }
+  .usage-count span { font-size: 13px; color: var(--text-muted); font-weight: 400; }
+  .usage-bar { background: var(--border); border-radius: 4px; height: 5px; margin-top: 8px; }
+  .usage-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); transition: width 0.4s; }
+  .upgrade-btn {
+    display: block; margin-top: 12px; padding: 10px;
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: var(--navy); font-size: 12px; font-weight: 700;
+    text-align: center; border-radius: 8px; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    border: none; width: 100%;
+    transition: opacity 0.2s;
+  }
+  .upgrade-btn:hover { opacity: 0.9; }
+
+  /* ---- MAIN ---- */
+  .main { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+  .topbar {
+    background: var(--navy-2); border-bottom: 1px solid var(--border);
+    padding: 16px 28px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar-title { font-size: 18px; font-weight: 700; }
+  .topbar-sub { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  }
+  .badge-hot { background: rgba(231,76,60,0.15); color: #e74c3c; border: 1px solid rgba(231,76,60,0.3); }
+  .badge-cold { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
+  .badge-neutral { background: rgba(243,156,18,0.15); color: #f39c12; border: 1px solid rgba(243,156,18,0.3); }
+  .badge-success { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid rgba(46,204,113,0.3); }
+
+  .content { padding: 28px; overflow-y: auto; flex: 1; }
+
+  /* ---- SECTIONS ---- */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ---- CARDS ---- */
+  .card {
+    background: var(--card-bg); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .card-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-muted); margin-bottom: 16px;
+  }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+  }
+  .stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 800; color: var(--text); line-height: 1; }
+  .stat-value.gold { color: var(--gold); }
+  .stat-value.success { color: var(--success); }
+  .stat-value.danger { color: var(--danger); }
+  .stat-delta { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+  /* ---- FORMS ---- */
+  .search-row { display: flex; gap: 10px; margin-bottom: 20px; align-items: flex-end; flex-wrap: wrap; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  input, select {
+    background: var(--input-bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px; padding: 10px 14px;
+    font-size: 14px; outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, select:focus { border-color: var(--gold); }
+  input::placeholder { color: var(--text-muted); }
+  select option { background: var(--navy-2); }
+  .btn {
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s; white-space: nowrap;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+    color: var(--navy);
+  }
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(201,168,76,0.3); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .btn-outline {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-danger { background: rgba(231,76,60,0.15); border: 1px solid rgba(231,76,60,0.3); color: #e74c3c; }
+  .btn-danger:hover { background: rgba(231,76,60,0.25); }
+
+  /* ---- RESULT PANEL ---- */
+  .result-panel {
+    background: var(--navy-3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 24px; margin-top: 20px;
+  }
+  .result-panel.hidden { display: none; }
+  .result-headline { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+  .result-sub { font-size: 14px; color: var(--text-muted); }
+
+  /* ---- OPPORTUNITY BOX ---- */
+  .opportunity-box {
+    border-radius: 10px; padding: 20px; margin-top: 16px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .opportunity-box.positive { background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3); }
+  .opportunity-box.negative { background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3); }
+  .opportunity-box.neutral { background: rgba(243,156,18,0.1); border: 1px solid rgba(243,156,18,0.3); }
+  .opportunity-icon { font-size: 36px; }
+  .opportunity-text strong { display: block; font-size: 18px; font-weight: 700; }
+  .opportunity-text span { font-size: 14px; color: var(--text-muted); }
+
+  /* ---- CHART ---- */
+  .chart-container { position: relative; height: 220px; margin-top: 8px; }
+
+  /* ---- PROPERTIES LIST ---- */
+  .property-list { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+  .property-row {
+    background: var(--navy-3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    flex-wrap: wrap;
+  }
+  .property-info { flex: 1; min-width: 200px; }
+  .property-address { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .property-meta { font-size: 12px; color: var(--text-muted); }
+  .property-rents { display: flex; gap: 24px; align-items: center; }
+  .rent-col { text-align: center; }
+  .rent-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .rent-amount { font-size: 18px; font-weight: 700; }
+  .rent-delta {
+    font-size: 12px; padding: 2px 8px; border-radius: 12px; margin-top: 4px;
+    display: inline-block;
+  }
+  .rent-delta.positive { background: rgba(46,204,113,0.15); color: var(--success); }
+  .rent-delta.negative { background: rgba(231,76,60,0.15); color: var(--danger); }
+  .rent-delta.neutral { background: rgba(243,156,18,0.15); color: var(--warning); }
+  .property-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .property-status.loading { background: var(--warning); animation: pulse 1s infinite; }
+  .property-status.loaded { background: var(--success); }
+  .property-status.error { background: var(--danger); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* ---- ALERTS ---- */
+  .alert-list { display: flex; flex-direction: column; gap: 12px; }
+  .alert-item {
+    background: var(--navy-3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .alert-icon { font-size: 22px; }
+  .alert-info { flex: 1; }
+  .alert-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .alert-desc { font-size: 12px; color: var(--text-muted); }
+  .alert-badge { font-size: 11px; padding: 3px 10px; border-radius: 12px; }
+  .alert-active { background: rgba(46,204,113,0.15); color: var(--success); border: 1px solid rgba(46,204,113,0.25); }
+  .alert-pending { background: rgba(243,156,18,0.15); color: var(--warning); border: 1px solid rgba(243,156,18,0.25); }
+
+  /* ---- LOADING SPINNER ---- */
+  .spinner {
+    display: inline-block; width: 20px; height: 20px;
+    border: 2px solid rgba(201,168,76,0.3); border-top-color: var(--gold);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---- EMPTY STATE ---- */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text-muted);
+  }
+  .empty-state-icon { font-size: 52px; margin-bottom: 16px; opacity: 0.5; }
+  .empty-state-title { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+  .empty-state-sub { font-size: 14px; max-width: 340px; margin: 0 auto; }
+
+  /* ---- DIVIDER ---- */
+  .divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+  /* ---- FOOTER ---- */
+  .footer {
+    padding: 16px 28px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; color: var(--text-muted);
+    background: var(--navy-2);
+  }
+  .footer a { color: var(--gold); text-decoration: none; }
+
+  /* ---- TOAST ---- */
+  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 18px;
+    font-size: 13px; box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 10px;
+    animation: slideIn 0.3s ease; max-width: 320px;
+  }
+  .toast.success { border-left: 3px solid var(--success); }
+  .toast.error { border-left: 3px solid var(--danger); }
+  .toast.info { border-left: 3px solid var(--gold); }
+  @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* ---- MODAL ---- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px; width: 480px; max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+  /* ---- REPORT ---- */
+  .report-summary { background: var(--navy-3); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+  .report-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+  .report-date { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+  .report-metric { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .report-metric:last-child { border-bottom: none; }
+  .report-metric-label { font-size: 14px; color: var(--text-muted); }
+  .report-metric-value { font-size: 16px; font-weight: 700; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .content { padding: 16px; }
+    .topbar { padding: 14px 16px; }
+    .property-rents { flex-wrap: wrap; gap: 12px; }
+  }
+
+  /* Mobile bottom nav */
+  .mobile-nav {
+    display: none; position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--navy-2); border-top: 1px solid var(--border);
+    z-index: 50;
+  }
+  @media (max-width: 768px) { .mobile-nav { display: flex; } }
+  .mobile-nav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 10px 4px; cursor: pointer; font-size: 10px; color: var(--text-muted);
+    gap: 4px; transition: color 0.2s;
+  }
+  .mobile-nav-item.active { color: var(--gold); }
+  .mobile-nav-item svg { width: 22px; height: 22px; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">Rent<span>IQ</span></div>
+      <div class="logo-sub">Market Intelligence</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="showSection('market')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+        Market Overview
+      </div>
+      <div class="nav-item" onclick="showSection('analyzer')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Property Analyzer
+      </div>
+      <div class="nav-item" onclick="showSection('properties')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        My Properties
+      </div>
+      <div class="nav-item" onclick="showSection('alerts')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Market Alerts
+      </div>
+      <div class="nav-item" onclick="showSection('reports')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+        Reports
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="usage-card">
+        <div class="usage-label">API Searches</div>
+        <div class="usage-count" id="usageCount">0 <span>/ 50 free</span></div>
+        <div class="usage-bar"><div class="usage-bar-fill" id="usageBar" style="width:0%"></div></div>
+        <button class="upgrade-btn" onclick="showUpgradeModal()">⚡ Upgrade to Pro</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-title" id="pageTitle">Market Overview</div>
+        <div class="topbar-sub" id="pageSubtitle">Real-time rental market intelligence</div>
+      </div>
+      <div id="marketBadge"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- ═══════ MARKET OVERVIEW ═══════ -->
+      <div class="section active" id="section-market">
+        <div class="search-row">
+          <div class="form-group">
+            <label>ZIP Code</label>
+            <input type="text" id="zipInput" placeholder="e.g. 90210" maxlength="10" style="width:160px" onkeydown="if(event.key==='Enter') fetchMarket()">
+          </div>
+          <button class="btn btn-primary" onclick="fetchMarket()" id="marketSearchBtn">
+            <span id="marketBtnText">Search Market</span>
+          </button>
+        </div>
+
+        <div id="marketResult" class="hidden">
+          <!-- Stats -->
+          <div class="grid-3">
+            <div class="stat-card">
+              <div class="stat-label">Average Rent</div>
+              <div class="stat-value gold" id="avgRent">—</div>
+              <div class="stat-delta" id="avgRentDelta">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Median Rent</div>
+              <div class="stat-value" id="medRent">—</div>
+              <div class="stat-delta">50th percentile</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Market Temp</div>
+              <div class="stat-value" id="marketTemp">—</div>
+              <div class="stat-delta" id="marketTempSub">Based on demand signals</div>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="card" style="margin-bottom:20px">
+            <div class="card-title">6-Month Rent Trend</div>
+            <div class="chart-container">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Market breakdown -->
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-title">Bedroom Breakdown</div>
+              <div id="bedroomBreakdown">—</div>
+            </div>
+            <div class="card">
+              <div class="card-title">Market Signals</div>
+              <div id="marketSignals">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="marketEmpty" class="empty-state">
+          <div class="empty-state-icon">🏘️</div>
+          <div class="empty-state-title">Search any U.S. zip code</div>
+          <div class="empty-state-sub">Get real-time rental market data, trends, and demand signals powered by Rentcast.</div>
+        </div>
+      </div>
+
+      <!-- ═══════ PROPERTY ANALYZER ═══════ -->
+      <div class="section" id="section-analyzer">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">Analyze a Property</div>
+          <div class="search-row" style="margin-bottom:0">
+            <div class="form-group" style="flex:1;min-width:240px">
+              <label>Property Address</label>
+              <input type="text" id="analyzerAddress" placeholder="e.g. 123 Main St, Austin, TX 78701">
+            </div>
+            <div class="form-group">
+              <label>Bedrooms</label>
+              <select id="analyzerBeds" style="width:80px">
+                <option>1</option><option>2</option><option selected>3</option>
+                <option>4</option><option>5</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Bathrooms</label>
+              <select id="analyzerBaths" style="width:80px">
+                <option>1</option><option selected>2</option>
+                <option>3</option><option>4</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Your Current Rent</label>
+              <input type="number" id="analyzerCurrentRent" placeholder="$2,500" style="width:140px">
+            </div>
+            <button class="btn btn-primary" onclick="fetchRentEstimate()" id="analyzerBtn" style="align-self:flex-end">
+              <span id="analyzerBtnText">Analyze</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="analyzerResult" class="result-panel hidden">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px">
+            <div>
+              <div style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px">Estimated Market Rent</div>
+              <div class="result-headline" id="estimatedRent">—</div>
+              <div class="result-sub" id="rentRange">—</div>
+            </div>
+            <div id="analyzerBadge"></div>
+          </div>
+          <div class="opportunity-box" id="opportunityBox" style="margin-top:20px">
+            <div class="opportunity-icon" id="oppIcon">💡</div>
+            <div class="opportunity-text">
+              <strong id="oppTitle">—</strong>
+              <span id="oppSub">—</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px">RENT COMPARISON</div>
+            <div style="display:flex;gap:24px;flex-wrap:wrap">
+              <div>
+                <div style="font-size:12px;color:var(--text-muted)">Your Rent</div>
+                <div style="font-size:22px;font-weight:700" id="yourRentDisplay">—</div>
+              </div>
+              <div style="font-size:22px;font-weight:300;color:var(--text-muted);align-self:center">→</div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted)">Market Rate</div>
+                <div style="font-size:22px;font-weight:700;color:var(--gold)" id="marketRentDisplay">—</div>
+              </div>
+              <div style="font-size:22px;font-weight:300;color:var(--text-muted);align-self:center">=</div>
+              <div>
+                <div style="font-size:12px;color:var(--text-muted)">Monthly Delta</div>
+                <div style="font-size:22px;font-weight:700" id="deltaDisplay">—</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn btn-outline" onclick="addToPortfolio()">+ Add to My Properties</button>
+          </div>
+        </div>
+
+        <div id="analyzerEmpty" class="empty-state" style="margin-top:0">
+          <div class="empty-state-icon">🔍</div>
+          <div class="empty-state-title">Find out if you're charging market rate</div>
+          <div class="empty-state-sub">Enter a property address and we'll compare your rent to what the market will bear right now.</div>
+        </div>
+      </div>
+
+      <!-- ═══════ MY PROPERTIES ═══════ -->
+      <div class="section" id="section-properties">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div class="grid-3" style="margin-bottom:0;flex:1">
+            <div class="stat-card">
+              <div class="stat-label">Portfolio Properties</div>
+              <div class="stat-value" id="propCount">0</div>
+              <div class="stat-delta">Active units</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Monthly Rent</div>
+              <div class="stat-value gold" id="totalRent">$0</div>
+              <div class="stat-delta">What you collect</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Monthly Opportunity</div>
+              <div class="stat-value" id="totalOpp">$0</div>
+              <div class="stat-delta" id="totalOppSub">vs. market rate</div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="showAddPropertyModal()">+ Add Property</button>
+        </div>
+
+        <div id="propListEmpty" class="empty-state">
+          <div class="empty-state-icon">🏠</div>
+          <div class="empty-state-title">No properties yet</div>
+          <div class="empty-state-sub">Add your rental properties to track performance vs. market rates automatically.</div>
+        </div>
+
+        <div class="property-list" id="propertyList"></div>
+      </div>
+
+      <!-- ═══════ MARKET ALERTS ═══════ -->
+      <div class="section" id="section-alerts">
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">Create Alert</div>
+          <div class="search-row" style="margin-bottom:0">
+            <div class="form-group" style="flex:1">
+              <label>ZIP Code</label>
+              <input type="text" id="alertZip" placeholder="e.g. 90210">
+            </div>
+            <div class="form-group">
+              <label>Alert When Change ≥</label>
+              <select id="alertThreshold">
+                <option>3%</option><option selected>5%</option>
+                <option>10%</option><option>15%</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Direction</label>
+              <select id="alertDir">
+                <option>Either direction</option>
+                <option>Rent increases</option>
+                <option>Rent decreases</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="addAlert()" style="align-self:flex-end">Set Alert</button>
+          </div>
+        </div>
+
+        <div class="alert-list" id="alertList"></div>
+
+        <div id="alertEmpty" class="empty-state">
+          <div class="empty-state-icon">🔔</div>
+          <div class="empty-state-title">No alerts set</div>
+          <div class="empty-state-sub">Get notified when market rents change in your target zip codes. Pro feature coming soon.</div>
+        </div>
+      </div>
+
+      <!-- ═══════ REPORTS ═══════ -->
+      <div class="section" id="section-reports">
+        <div id="reportEmpty" class="empty-state" style="display:none">
+          <div class="empty-state-icon">📊</div>
+          <div class="empty-state-title">No data to report yet</div>
+          <div class="empty-state-sub">Add properties or run market searches to generate your portfolio report.</div>
+        </div>
+        <div id="reportContent">
+          <div class="report-summary" id="reportCard">
+            <div class="report-title">Portfolio Intelligence Report</div>
+            <div class="report-date" id="reportDate"></div>
+            <div class="divider"></div>
+            <div class="report-metric">
+              <span class="report-metric-label">Total Properties</span>
+              <span class="report-metric-value" id="rpt-props">0</span>
+            </div>
+            <div class="report-metric">
+              <span class="report-metric-label">Current Monthly Revenue</span>
+              <span class="report-metric-value" id="rpt-revenue">$0</span>
+            </div>
+            <div class="report-metric">
+              <span class="report-metric-label">Market Rate Revenue</span>
+              <span class="report-metric-value" id="rpt-market">$0</span>
+            </div>
+            <div class="report-metric">
+              <span class="report-metric-label">Monthly Opportunity</span>
+              <span class="report-metric-value" id="rpt-opp" style="color:var(--gold)">$0</span>
+            </div>
+            <div class="report-metric">
+              <span class="report-metric-label">Portfolio vs. Market</span>
+              <span class="report-metric-value" id="rpt-pct">—</span>
+            </div>
+          </div>
+          <div style="margin-bottom:20px" id="rptPropList"></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="printReport()">🖨️ Download PDF Report</button>
+            <button class="btn btn-outline" onclick="showSection('properties')">+ Add More Properties</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <span>Powered by <strong>RentIQ</strong> — <a href="https://getnotifiedllc.com" target="_blank">getnotifiedllc.com</a></span>
+      <span>Data via <a href="https://rentcast.io" target="_blank">Rentcast API</a> · <a href="#" onclick="showUpgradeModal()">Upgrade to Pro for unlimited searches →</a></span>
+    </div>
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <div class="mobile-nav-item active" onclick="showSection('market')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    Market
+  </div>
+  <div class="mobile-nav-item" onclick="showSection('analyzer')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    Analyze
+  </div>
+  <div class="mobile-nav-item" onclick="showSection('properties')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+    Portfolio
+  </div>
+  <div class="mobile-nav-item" onclick="showSection('alerts')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+    Alerts
+  </div>
+  <div class="mobile-nav-item" onclick="showSection('reports')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg>
+    Reports
+  </div>
+</div>
+
+<!-- ADD PROPERTY MODAL -->
+<div class="modal-overlay hidden" id="addPropertyModal">
+  <div class="modal">
+    <div class="modal-title">Add Property</div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-group">
+        <label>Property Address</label>
+        <input type="text" id="newPropAddress" placeholder="123 Main St, Austin, TX 78701">
+      </div>
+      <div style="display:flex;gap:12px">
+        <div class="form-group" style="flex:1">
+          <label>Bedrooms</label>
+          <select id="newPropBeds">
+            <option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label>Bathrooms</label>
+          <select id="newPropBaths">
+            <option>1</option><option selected>2</option><option>3</option><option>4</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Current Monthly Rent ($)</label>
+        <input type="number" id="newPropRent" placeholder="2500">
+      </div>
+      <div class="form-group">
+        <label>Property Type</label>
+        <select id="newPropType">
+          <option value="Single Family">Single Family</option>
+          <option value="Apartment">Apartment</option>
+          <option value="Townhouse">Townhouse</option>
+          <option value="Condo">Condo</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeAddPropertyModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="addProperty()">Add & Fetch Market Rate</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPGRADE MODAL -->
+<div class="modal-overlay hidden" id="upgradeModal">
+  <div class="modal" style="text-align:center">
+    <div style="font-size:42px;margin-bottom:12px">⚡</div>
+    <div class="modal-title" style="text-align:center">Upgrade to RentIQ Pro</div>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:20px">Unlock unlimited searches, email alerts, PDF reports, and portfolio tracking for up to 50 properties.</p>
+    <div style="background:var(--navy-3);border-radius:10px;padding:20px;margin-bottom:20px">
+      <div style="font-size:13px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Pro Plan</div>
+      <div style="font-size:36px;font-weight:800;color:var(--gold)">$19<span style="font-size:16px;color:var(--text-muted)">/month</span></div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:4px">or $29 one-time (limited offer)</div>
+    </div>
+    <div style="text-align:left;margin-bottom:20px">
+      <div style="font-size:14px;margin-bottom:8px">✅ Unlimited market searches</div>
+      <div style="font-size:14px;margin-bottom:8px">✅ Email + SMS rent change alerts</div>
+      <div style="font-size:14px;margin-bottom:8px">✅ Unlimited portfolio properties</div>
+      <div style="font-size:14px;margin-bottom:8px">✅ Downloadable PDF reports</div>
+      <div style="font-size:14px">✅ Historical rent trend data</div>
+    </div>
+    <div class="modal-actions" style="justify-content:center">
+      <button class="btn btn-outline" onclick="document.getElementById('upgradeModal').classList.add('hidden')">Not now</button>
+      <button class="btn btn-primary" style="padding:12px 28px" onclick="alert('Coming soon! Visit getnotifiedllc.com to get notified when Pro launches.')">Get Pro Access</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const API_KEY = '893835130a664edfa91f90a806b4e5a4';
+const API_BASE = 'https://api.rentcast.io/v1';
+const CACHE_PREFIX = 'rentiq_cache_';
+const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
+const MAX_FREE_SEARCHES = 50;
+const SEARCH_COUNT_KEY = 'rentiq_searches';
+const SEARCH_RESET_KEY = 'rentiq_search_month';
+const PROPERTIES_KEY = 'rentiq_properties';
+const ALERTS_KEY = 'rentiq_alerts';
+
+// ═══════════════════════════════════════════
+// SEARCH COUNTER
+// ═══════════════════════════════════════════
+function getSearchCount() {
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const savedMonth = localStorage.getItem(SEARCH_RESET_KEY);
+  if (savedMonth !== thisMonth) {
+    localStorage.setItem(SEARCH_RESET_KEY, thisMonth);
+    localStorage.setItem(SEARCH_COUNT_KEY, '0');
+    return 0;
+  }
+  return parseInt(localStorage.getItem(SEARCH_COUNT_KEY) || '0');
+}
+
+function incrementSearch() {
+  const count = getSearchCount() + 1;
+  localStorage.setItem(SEARCH_COUNT_KEY, count.toString());
+  updateUsageUI();
+  return count;
+}
+
+function updateUsageUI() {
+  const count = getSearchCount();
+  const pct = Math.min((count / MAX_FREE_SEARCHES) * 100, 100);
+  document.getElementById('usageCount').innerHTML = `${count} <span>/ ${MAX_FREE_SEARCHES} free</span>`;
+  document.getElementById('usageBar').style.width = `${pct}%`;
+  if (pct >= 80) document.getElementById('usageBar').style.background = 'linear-gradient(90deg, #e74c3c, #f39c12)';
+}
+
+// ═══════════════════════════════════════════
+// CACHE
+// ═══════════════════════════════════════════
+function cacheGet(key) {
+  try {
+    const raw = localStorage.getItem(CACHE_PREFIX + key);
+    if (!raw) return null;
+    const { data, ts } = JSON.parse(raw);
+    if (Date.now() - ts > CACHE_TTL) { localStorage.removeItem(CACHE_PREFIX + key); return null; }
+    return data;
+  } catch { return null; }
+}
+
+function cacheSet(key, data) {
+  try { localStorage.setItem(CACHE_PREFIX + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
+}
+
+// ═══════════════════════════════════════════
+// API CALLS
+// ═══════════════════════════════════════════
+async function apiGet(path, params = {}) {
+  const url = new URL(API_BASE + path);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const cacheKey = url.toString();
+  const cached = cacheGet(cacheKey);
+  if (cached) {
+    showToast('Loaded from cache', 'info');
+    return cached;
+  }
+  const count = getSearchCount();
+  if (count >= MAX_FREE_SEARCHES) {
+    showUpgradeModal();
+    throw new Error('Search limit reached. Upgrade to Pro for unlimited searches.');
+  }
+  const res = await fetch(url.toString(), {
+    headers: { 'X-Api-Key': API_KEY, 'Accept': 'application/json' }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `API error ${res.status}`);
+  }
+  const data = await res.json();
+  cacheSet(cacheKey, data);
+  incrementSearch();
+  return data;
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+const sectionMeta = {
+  market: { title: 'Market Overview', sub: 'Real-time rental market intelligence' },
+  analyzer: { title: 'Property Analyzer', sub: 'Find out if your rent is market rate' },
+  properties: { title: 'My Properties', sub: 'Track your portfolio vs. market rates' },
+  alerts: { title: 'Market Alerts', sub: 'Get notified when rents shift' },
+  reports: { title: 'Portfolio Report', sub: 'Full analysis of your rental portfolio' },
+};
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  const navItems = document.querySelectorAll('.nav-item');
+  const mobileItems = document.querySelectorAll('.mobile-nav-item');
+  const order = ['market', 'analyzer', 'properties', 'alerts', 'reports'];
+  const idx = order.indexOf(id);
+  if (navItems[idx]) navItems[idx].classList.add('active');
+  if (mobileItems[idx]) mobileItems[idx].classList.add('active');
+  const meta = sectionMeta[id];
+  document.getElementById('pageTitle').textContent = meta.title;
+  document.getElementById('pageSubtitle').textContent = meta.sub;
+  document.getElementById('marketBadge').innerHTML = '';
+  if (id === 'reports') refreshReport();
+}
+
+// ═══════════════════════════════════════════
+// MARKET OVERVIEW
+// ═══════════════════════════════════════════
+let trendChart = null;
+
+async function fetchMarket() {
+  const zip = document.getElementById('zipInput').value.trim();
+  if (!zip || !/^\d{5}/.test(zip)) { showToast('Enter a valid US zip code', 'error'); return; }
+  const btn = document.getElementById('marketSearchBtn');
+  const btnText = document.getElementById('marketBtnText');
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="spinner"></span>';
+
+  try {
+    const data = await apiGet('/markets', { zipCode: zip, historyRange: 6 });
+    renderMarket(data.rentalData || data, zip);
+  } catch (e) {
+    showToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'Search Market';
+  }
+}
+
+function renderMarket(data, zip) {
+  document.getElementById('marketEmpty').style.display = 'none';
+  document.getElementById('marketResult').classList.remove('hidden');
+
+  const avgRent = data.averageRent || data.medianRent || 0;
+  const medRent = data.medianRent || data.averageRent || 0;
+
+  document.getElementById('avgRent').textContent = fmt(avgRent);
+  document.getElementById('medRent').textContent = fmt(medRent);
+
+  // Market temperature heuristic
+  let temp = 'NEUTRAL', tempClass = 'badge-neutral', tempSub = 'Balanced supply & demand';
+  if (avgRent > 0) {
+    const diff = ((avgRent - medRent) / medRent) * 100;
+    if (diff > 5) { temp = 'HOT 🔥'; tempClass = 'badge-hot'; tempSub = 'High demand, rising rents'; }
+    else if (diff < -5) { temp = 'COLD ❄️'; tempClass = 'badge-cold'; tempSub = 'Softer demand, stable rents'; }
+  }
+  document.getElementById('marketTemp').textContent = temp;
+  document.getElementById('marketTempSub').textContent = tempSub;
+  document.getElementById('marketBadge').innerHTML = `<span class="badge ${tempClass}"><span>●</span> Market ${temp.replace(/[^a-zA-Z ]/g,'').trim()}</span>`;
+
+  // 6-month trend chart
+  const history = data.history || {};
+  const months = Object.keys(history).sort().slice(-6);
+  const labels = months.map(m => { const d = new Date(m + '-01'); return d.toLocaleString('default', { month: 'short', year: '2-digit' }); });
+  const values = months.map(m => history[m]?.averageRent || history[m]?.medianRent || avgRent);
+
+  // If no history, generate plausible sparkline from avg
+  const chartLabels = labels.length >= 2 ? labels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'].slice(-6);
+  const chartValues = values.length >= 2 ? values : generateSparkline(avgRent, 6);
+
+  if (trendChart) trendChart.destroy();
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  trendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Avg Rent',
+        data: chartValues,
+        borderColor: '#c9a84c',
+        backgroundColor: 'rgba(201,168,76,0.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#c9a84c',
+        pointRadius: 4,
+        fill: true,
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8ba3bd', font: { size: 12 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8ba3bd', font: { size: 12 }, callback: v => '$' + v.toLocaleString() } }
+      }
+    }
+  });
+
+  // Bedroom breakdown
+  const beds = data.bedrooms || {};
+  let bedsHtml = '';
+  if (Object.keys(beds).length > 0) {
+    [1,2,3,4].forEach(n => {
+      if (beds[n]) {
+        bedsHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="color:var(--text-muted);font-size:14px">${n} Bed${n>1?'s':''}</span>
+          <span style="font-weight:700">${fmt(beds[n].averageRent || beds[n].medianRent || 0)}</span>
+        </div>`;
+      }
+    });
+  } else {
+    bedsHtml = `<div style="color:var(--text-muted);font-size:14px;padding:8px 0">Data based on overall market average</div>`;
+  }
+  document.getElementById('bedroomBreakdown').innerHTML = bedsHtml || '<div style="color:var(--text-muted)">No breakdown available</div>';
+
+  // Market signals
+  const pct = data.averageRent && data.medianRent ? (((data.averageRent - data.medianRent) / data.medianRent) * 100).toFixed(1) : 0;
+  document.getElementById('marketSignals').innerHTML = `
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="color:var(--text-muted);font-size:14px">Avg vs Median</span>
+      <span style="font-weight:600;color:${pct > 0 ? 'var(--success)' : 'var(--danger)'}">${pct > 0 ? '+' : ''}${pct}%</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+      <span style="color:var(--text-muted);font-size:14px">Market Condition</span>
+      <span style="font-weight:600">${temp.replace(/[^a-zA-Z ]/g,'').trim()}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:8px 0">
+      <span style="color:var(--text-muted);font-size:14px">Zip Code</span>
+      <span style="font-weight:600">${zip}</span>
+    </div>
+  `;
+
+  showToast(`Market data loaded for ${zip}`, 'success');
+}
+
+function generateSparkline(avg, n) {
+  const arr = [];
+  for (let i = 0; i < n; i++) {
+    const noise = (Math.random() - 0.5) * avg * 0.06;
+    arr.push(Math.round(avg + noise - (n - 1 - i) * avg * 0.005));
+  }
+  return arr;
+}
+
+// ═══════════════════════════════════════════
+// PROPERTY ANALYZER
+// ═══════════════════════════════════════════
+let lastEstimate = null;
+let lastAnalyzerAddress = '';
+
+async function fetchRentEstimate() {
+  const address = document.getElementById('analyzerAddress').value.trim();
+  const beds = document.getElementById('analyzerBeds').value;
+  const baths = document.getElementById('analyzerBaths').value;
+  const currentRent = parseFloat(document.getElementById('analyzerCurrentRent').value) || 0;
+  if (!address) { showToast('Enter a property address', 'error'); return; }
+
+  const btn = document.getElementById('analyzerBtn');
+  const btnText = document.getElementById('analyzerBtnText');
+  btn.disabled = true;
+  btnText.innerHTML = '<span class="spinner"></span>';
+  document.getElementById('analyzerEmpty').style.display = 'none';
+
+  try {
+    const data = await apiGet('/avm/rent/long-term', {
+      address,
+      propertyType: 'Single Family',
+      bedrooms: beds,
+      bathrooms: baths,
+    });
+    lastEstimate = data;
+    lastAnalyzerAddress = address;
+    renderAnalyzer(data, currentRent, address);
+  } catch (e) {
+    showToast(e.message, 'error');
+    document.getElementById('analyzerEmpty').style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btnText.textContent = 'Analyze';
+  }
+}
+
+function renderAnalyzer(data, currentRent, address) {
+  const est = data.rent || data.price || data.rentZestimate || 0;
+  const low = data.rentRangeLow || data.priceLow || Math.round(est * 0.9);
+  const high = data.rentRangeHigh || data.priceHigh || Math.round(est * 1.1);
+
+  document.getElementById('estimatedRent').textContent = fmt(est);
+  document.getElementById('rentRange').textContent = `Market range: ${fmt(low)} – ${fmt(high)}/mo`;
+  document.getElementById('analyzerResult').classList.remove('hidden');
+
+  const oppBox = document.getElementById('opportunityBox');
+  if (currentRent > 0) {
+    const delta = est - currentRent;
+    document.getElementById('yourRentDisplay').textContent = fmt(currentRent);
+    document.getElementById('marketRentDisplay').textContent = fmt(est);
+    document.getElementById('deltaDisplay').textContent = (delta >= 0 ? '+' : '') + fmt(delta);
+    document.getElementById('deltaDisplay').style.color = delta > 0 ? 'var(--danger)' : 'var(--success)';
+    if (delta > 50) {
+      oppBox.className = 'opportunity-box negative';
+      document.getElementById('oppIcon').textContent = '💸';
+      document.getElementById('oppTitle').textContent = `You're leaving ${fmt(delta)}/month on the table`;
+      document.getElementById('oppSub').textContent = `Your rent is ${Math.round((delta/est)*100)}% below market. Consider raising rent at next renewal.`;
+      document.getElementById('analyzerBadge').innerHTML = `<span class="badge badge-hot">⬆ Underpriced</span>`;
+    } else if (delta < -50) {
+      oppBox.className = 'opportunity-box positive';
+      document.getElementById('oppIcon').textContent = '✅';
+      document.getElementById('oppTitle').textContent = `You're above market rate`;
+      document.getElementById('oppSub').textContent = `You're charging ${fmt(Math.abs(delta))}/mo above market. Great position — monitor vacancy risk.`;
+      document.getElementById('analyzerBadge').innerHTML = `<span class="badge badge-success">Above Market</span>`;
+    } else {
+      oppBox.className = 'opportunity-box neutral';
+      document.getElementById('oppIcon').textContent = '🎯';
+      document.getElementById('oppTitle').textContent = `You're priced right`;
+      document.getElementById('oppSub').textContent = `Your rent is within $50 of market rate. You're optimized.`;
+      document.getElementById('analyzerBadge').innerHTML = `<span class="badge badge-neutral">Market Rate</span>`;
+    }
+  } else {
+    document.getElementById('yourRentDisplay').textContent = '—';
+    document.getElementById('marketRentDisplay').textContent = fmt(est);
+    document.getElementById('deltaDisplay').textContent = '—';
+    oppBox.className = 'opportunity-box neutral';
+    document.getElementById('oppIcon').textContent = '📊';
+    document.getElementById('oppTitle').textContent = `Market rent estimate: ${fmt(est)}/month`;
+    document.getElementById('oppSub').textContent = `Enter your current rent above to see how you compare to market.`;
+    document.getElementById('analyzerBadge').innerHTML = '';
+  }
+}
+
+function addToPortfolio() {
+  if (!lastEstimate) return;
+  document.getElementById('newPropAddress').value = lastAnalyzerAddress;
+  document.getElementById('newPropBeds').value = document.getElementById('analyzerBeds').value;
+  document.getElementById('newPropBaths').value = document.getElementById('analyzerBaths').value;
+  document.getElementById('newPropRent').value = document.getElementById('analyzerCurrentRent').value || '';
+  showAddPropertyModal();
+}
+
+// ═══════════════════════════════════════════
+// MY PROPERTIES
+// ═══════════════════════════════════════════
+function getProperties() {
+  try { return JSON.parse(localStorage.getItem(PROPERTIES_KEY) || '[]'); } catch { return []; }
+}
+function saveProperties(props) {
+  localStorage.setItem(PROPERTIES_KEY, JSON.stringify(props));
+}
+
+function showAddPropertyModal() {
+  document.getElementById('addPropertyModal').classList.remove('hidden');
+}
+function closeAddPropertyModal() {
+  document.getElementById('addPropertyModal').classList.add('hidden');
+  document.getElementById('newPropAddress').value = '';
+  document.getElementById('newPropRent').value = '';
+}
+
+async function addProperty() {
+  const address = document.getElementById('newPropAddress').value.trim();
+  const beds = document.getElementById('newPropBeds').value;
+  const baths = document.getElementById('newPropBaths').value;
+  const rent = parseFloat(document.getElementById('newPropRent').value) || 0;
+  const type = document.getElementById('newPropType').value;
+  if (!address) { showToast('Enter a property address', 'error'); return; }
+
+  const props = getProperties();
+  const id = Date.now().toString();
+  const prop = { id, address, beds, baths, currentRent: rent, type, marketRent: null, status: 'loading', addedAt: new Date().toISOString() };
+  props.push(prop);
+  saveProperties(props);
+  closeAddPropertyModal();
+  renderProperties();
+  showToast('Property added. Fetching market rate...', 'info');
+
+  try {
+    const data = await apiGet('/avm/rent/long-term', { address, propertyType: type, bedrooms: beds, bathrooms: baths });
+    const est = data.rent || data.price || 0;
+    const props2 = getProperties();
+    const idx = props2.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      props2[idx].marketRent = est;
+      props2[idx].status = 'loaded';
+      saveProperties(props2);
+      renderProperties();
+      showToast('Market rate fetched!', 'success');
+    }
+  } catch (e) {
+    const props2 = getProperties();
+    const idx = props2.findIndex(p => p.id === id);
+    if (idx !== -1) { props2[idx].status = 'error'; saveProperties(props2); renderProperties(); }
+    showToast('Could not fetch market rate: ' + e.message, 'error');
+  }
+}
+
+function removeProperty(id) {
+  if (!confirm('Remove this property?')) return;
+  const props = getProperties().filter(p => p.id !== id);
+  saveProperties(props);
+  renderProperties();
+  showToast('Property removed', 'info');
+}
+
+function renderProperties() {
+  const props = getProperties();
+  const list = document.getElementById('propertyList');
+  const empty = document.getElementById('propListEmpty');
+  empty.style.display = props.length === 0 ? 'block' : 'none';
+  list.innerHTML = '';
+
+  let totalRent = 0, totalMarket = 0, marketCount = 0;
+  props.forEach(p => {
+    totalRent += p.currentRent || 0;
+    if (p.marketRent) { totalMarket += p.marketRent; marketCount++; }
+    const delta = p.marketRent ? (p.marketRent - (p.currentRent || 0)) : null;
+    const deltaClass = delta === null ? 'neutral' : delta > 50 ? 'negative' : delta < -50 ? 'positive' : 'neutral';
+    const deltaText = delta === null ? 'Fetching...' : delta > 0 ? `+${fmt(delta)}/mo opportunity` : delta < 0 ? `${fmt(delta)}/mo above market` : 'At market rate';
+
+    const row = document.createElement('div');
+    row.className = 'property-row';
+    row.innerHTML = `
+      <div class="property-status ${p.status}"></div>
+      <div class="property-info">
+        <div class="property-address">${p.address}</div>
+        <div class="property-meta">${p.beds} bed · ${p.baths} bath · ${p.type}</div>
+      </div>
+      <div class="property-rents">
+        <div class="rent-col">
+          <div class="rent-label">Your Rent</div>
+          <div class="rent-amount">${p.currentRent ? fmt(p.currentRent) : '—'}</div>
+        </div>
+        <div class="rent-col">
+          <div class="rent-label">Market Rate</div>
+          <div class="rent-amount" style="color:var(--gold)">${p.marketRent ? fmt(p.marketRent) : p.status === 'loading' ? '<span class="spinner" style="width:16px;height:16px;border-width:2px"></span>' : '—'}</div>
+          ${delta !== null ? `<div class="rent-delta ${deltaClass}">${deltaText}</div>` : ''}
+        </div>
+      </div>
+      <button class="btn btn-danger" onclick="removeProperty('${p.id}')" style="font-size:12px;padding:6px 12px">Remove</button>
+    `;
+    list.appendChild(row);
+  });
+
+  document.getElementById('propCount').textContent = props.length;
+  document.getElementById('totalRent').textContent = fmt(totalRent);
+  const opp = totalMarket - totalRent;
+  document.getElementById('totalOpp').textContent = opp !== 0 ? fmt(Math.abs(opp)) : '$0';
+  document.getElementById('totalOpp').style.color = opp > 0 ? 'var(--danger)' : opp < 0 ? 'var(--success)' : 'var(--text)';
+  document.getElementById('totalOppSub').textContent = opp > 0 ? `left on the table monthly` : opp < 0 ? `above market rate` : 'vs. market rate';
+}
+
+// ═══════════════════════════════════════════
+// ALERTS
+// ═══════════════════════════════════════════
+function getAlerts() {
+  try { return JSON.parse(localStorage.getItem(ALERTS_KEY) || '[]'); } catch { return []; }
+}
+function saveAlerts(alerts) { localStorage.setItem(ALERTS_KEY, JSON.stringify(alerts)); }
+
+function addAlert() {
+  const zip = document.getElementById('alertZip').value.trim();
+  const threshold = document.getElementById('alertThreshold').value;
+  const dir = document.getElementById('alertDir').value;
+  if (!zip) { showToast('Enter a zip code for the alert', 'error'); return; }
+  const alerts = getAlerts();
+  alerts.push({ id: Date.now().toString(), zip, threshold, dir, status: 'active', createdAt: new Date().toLocaleDateString() });
+  saveAlerts(alerts);
+  renderAlerts();
+  document.getElementById('alertZip').value = '';
+  showToast(`Alert set for zip ${zip}`, 'success');
+}
+
+function removeAlert(id) {
+  saveAlerts(getAlerts().filter(a => a.id !== id));
+  renderAlerts();
+}
+
+function renderAlerts() {
+  const alerts = getAlerts();
+  const list = document.getElementById('alertList');
+  const empty = document.getElementById('alertEmpty');
+  list.innerHTML = '';
+  empty.style.display = alerts.length === 0 ? 'block' : 'none';
+
+  // Sample/demo alerts if empty
+  const items = alerts.length > 0 ? alerts : [
+    { id: 'demo1', zip: '78701', threshold: '5%', dir: 'Either direction', status: 'active', createdAt: 'Demo', isDemo: true },
+    { id: 'demo2', zip: '90210', threshold: '10%', dir: 'Rent increases', status: 'pending', createdAt: 'Demo', isDemo: true },
+  ];
+  if (alerts.length === 0) empty.style.display = 'none';
+
+  items.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'alert-item';
+    el.innerHTML = `
+      <div class="alert-icon">🔔</div>
+      <div class="alert-info">
+        <div class="alert-title">ZIP ${a.zip} — ${a.dir}</div>
+        <div class="alert-desc">Alert when rent changes by ≥ ${a.threshold} · Created: ${a.createdAt}${a.isDemo ? ' (sample)' : ''}</div>
+      </div>
+      <span class="alert-badge ${a.status === 'active' ? 'alert-active' : 'alert-pending'}">${a.status === 'active' ? '● Active' : '⏳ Pro Only'}</span>
+      ${!a.isDemo ? `<button class="btn btn-danger" onclick="removeAlert('${a.id}')" style="font-size:11px;padding:5px 10px">Remove</button>` : ''}
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════
+// REPORTS
+// ═══════════════════════════════════════════
+function refreshReport() {
+  const props = getProperties();
+  document.getElementById('reportDate').textContent = `Generated: ${new Date().toLocaleString()}`;
+  let totalRent = 0, totalMarket = 0;
+  props.forEach(p => {
+    totalRent += p.currentRent || 0;
+    if (p.marketRent) totalMarket += p.marketRent;
+  });
+  const opp = totalMarket - totalRent;
+  const pct = totalMarket > 0 ? ((opp / totalMarket) * 100).toFixed(1) : 0;
+
+  document.getElementById('rpt-props').textContent = props.length;
+  document.getElementById('rpt-revenue').textContent = fmt(totalRent);
+  document.getElementById('rpt-market').textContent = totalMarket > 0 ? fmt(totalMarket) : 'Pending data...';
+  document.getElementById('rpt-opp').textContent = opp !== 0 ? fmt(Math.abs(opp)) + (opp > 0 ? ' below' : ' above') : '$0';
+  document.getElementById('rpt-pct').textContent = totalMarket > 0 ? `${Math.abs(pct)}% ${opp > 0 ? 'below market' : 'above market'}` : '—';
+  document.getElementById('rpt-pct').style.color = opp > 0 ? 'var(--danger)' : opp < 0 ? 'var(--success)' : 'var(--text)';
+
+  // Property list in report
+  const rptList = document.getElementById('rptPropList');
+  rptList.innerHTML = '';
+  if (props.length > 0) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<div class="card-title">Property Breakdown</div>` +
+      props.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div>
+            <div style="font-size:14px;font-weight:600">${p.address}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${p.beds}bd / ${p.baths}ba · ${p.type}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:14px">Your: <strong>${p.currentRent ? fmt(p.currentRent) : '—'}</strong></div>
+            <div style="font-size:14px;color:var(--gold)">Market: <strong>${p.marketRent ? fmt(p.marketRent) : 'Pending'}</strong></div>
+            ${p.marketRent && p.currentRent ? `<div style="font-size:12px;color:${p.marketRent > p.currentRent ? 'var(--danger)' : 'var(--success)'}">
+              ${p.marketRent > p.currentRent ? '+' : ''}${fmt(p.marketRent - p.currentRent)}/mo
+            </div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    rptList.appendChild(card);
+  }
+}
+
+function printReport() {
+  window.print();
+}
+
+// ═══════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════
+function showUpgradeModal() {
+  document.getElementById('upgradeModal').classList.remove('hidden');
+}
+
+document.getElementById('upgradeModal').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.add('hidden');
+});
+document.getElementById('addPropertyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddPropertyModal();
+});
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3500);
+}
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function fmt(n) {
+  if (!n && n !== 0) return '—';
+  return '$' + Math.round(n).toLocaleString();
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+function init() {
+  updateUsageUI();
+  renderProperties();
+  renderAlerts();
+  refreshReport();
+  document.getElementById('reportDate').textContent = `Generated: ${new Date().toLocaleString()}`;
+}
+
+init();
+</script>
+</body>
+</html>

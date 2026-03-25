@@ -6,6 +6,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const PRODUCT_PRICES: Record<string, { name: string; price: number }> = {
+  "rentiq": { name: "RentIQ — Landlord Rental Market Intelligence", price: 2900 },
   "fairway-hammered": { name: "Fairway Hammered — Golf Score & Beer Tracker", price: 800 },
   "tcpa-tracker": { name: "TCPA Violation Tracker", price: 800 },
   "home-security-dashboard": { name: "Home Security Dashboard", price: 2900 },

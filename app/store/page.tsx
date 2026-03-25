@@ -4,6 +4,18 @@ import { useState } from "react";
 
 const PRODUCTS = [
   {
+    id: "rentiq",
+    name: "RentIQ — Rental Market Intelligence",
+    desc: "Enter any zip code and instantly see real rental market data. Find out if you're leaving money on the table. Powered by live market data.",
+    price: 29,
+    priceId: "price_rentiq",
+    emoji: "🏘️",
+    color: "#f59e0b",
+    badge: "🔥 New",
+    features: ["Live rental market data by zip code", "Property rent estimator", "Portfolio analyzer vs market rate", "6-month rent trend charts", "\"You're leaving $X/month\" calculator", "Unlimited property tracking"],
+    file: "RentIQ-Dashboard.html"
+  },
+  {
     id: "fairway-hammered",
     name: "Fairway Hammered",
     desc: "Golf scorecard + beer tracker app. Track scores, beers, and find out if Jim is still standing. Because someone had to build this. 🍺⛳",

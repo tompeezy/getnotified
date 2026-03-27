@@ -2,13 +2,13 @@
 import { useState, useEffect } from "react"
 
 const links = [
-  { label: "Home", href: "#" },
-  { label: "Elder Safety", href: "#elder-safety" },
-  { label: "Water Protection", href: "#water" },
-  { label: "GuardianHub", href: "#guardianhub" },
-  { label: "Remote Support", href: "#remote-support" },
-  { label: "Pricing", href: "#packages" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/" },
+  { label: "Elder Safety", href: "/#elder-safety" },
+  { label: "WaterGuard", href: "/waterguard" },
+  { label: "GuardianHub", href: "/#guardianhub" },
+  { label: "Remote Support", href: "/#remote-support" },
+  { label: "Pricing", href: "/#packages" },
+  { label: "Contact", href: "/#contact" },
 ]
 
 export default function NavBar() {
